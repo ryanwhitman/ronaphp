@@ -1,0 +1,16 @@
+2015-11-03
+- Elliminated Helper::array_get() and replaced with Helper::get()
+
+2015-11-01
+- Procedures, controllers, etc. are now grouped and the groups only load when called.
+- Procedures, controllers, and preps now throw an exception when they don't exist.
+
+2015-10-22
+- In App::run(), the Procedure now runs prior to the Controllers, and the Procedure return value is injected into Controllers.
+
+2015-10-21
+- Views can now output directly when wrapped in quotes.
+- Added method override functionality for put, patch, etc.
+- Procedures now offer "input_raw" as a function argument.
+- Routes now merge with existing routes of the same route instead of overwriting.
+- Added Helper::get()
