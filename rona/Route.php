@@ -4,139 +4,184 @@ class Route {
 
 	private static $instance;
 
-	public static $http_methods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
+	public static $http_methods = ['get', 'post', 'put', 'patch', 'delete', 'options'];
 
 	private
 		$routes = [],
-		$routes_by_id = [],
 		$no_route = [];
 	
 	private function __construct() {}
-
 	private function __clone() {}
-
 	private function __wakeup() {}
 
 	private static function instance() {
 
-		if (self::$instance == NULL) {
+		if (self::$instance == NULL)
 			self::$instance = new self();
-		}
 
 		return self::$instance;
 	}
 
-	public static function get($ids, $path, $components) {
-		self::custom('get', $ids, $path, $components);
+	public static function get($path, $components) {
+		self::map('get', $path, $components);
 	}
 
-	public static function post($ids, $path, $components) {
-		self::custom('post', $ids, $path, $components);
+	public static function post($path, $components) {
+		self::map('post', $path, $components);
 	}
 
-	public static function put($ids, $path, $components) {
-		self::custom('put', $ids, $path, $components);
+	public static function put($path, $components) {
+		self::map('put', $path, $components);
 	}
 
-	public static function patch($ids, $path, $components) {
-		self::custom('patch', $ids, $path, $components);
+	public static function patch($path, $components) {
+		self::map('patch', $path, $components);
 	}
 
-	public static function delete($ids, $path, $components) {
-		self::custom('delete', $ids, $path, $components);
+	public static function delete($path, $components) {
+		self::map('delete', $path, $components);
 	}
 
-	public static function head($ids, $path, $components) {
-		self::custom('head', $ids, $path, $components);
+	public static function options($path, $components) {
+		self::map('options', $path, $components);
 	}
 
-	public static function options($ids, $path, $components) {
-		self::custom('options', $ids, $path, $components);
-	}
-
-	public static function any($ids, $path, $components) {
-		self::custom(self::$http_methods, $ids, $path, $components);
+	public static function any($path, $components) {
+		self::map(self::$http_methods, $path, $components);
 	}
 	
-	public static function custom($http_methods, $ids, $path, $components) {
+	public static function map($http_methods, $path, $components) {
 
-		// Ensure $http_methods is an array
-			$http_methods = (array) $http_methods;
-		
+		// If singular nouns were used, transfer them to plural
+			if (!empty($components['controller']))
+				$components['controllers'] = $components['controller'];
+			
+			if (!empty($components['view']))
+				$components['views'] = $components['view'];
+			
+			if (!empty($components['option']))
+				$components['options'] = $components['option'];
+			
+			if (!empty($components['tag']))
+				$components['tags'] = $components['tag'];
+
 		// Establish $components_formatted array
 			$components_formatted = [];
-			if (!empty($ids)) {
-				$components_formatted['ids'] = (array) $ids;
-			}
 
-			if (isset($components['tags'])) {
-				$components_formatted['tags'] = (array) $components['tags'];
-			}
+			$is_api = $components_formatted['is_api'] = Helper::array_get($components, 'is_api') === true ? true : false;
 
-			if (isset($components['procedure'])) {
+			if (!empty($components['procedure']))
 				$components_formatted['procedure'] = (string) $components['procedure'];
+
+			if (!$is_api) {
+
+				if (!empty($components['controllers']))
+					$components_formatted['controllers'] = (array) $components['controllers'];
+
+				if (!empty($components['views']))
+					$components_formatted['views'] = (array) $components['views'];
+
+				if (!empty($components['options']))
+					$components_formatted['options'] = (array) $components['options'];
+
+				if (!empty($components['tags']))
+					$components_formatted['tags'] = (array) $components['tags'];
 			}
 
-			if (isset($components['controllers'])) {
-				$components_formatted['controllers'] = (array) $components['controllers'];
-			}
-
-			if (isset($components['views'])) {
-				$components_formatted['views'] = (array) $components['views'];
-			}
-
-			if (isset($components['options'])) {
-				$components_formatted['options'] = (array) $components['options'];
-			}
+		// A valid route must contain a procedure, controller, or view
+			if (empty($components_formatted['procedure']) && empty($components_formatted['controllers']) && empty($components_formatted['views']))
+				return false;
 			
 		// Ensure path is in correct format
 			$path = (string) trim(strtolower($path), '/ ');
 			
 		// Determine route type
-			if (preg_match('/[*]/i', $path)) {
+			if (!$is_api && preg_match('/[*]/i', $path))
 				$type = 'wildcard';
-			} elseif (preg_match('/\/{.+(}$|}\/)/', $path)) {
+			elseif (preg_match('/\/{.+(}$|}\/)/', $path))
 				$type = 'variable';
-			} else {
+			else
 				$type = 'regular';
-			}
+
+		// Turn the path into an array & get the count
+			$path_arr = explode('/', $path);
+			$path_count = count($path_arr);
 			
 		// Add routes for each http method
+			$http_methods = (array) $http_methods;
 			foreach ($http_methods as $http_method) {
-				self::instance()->routes[$http_method][$type][$path] = array_merge_recursive(Helper::get(self::instance()->routes[$http_method][$type][$path], []), $components_formatted);
-			}
 			
-		// Add route by id
-			if (!empty($components_formatted['ids'])) {
-				foreach ($components_formatted['ids'] as $id) {
+				// Find and attach wildcards
+					if ($is_api &&
+						$type != 'wildcard' &&
+						!empty(self::get_routes()[$http_method]['wildcard']) &&
+						is_array(self::get_routes()[$http_method]['wildcard'])
+					) {
+						
+						$wildcard_arr = [];
+						
+						foreach (self::get_routes()[$http_method]['wildcard'] as $k => $v) {
+							
+							$path_examining_arr = explode('/', $k);
+							
+							$is_match = false;
+							for ($i = 0; $i < $path_count; $i++) {
+								
+								if ($path_examining_arr[$i] == $path_arr[$i] || $path_examining_arr[$i] == '*') {
+								
+									// Get the count, which is the current iteration (array index) plus 1
+										$count = $i + 1;
+									
+									if ($count == count($path_examining_arr) && ($count == $path_count || $path_examining_arr[$i] == '*')) {
+										
+										$is_match = true;
+										break;
+									}
+								
+								} else
+									break;
+							}
+							
+							if ($is_match)
+								$wildcard_arr = array_merge_recursive($wildcard_arr, $v);
+						}
+					
+						// Add the wildcard array
+							if (!empty($wildcard_arr))
+								$components_formatted = array_merge_recursive($wildcard_arr, $components_formatted);
+					}
 
-					// Ensure id is unique
-						if (isset(self::instance()->routes_by_id[$id]))
-							throw new Exception("'$id' is not a unique id.");
-
-					self::instance()->routes_by_id[$id] = [
-						'type'	=>	$type,
-						'path'	=>	$path
-					];
-				}
+				self::instance()->routes[$http_method][$type][$path] = array_merge_recursive(Helper::get(self::instance()->routes[$http_method][$type][$path], []), $components_formatted);
 			}
 	}
 	
 	public static function no_route($components) {
-		
+
+		// If singular nouns were used, transfer them to plural
+			if (!empty($components['controller']))
+				$components['controllers'] = $components['controller'];
+			
+			if (!empty($components['view']))
+				$components['views'] = $components['view'];
+			
+			if (!empty($components['option']))
+				$components['options'] = $components['option'];
+
 		// Establish $components_formatted array
 			$components_formatted = [];
-			if (isset($components['controllers'])) {
+
+			if (!empty($components['controllers']))
 				$components_formatted['controllers'] = (array) $components['controllers'];
-			}
 
-			if (isset($components['views'])) {
+			if (!empty($components['views']))
 				$components_formatted['views'] = (array) $components['views'];
-			}
 
-			if (isset($components['options'])) {
+			if (!empty($components['options']))
 				$components_formatted['options'] = (array) $components['options'];
-			}
+
+		// A valid no_route must contain a controller or view
+			if (empty($components_formatted['controllers']) && empty($components_formatted['views']))
+				return false;
 	
 		// Add no_route
 			self::instance()->no_route = $components_formatted;
@@ -146,50 +191,31 @@ class Route {
 		return self::instance()->routes;
 	}
 
-	public static function get_routes_by_id() {
-		return self::instance()->routes_by_id;
-	}
-
 	public static function get_no_route() {
 		return self::instance()->no_route;
 	}
 	
-	public static function path($id, $vars = []) {
-
-		// Get the route and ensure one was found
-			$routes = self::get_routes_by_id();
-			if (empty($routes[$id])) return '';
-			$route = $routes[$id];
-
-		if ($route['type'] == 'variable') {
-			$route_arr = explode('/', $route['path']);
-			$var_i = 0;
-			for ($i = 0; $i < count($route_arr); $i++) {
-				if (preg_match('/^{.+}$/', $route_arr[$i])) {
-					$return_route[$i] = $vars[$var_i];
-					$var_i++;
-				} else {
-					$return_route[$i] = $route_arr[$i];
-				}
-			}
-			$return_route = implode('/', $return_route);
-		} else {
-			$return_route = $route['path'];
-		}
-		
-		return '/' . trim($return_route, '/ ');
-	}
-	
-	public static function change($id, $vars = [], $query_params = []) {
-		App::location(self::path($id, $vars), $query_params);
-	}
-	
-	public static function is_active($id) {
-		return in_array($id, Request::route_ids());
+	public static function is_active($path) {
+		return Request::route() == trim($path, ' /');
 	}
 	
 	public static function tag_is_active($tag) {
 		return in_array($tag, Request::route_tags());
+	}
+	
+	public static function change($base, $query_params = []) {
+
+		$query_string = '';
+		if (!empty($query_params) && is_array($query_params)) {
+			$query_string = '?';
+			foreach ($query_params as $k => $v) {
+				$query_string .= $k . '=' . $v . '&';
+			}
+			$query_string = trim($query_string, '&');
+		}
+
+		header('Location: ' . $base . $query_string);
+		exit;
 	}
 }
 

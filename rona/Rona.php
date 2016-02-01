@@ -1,53 +1,60 @@
 <?php
 
-class App {
+class Rona {
 
 	private static $instance;
+
+	private $settings;
 	
 	private function __construct() {}
-
 	private function __clone() {}
-
 	private function __wakeup() {}
 
 	private static function instance() {
 
-		if (self::$instance == NULL) {
+		if (self::$instance == NULL)
 			self::$instance = new self();
-		}
 
 		return self::$instance;
 	}
-
-	public static function init() {
+	
+	public static function run($settings = []) {
 
 		// Instantiate
 			self::instance();
+
+		// Establish settings
+			$default_settings = [
+				'working_root'	=> $_SERVER['DOCUMENT_ROOT'],
+				'locations'		=> [
+					'routes_api'	=> '/api/routes.php',
+					'procedures'	=> '/api/procedures',
+					'profilters'	=> '/api/profilters',
+					'routes_app'	=> '/app/routes.php',
+					'controllers'	=> '/app/controllers',
+					'views'			=> '/app/views'
+				],
+				'base_path'		=> ''
+			];
+			self::instance()->settings = array_replace_recursive($default_settings, $settings);
 
 		// Register autoloader
 			spl_autoload_register(function($class) {
 				require_once(__DIR__ . '/' . $class . '.php');
 			});
-	}
-	
-	public static function run($options = []) {
 
 		// Load routes
-			self::load_directories(['routes' => []]);
-		
-		// Reset Request
-			Request::reset();
+			require_once self::get_setting('working_root') . self::get_setting('location.routes_api');
+			require_once self::get_setting('working_root') . self::get_setting('location.routes_app');
 
-		// Establish defaults && route
-			if (isset($options['route_requested'])) {
-				$requested_route = trim($options['route_requested'], '/ ');
-			} else {
-				$options['base_path'] = Helper::get($options['base_path']);
-				$requested_route = str_replace($options['base_path'], '', $_SERVER['REQUEST_URI']);
-				$requested_route = strtok($requested_route, '?');
-				$requested_route = trim($requested_route, ' /');
-			}
-			Request::set('route', $requested_route);
+		// Establish http method. If "_http_method" override was posted, use it. Otherwise, use default
+			Request::set('http_method', strtolower(!empty($_POST['_http_method']) ? $_POST['_http_method'] : $_SERVER['REQUEST_METHOD']));
+
+		// Establish requested route
+			$route_requested = str_replace(self::get_setting('base_path'), '', $_SERVER['REQUEST_URI']);
+			$route_requested = strtok($route_requested, '?');
+			$route_requested = trim($route_requested, ' /');
+			Request::set('route', $route_requested);
 
 		// Turn the requested route into an array & get the count
 			$route_requested_arr = explode('/', Request::route());
@@ -56,7 +63,7 @@ class App {
 		// Establish an empty $route_found variable
 			$route_found = '';
 			
-		// First attempt to find a direct match. If that fails, try matching a path with a route variable in it.
+		// First attempt to find a direct match. If that fails, try matching a route with a variable in it.
 			if (isset(Route::get_routes()[Request::http_method()]['regular'][Request::route()])) {
 				$route_found = Route::get_routes()[Request::http_method()]['regular'][Request::route()];
 			} elseif (!empty(Route::get_routes()[Request::http_method()]['variable']) && is_array(Route::get_routes()[Request::http_method()]['variable'])) {
@@ -107,94 +114,53 @@ class App {
 			if (empty($route_found)) {
 				header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found', true, 404);
 				$route_found = Route::get_no_route();
+				if (empty($route_found))
+					$route_found['views'] = ['"<span style="position: absolute; top: 30%; right: 20px; left: 20px; text-align: center; font-weight: bold; font-size: 25px;">Welcome to Rona! Looks like you need to create some routes!</span>"'];
 			}
 			
-		// Find and apply wildcards
-			elseif (!empty(Route::get_routes()[Request::http_method()]['wildcard']) && is_array(Route::get_routes()[Request::http_method()]['wildcard'])) {
-							
-				$wildcard_arr = [];
-				
-				foreach (Route::get_routes()[Request::http_method()]['wildcard'] as $k => $v) {
-					
-					$route_examining_arr = explode('/', $k);
-					
-					$is_match = false;
-					for ($i = 0; $i < $route_requested_count; $i++) {
-						
-						if ($route_examining_arr[$i] == $route_requested_arr[$i] || $route_examining_arr[$i] == '*') {
-						
-							// Get the count, which is the current iteration (array index) plus 1
-								$count = $i + 1;
-							
-							if ($count == count($route_examining_arr) && ($count == $route_requested_count || $route_examining_arr[$i] == '*')) {
-								
-								$is_match = true;
-								break;
-							}
-						
-						} else {
-							break;
-						}
-					}
-					
-					if ($is_match) {
-						$wildcard_arr = array_merge_recursive($wildcard_arr, $v);
-					}
-				}
-			}
-			
-		// Add the wildcard array
-			if (!empty($wildcard_arr)) {
-				$route_found = array_merge_recursive($wildcard_arr, $route_found);
-			}
-						
 		// Set the current route_vars
-			if (!empty($route_vars)) {
+			if (!empty($route_vars))
 				Request::set('route_vars', $route_vars);
-			}
-			
-		// Set the current route_ids
-			if (!empty($route_found['ids'])) {
-				Request::set('route_ids', $route_found['ids']);
-			}
 			
 		// Set the current route_tags
-			if (!empty($route_found['tags'])) {
+			if (!empty($route_found['tags']))
 				Request::set('route_tags', $route_found['tags']);
-			}
 			
 		// Set the current route_options
-			if (!empty($route_found['options'])) {
+			if (!empty($route_found['options']))
 				Request::set('route_options', $route_found['options']);
-			}
 
 		// Run the procedure
 			if (!empty($route_found['procedure'])) {
 				
 				// Get input values
-					if (Request::http_method() == 'get') {
+					if (Request::http_method() == 'get')
 						$input = $_GET;
-					} else {
+					else
 						parse_str(file_get_contents('php://input'), $input);
-					}
+
 					$input = array_merge($input, Request::route_vars());
 					
 				// Run the procedure
-					$procedure_ret = Procedure::run($route_found['procedure'], $input);
+					$procedure_res = Procedure::run($route_found['procedure'], $input);
+
+				// If this is an api route, output in json format. Otherwise, the app will continue to load
+					if (Helper::array_get($route_found, 'is_api'))
+						exit(json_encode($procedure_res));
 			}
 			
 		// Run the controllers
 			if (!empty($route_found['controllers']) && is_array($route_found['controllers'])) {
 				foreach ($route_found['controllers'] as $controller) {
 					
-					$procedure_ret = Helper::get($procedure_ret);
+					$procedure_res = Helper::get($procedure_res);
 
 					if (is_callable($controller)) {
-						$controller = $controller($procedure_ret);
+						$controller = $controller($procedure_res);
 					}
 					
 					if (!empty($controller)) {
-						Controller::run($controller, $procedure_ret);
+						Controller::run($controller, $procedure_res);
 					}
 				}
 			}
@@ -205,9 +171,8 @@ class App {
 				$output = '';
 				foreach ($route_found['views'] as $view) {
 					
-					if (is_callable($view)) {
+					if (is_callable($view))
 						$view = $view();
-					}
 					
 					ob_start();
 						if (!empty($view)) {
@@ -222,9 +187,8 @@ class App {
 								}
 
 							// The view was not a string output, so include the file
-								else {
-									self::load_file($_SERVER['DOCUMENT_ROOT'] . '/views/' . $view . '.php', false, false);
-								}
+								else
+									Helper::load_file(self::get_setting('working_root') . self::get_setting('location.views') . '/' . $view . '.php', false, false);
 						}
 						$contents = ob_get_contents();
 					ob_end_clean();
@@ -240,78 +204,29 @@ class App {
 					}
 				}
 				
-				// Remove any remaining rona_replace place holders
+				// Remove any remaining rona_replace place holders and output the views
 					$output = str_replace('{rona_replace}', '', $output);
-			
-				echo $output;
-				return;
+					echo $output;
+					return;
 			}
-			
-		// Output the procedure
-			if (!empty($procedure_ret))
-				echo json_encode($procedure_ret);
 	}
 
-	public static function load_group($full_name) {
+	public static function tLoad($type, $name) {
 
-		$parts = explode('.', $full_name);
+		$parts = explode('.', $name);
 		$name = end($parts);
 		unset($parts[count($parts) - 1]);
-		self::load_file($_SERVER['DOCUMENT_ROOT'] . '/' . implode('/', $parts) . '.php');
+		Helper::load_file(self::get_setting('working_root') . self::get_setting('location.' . $type . 's') . '/' . implode('/', $parts) . '.php');
 		return $name;
 	}
 
-	public static function load_directories($directories = array(), $require = true, $once = true) {
+	public static function get_setting($setting_name) {
 
-		foreach ($directories as $directory => $options) {
-						
-			if (isset($options['precedence'])) {
-				$options['precedence'] = (array) $options['precedence'];
-				foreach ($options['precedence'] as $precedence) {
-					self::load_file($_SERVER['DOCUMENT_ROOT'] . '/' . $directory . '/' . $precedence . '.php', $require, $once);
-				}
-			}
-			
-			foreach (glob($_SERVER['DOCUMENT_ROOT'] . '/' . $directory . '/*.php') as $filename) {
-				self::load_file($filename, $require, $once);
-			}
-		}
-	}
-				
-	public static function load_file($file, $require = true, $once = true) {
-		if ($require)
-			if ($once)
-				require_once($file);
-			else
-				require($file);
-		else
-			if ($once)
-				include_once($file);
-			else
-				include($file);
-	}
-	
-	public static function ret($success, $message = '', $data = []) {
-		return array(
-			'success'	=>	(bool) $success,
-			'message'	=>	$message,
-			'data'		=>	(array) $data
-		);
-	}
+		$parts = explode('.', $setting_name);
+		if ($parts[0] == 'location') $parts[0] = 'locations';
+		$setting_name = implode('.', $parts);
 
-	public static function location($base, $query_params = []) {
-
-		$query_string = '';
-		if (!empty($query_params) && is_array($query_params)) {
-			$query_string = '?';
-			foreach ($query_params as $k => $v) {
-				$query_string .= $k . '=' . $v . '&';
-			}
-			$query_string = trim($query_string, '&');
-		}
-
-		header('Location: ' . $base . $query_string);
-		exit;
+		return Helper::array_get(self::instance()->settings, $setting_name);
 	}
 }
 

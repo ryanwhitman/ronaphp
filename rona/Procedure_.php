@@ -4,8 +4,7 @@ class Procedure_ {
 
 	private
 		$name,
-		$preps = [],
-		$route_obj;
+		$profilters = [];
 	
 	function __construct($name) {
 		$this->name = (string) $name;
@@ -13,13 +12,8 @@ class Procedure_ {
 		return $this;
 	}
 	
-	public function route() {
-		$this->route_obj = new Procedure_Route($this);
-		return $this->route_obj;
-	}
-	
-	public function prep($name, $options = []) {
-		$this->preps[] = [
+	public function profilter($name, $options = []) {
+		$this->profilters[] = [
 			'name'		=>	(string) $name,
 			'options'	=>	(array) $options
 		];
@@ -29,15 +23,9 @@ class Procedure_ {
 	
 	public function execute($function) {
 		Procedure::instance()->procedures[$this->name] = [
-			'preps'		=>	$this->preps,
-			'execute'	=>	$function
+			'profilters'	=>	$this->profilters,
+			'execute'		=>	$function
 		];
-		
-		if (!empty($this->route_obj->http_methods) && !empty($this->route_obj->path)) {
-			Route::custom($this->route_obj->http_methods, '', $this->route_obj->path, [
-				'procedure'		=>	$this->name
-			]);
-		}
 	}
 }
 

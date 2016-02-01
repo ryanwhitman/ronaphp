@@ -9,16 +9,13 @@ class Controller {
 		$controllers_run = [];
 	
 	private function __construct() {}
-
 	private function __clone() {}
-
 	private function __wakeup() {}
 
 	private static function instance() {
 
-		if (self::$instance == NULL) {
+		if (self::$instance == NULL)
 			self::$instance = new self();
-		}
 
 		return self::$instance;
 	}
@@ -27,10 +24,10 @@ class Controller {
 		self::instance()->controllers[$name] = $function;
 	}
 	
-	public static function run($full_name, $args = NULL) {
+	public static function run($name, $args = NULL) {
 
-		// Load the group
-			$name = App::load_group('controllers.' . $full_name);
+		// Targeted load
+			$name = Rona::tLoad('controller', $name);
 
 		// Get the controller
 			$controller = Helper::get(self::instance()->controllers[$name]);

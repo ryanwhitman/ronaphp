@@ -5,16 +5,13 @@ class Scope {
 	private static $instance;
 	
 	private function __construct() {}
-
 	private function __clone() {}
-
 	private function __wakeup() {}
-	
+
 	private static function instance() {
 
-		if (self::$instance == NULL) {
+		if (self::$instance == NULL)
 			self::$instance = new self();
-		}
 
 		return self::$instance;
 	}

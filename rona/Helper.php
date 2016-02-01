@@ -8,10 +8,37 @@ class Helper {
 		SECS_IN_SEMIYEAR = 15768000;
 	
 	private function __construct() {}
-
 	private function __clone() {}
-
 	private function __wakeup() {}
+				
+	public static function load_file($file, $require = true, $once = true) {
+		if ($require)
+			if ($once)
+				require_once $file;
+			else
+				require $file;
+		else
+			if ($once)
+				include_once $file;
+			else
+				include $file;
+	}
+
+	public static function load_directory($directory, $require = true, $once = true, $precedence = []) {
+
+		$precedence = (array) $precedence;
+		$already_loaded = [];
+		foreach ($precedence as $file) {
+			$filename = $file . '.php';
+			self::load_file($directory . '/' . $filename, $require, $once);
+			$already_loaded[] = $filename;
+		}
+		
+		foreach (glob($directory . '/*.php') as $filename) {
+			if (in_array($filename, $already_loaded)) continue;
+			self::load_file($filename, $require, $once);
+		}
+	}
 
 	public static function is_numeric($x) {
 		return preg_match('/^[0-9]+$/', $x);
@@ -137,6 +164,19 @@ class Helper {
 
 	public static function get(&$var, $default = NULL) {
 		return isset($var) ? $var : $default;
+	}
+
+	public static function array_get($array, $keys, $default = NULL) {
+		
+		$keys = explode('.', $keys);
+		foreach ($keys as $key) {
+			if (!isset($array[$key]))
+				return $default;
+
+			$array = $array[$key];
+		}
+
+		return $array;
 	}
 
 	public static function possessionize($str) {
