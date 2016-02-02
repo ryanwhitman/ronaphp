@@ -20,7 +20,7 @@ class Controller {
 		return self::$instance;
 	}
 	
-	public static function controller($name, $function) {
+	public static function define($name, $function) {
 		self::instance()->controllers[$name] = $function;
 	}
 	

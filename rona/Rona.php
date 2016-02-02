@@ -132,21 +132,48 @@ class Rona {
 
 		// Run the procedure
 			if (!empty($route_found['procedure'])) {
-				
-				// Get input values
-					if (Request::http_method() == 'get')
-						$input = $_GET;
-					else
-						parse_str(file_get_contents('php://input'), $input);
 
+				$input = [];
+
+				// If this is a "get" request, get the query string data
+					if (Request::http_method() == 'get')
+						parse_str($_SERVER['QUERY_STRING'], $input);
+
+				// Since this isn't a "get" request, we'll get the input that was sent
+					else {
+						$content_type = Helper::array_get($_SERVER, 'CONTENT_TYPE');
+
+						if ($content_type == 'application/x-www-form-urlencoded')
+							parse_str(file_get_contents('php://input'), $input);
+
+						# We're intentionally using the raw $_SERVER['REQUEST_METHOD'] here. This is a work around that will allow our manual put/patch/etc _http_method override methods to upload files
+						elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && strstr($content_type, 'multipart/form-data') !== false) {
+							$input = $_POST;
+							$input = array_merge($input, $_FILES);
+						}
+
+						elseif ($content_type == 'application/json')
+							$input = json_decode(file_get_contents('php://input'), true);
+
+						else
+							parse_str(file_get_contents('php://input'), $input);
+					}
+
+				// Get the route variables
 					$input = array_merge($input, Request::route_vars());
+
+				// Get the auth header
+					if (!empty($_SERVER['HTTP_AUTH']))
+						$input = array_merge($input, ['auth' => $_SERVER['HTTP_AUTH']]);
 					
 				// Run the procedure
 					$procedure_res = Procedure::run($route_found['procedure'], $input);
 
 				// If this is an api route, output in json format. Otherwise, the app will continue to load
-					if (Helper::array_get($route_found, 'is_api'))
+					if (Helper::array_get($route_found, 'is_api')) {
+						header('Content-Type: application/json');
 						exit(json_encode($procedure_res));
+					}
 			}
 			
 		// Run the controllers

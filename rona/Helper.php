@@ -186,6 +186,21 @@ class Helper {
 	public static function method_override($http_method) {
 		echo '<input type="hidden" name="_http_method" value="' . $http_method . '">';
 	}
+	
+	public static function location($base, $query_params = []) {
+
+		$query_string = '';
+		if (!empty($query_params) && is_array($query_params)) {
+			$query_string = '?';
+			foreach ($query_params as $k => $v) {
+				$query_string .= $k . '=' . $v . '&';
+			}
+			$query_string = trim($query_string, '&');
+		}
+
+		header('Location: ' . $base . $query_string);
+		exit;
+	}
 
 }
 

@@ -202,21 +202,6 @@ class Route {
 	public static function tag_is_active($tag) {
 		return in_array($tag, Request::route_tags());
 	}
-	
-	public static function change($base, $query_params = []) {
-
-		$query_string = '';
-		if (!empty($query_params) && is_array($query_params)) {
-			$query_string = '?';
-			foreach ($query_params as $k => $v) {
-				$query_string .= $k . '=' . $v . '&';
-			}
-			$query_string = trim($query_string, '&');
-		}
-
-		header('Location: ' . $base . $query_string);
-		exit;
-	}
 }
 
 ?>

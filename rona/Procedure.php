@@ -4,8 +4,6 @@ class Procedure {
 
 	private static $instance;
 	
-	private $profilters = [];
-	
 	public $procedures = [];
 	
 	private function __construct() {}
@@ -20,29 +18,7 @@ class Procedure {
 		return self::$instance;
 	}
 	
-	public static function profilter($name, $default_options, $function) {
-		self::instance()->profilters[$name] = [
-			'default_options'	=> (array) $default_options,
-			'function'			=> $function
-		];
-	}
-	
-	public static function run_profilter($name, $input, $options = []) {
-
-		// Targeted load
-			$name = Rona::tLoad('profilter', $name);
-
-		// Get the profilter
-			$profilter = Helper::get(self::instance()->profilters[$name]);
-
-		// Ensure profilter exists
-			if (empty($profilter))
-				throw new Exception('The profilter "' . $name . '" does not exist.');
-
-		return $profilter['function']($input, array_merge($profilter['default_options'], $options));
-	}
-	
-	public static function procedure($name) {
+	public static function define($name) {
 		return new Procedure_($name);
 	}
 	
@@ -67,12 +43,11 @@ class Procedure {
 		// Run the profilters
 			foreach ($procedure['profilters'] as $profilter) {
 				
-				$ret = self::run_profilter($profilter['name'], array_merge($input_raw, $input_profiltered), $profilter['options']);
-				if ($ret['success']) {
+				$ret = Profilter::run($profilter['name'], array_merge($input_raw, $input_profiltered), $profilter['options']);
+				if ($ret['success'])
 					$input_profiltered = array_merge($input_profiltered, $ret['data']);
-				} else {
+				else
 					$error_msgs[] = $ret['message'];
-				}
 			}
 			
 		// If there are any error messages, return the error messages
@@ -81,42 +56,6 @@ class Procedure {
 		
 		// Execute the procedure
 			return $procedure['execute']($input_profiltered, $input_raw);
-	}
-
-	public function get($path, $procedure) {
-		return self::instance()->map('get', $path, $procedure);
-	}
-
-	public function post($path, $procedure) {
-		return self::instance()->map('post', $path, $procedure);
-	}
-
-	public function put($path, $procedure) {
-		return self::instance()->map('put', $path, $procedure);
-	}
-
-	public function patch($path, $procedure) {
-		return self::instance()->map('patch', $path, $procedure);
-	}
-
-	public function delete($path, $procedure) {
-		return self::instance()->map('delete', $path, $procedure);
-	}
-
-	public function options($path, $procedure) {
-		return self::instance()->map('options', $path, $procedure);
-	}
-
-	public function any($path, $procedure) {
-		return self::instance()->map(Route::$http_methods, $path, $procedure);
-	}
-
-	public function map($http_methods, $path, $procedure) {
-		
-		Route::map($http_methods, $path, [
-			'procedure'		=>	$procedure,
-			'is_api'		=>	true
-		]);
 	}
 }
 
