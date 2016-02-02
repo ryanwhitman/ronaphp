@@ -84,31 +84,31 @@ class Procedure {
 	}
 
 	public function get($path, $procedure) {
-		return $this->map('get', $path, $procedure);
+		return self::instance()->map('get', $path, $procedure);
 	}
 
 	public function post($path, $procedure) {
-		return $this->map('post', $path, $procedure);
+		return self::instance()->map('post', $path, $procedure);
 	}
 
 	public function put($path, $procedure) {
-		return $this->map('put', $path, $procedure);
+		return self::instance()->map('put', $path, $procedure);
 	}
 
 	public function patch($path, $procedure) {
-		return $this->map('patch', $path, $procedure);
+		return self::instance()->map('patch', $path, $procedure);
 	}
 
 	public function delete($path, $procedure) {
-		return $this->map('delete', $path, $procedure);
+		return self::instance()->map('delete', $path, $procedure);
 	}
 
 	public function options($path, $procedure) {
-		return $this->map('options', $path, $procedure);
+		return self::instance()->map('options', $path, $procedure);
 	}
 
 	public function any($path, $procedure) {
-		return $this->map(Route::$http_methods, $path, $procedure);
+		return self::instance()->map(Route::$http_methods, $path, $procedure);
 	}
 
 	public function map($http_methods, $path, $procedure) {
