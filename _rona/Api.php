@@ -52,7 +52,7 @@ class Api {
 
 	public static function map($http_methods, $path, $procedure) {
 
-		Route::map($http_methods, Rona::get_setting('base_path') . self::instance()->base_path . $path, [
+		Route::map($http_methods, Config::get('rona.base_path') . self::instance()->base_path . $path, [
 			'procedure'		=>	$procedure,
 			'is_api'		=>	true
 		]);

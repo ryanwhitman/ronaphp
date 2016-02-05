@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/Procedure_.php';
+require_once __DIR__ . '/Filter.php';
+
 class Procedure {
 
 	private static $instance;
@@ -34,18 +37,18 @@ class Procedure {
 			if (empty($procedure))
 				throw new Exception('The procedure "' . $name . '" does not exist.');
 		
-		// Create an empty array for the profiltered input
-			$input_profiltered = [];
+		// Create an empty array for the filtered input
+			$input_filtered = [];
 	
 		// Ensure the error message array starts off empty
 			$error_msgs = [];
 			
-		// Run the profilters
-			foreach ($procedure['profilters'] as $profilter) {
+		// Run the filters
+			foreach ($procedure['filters'] as $filter) {
 				
-				$ret = Profilter::run($profilter['name'], array_merge($input_raw, $input_profiltered), $profilter['options']);
+				$ret = Filter::run($filter['name'], array_merge($input_raw, $input_filtered), $filter['options']);
 				if ($ret['success'])
-					$input_profiltered = array_merge($input_profiltered, $ret['data']);
+					$input_filtered = array_merge($input_filtered, $ret['data']);
 				else
 					$error_msgs[] = $ret['message'];
 			}
@@ -55,7 +58,7 @@ class Procedure {
 				return Response::false($error_msgs);
 		
 		// Execute the procedure
-			return $procedure['execute']($input_profiltered, $input_raw);
+			return $procedure['execute']($input_filtered, $input_raw);
 	}
 }
 

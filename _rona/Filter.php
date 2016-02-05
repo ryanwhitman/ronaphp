@@ -1,10 +1,10 @@
 <?php
 
-class Profilter {
+class Filter {
 
 	private static $instance;
 	
-	private $profilters = [];
+	private $filters = [];
 	
 	private function __construct() {}
 	private function __clone() {}
@@ -19,7 +19,7 @@ class Profilter {
 	}
 	
 	public static function define($name, $default_options, $function) {
-		self::instance()->profilters[$name] = [
+		self::instance()->filters[$name] = [
 			'default_options'	=> (array) $default_options,
 			'function'			=> $function
 		];
@@ -28,16 +28,16 @@ class Profilter {
 	public static function run($name, $input, $options = []) {
 
 		// Targeted load
-			$name = Rona::tLoad('profilter', $name);
+			$name = Rona::tLoad('filter', $name);
 
-		// Get the profilter
-			$profilter = Helper::get(self::instance()->profilters[$name]);
+		// Get the filter
+			$filter = Helper::get(self::instance()->filters[$name]);
 
-		// Ensure profilter exists
-			if (empty($profilter))
-				throw new Exception('The profilter "' . $name . '" does not exist.');
+		// Ensure filter exists
+			if (empty($filter))
+				throw new Exception('The filter "' . $name . '" does not exist.');
 
-		return $profilter['function']($input, array_merge($profilter['default_options'], $options));
+		return $filter['function']($input, array_merge($filter['default_options'], $options));
 	}
 }
 

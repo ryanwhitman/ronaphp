@@ -4,7 +4,9 @@ class Rona {
 
 	private static $instance;
 
-	private $settings;
+	private
+		$was_initialized = false,
+		$autoloaders = [];
 	
 	private function __construct() {}
 	private function __clone() {}
@@ -17,41 +19,64 @@ class Rona {
 
 		return self::$instance;
 	}
+
+	public static function init() {
+
+		if (!self::instance()->was_initialized) {
+
+			// Load class files
+				require_once __DIR__ . '/Config.php';
+				require_once __DIR__ . '/Helper.php';
+
+			// Default configuration
+				Config::set('rona')
+					->_('working_root',	$_SERVER['DOCUMENT_ROOT'])
+					->_('base_path',	'')
+					->_('locations')
+						->_('routes_api',	'/routes_api.php')
+						->_('routes_app',	'/routes_app.php')
+						->_('procedures',	'/model/procedures')
+						->_('filters',		'/model/filters')
+						->_('controllers',	'/app/controllers')
+						->_('views',		'/app/views');
+
+			// Register autoloader
+				spl_autoload_register(function($class) {
+
+					foreach (self::instance()->autoloaders as $autoloader)
+						if (is_callable($autoloader) && $autoloader($class))
+							return true;
+				});
+
+			// Load the developer's custom config file
+				require_once Config::get('rona.working_root') . '/config.php';
+
+			// Rona has been initialized
+				self::instance()->was_initialized = true;
+		}
+	}
+
+	public static function autoload_register($function) {
+		self::instance()->autoloaders[] = $function;
+	}
 	
-	public static function run($settings = []) {
+	public static function run() {
 
-		// Instantiate
-			self::instance();
-
-		// Establish settings
-			$default_settings = [
-				'working_root'	=> $_SERVER['DOCUMENT_ROOT'],
-				'locations'		=> [
-					'routes_api'	=> '/api/routes.php',
-					'procedures'	=> '/api/procedures',
-					'profilters'	=> '/api/profilters',
-					'routes_app'	=> '/app/routes.php',
-					'controllers'	=> '/app/controllers',
-					'views'			=> '/app/views'
-				],
-				'base_path'		=> ''
-			];
-			self::instance()->settings = array_replace_recursive($default_settings, $settings);
-
-		// Register autoloader
-			spl_autoload_register(function($class) {
-				require_once(__DIR__ . '/' . $class . '.php');
-			});
+		// Initialize Rona
+			self::init();
 
 		// Load routes
-			require_once self::get_setting('working_root') . self::get_setting('location.routes_api');
-			require_once self::get_setting('working_root') . self::get_setting('location.routes_app');
+			require_once __DIR__ . '/Route.php';
+			require_once __DIR__ . '/Api.php';
+			require_once Config::get('rona.working_root') . Config::get('rona.locations.routes_api');
+			require_once Config::get('rona.working_root') . Config::get('rona.locations.routes_app');
 
 		// Establish http method. If "_http_method" override was posted, use it. Otherwise, use default
+			require_once __DIR__ . '/Request.php';
 			Request::set('http_method', strtolower(!empty($_POST['_http_method']) ? $_POST['_http_method'] : $_SERVER['REQUEST_METHOD']));
 
 		// Establish requested route
-			$route_requested = str_replace(self::get_setting('base_path'), '', $_SERVER['REQUEST_URI']);
+			$route_requested = str_replace(Config::get('rona.base_path'), '', $_SERVER['REQUEST_URI']);
 			$route_requested = strtok($route_requested, '?');
 			$route_requested = trim($route_requested, ' /');
 			Request::set('route', $route_requested);
@@ -130,6 +155,10 @@ class Rona {
 			if (!empty($route_found['options']))
 				Request::set('route_options', $route_found['options']);
 
+		// Load classes
+			require_once __DIR__ . '/Response.php';
+			require_once __DIR__ . '/Procedure.php';
+
 		// Run the procedure
 			if (!empty($route_found['procedure'])) {
 
@@ -177,6 +206,8 @@ class Rona {
 			}
 			
 		// Run the controllers
+			require_once __DIR__ . '/Controller.php';
+			require_once __DIR__ . '/Scope.php';
 			if (!empty($route_found['controllers']) && is_array($route_found['controllers'])) {
 				foreach ($route_found['controllers'] as $controller) {
 					
@@ -215,7 +246,7 @@ class Rona {
 
 							// The view was not a string output, so include the file
 								else
-									Helper::load_file(self::get_setting('working_root') . self::get_setting('location.views') . '/' . $view . '.php', false, false);
+									Helper::load_file(Config::get('rona.working_root') . Config::get('rona.locations.views') . '/' . $view . '.php', false, false);
 						}
 						$contents = ob_get_contents();
 					ob_end_clean();
@@ -243,17 +274,8 @@ class Rona {
 		$parts = explode('.', $name);
 		$name = end($parts);
 		unset($parts[count($parts) - 1]);
-		Helper::load_file(self::get_setting('working_root') . self::get_setting('location.' . $type . 's') . '/' . implode('/', $parts) . '.php');
+		Helper::load_file(Config::get('rona.working_root') . Config::get('rona.locations.' . $type . 's') . '/' . implode('/', $parts) . '.php');
 		return $name;
-	}
-
-	public static function get_setting($setting_name) {
-
-		$parts = explode('.', $setting_name);
-		if ($parts[0] == 'location') $parts[0] = 'locations';
-		$setting_name = implode('.', $parts);
-
-		return Helper::array_get(self::instance()->settings, $setting_name);
 	}
 }
 

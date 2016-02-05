@@ -4,7 +4,7 @@ class Procedure_ {
 
 	private
 		$name,
-		$profilters = [];
+		$filters = [];
 	
 	function __construct($name) {
 		$this->name = (string) $name;
@@ -12,8 +12,8 @@ class Procedure_ {
 		return $this;
 	}
 	
-	public function profilter($name, $options = []) {
-		$this->profilters[] = [
+	public function filter($name, $options = []) {
+		$this->filters[] = [
 			'name'		=>	(string) $name,
 			'options'	=>	(array) $options
 		];
@@ -23,7 +23,7 @@ class Procedure_ {
 	
 	public function execute($function) {
 		Procedure::instance()->procedures[$this->name] = [
-			'profilters'	=>	$this->profilters,
+			'filters'	=>	$this->filters,
 			'execute'		=>	$function
 		];
 	}

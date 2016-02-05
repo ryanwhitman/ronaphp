@@ -1,7 +1,10 @@
 <?php
 
-// Load & run Rona
-	require_once(__DIR__ . '/rona/Rona.php');
-	Rona::run();
+require_once(__DIR__ . '/_rona/Rona.php');
+Rona::init();
+
+/* Run additional code here */
+
+Rona::run();
 
 ?>

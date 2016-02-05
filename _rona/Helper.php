@@ -166,17 +166,26 @@ class Helper {
 		return isset($var) ? $var : $default;
 	}
 
-	public static function array_get($array, $keys, $default = NULL) {
+	public static function array_get($array, $path, $default = NULL) {
 		
-		$keys = explode('.', $keys);
-		foreach ($keys as $key) {
-			if (!isset($array[$key]))
+		foreach (explode('.', $path) as $part) {
+			if (!isset($array[$part]))
 				return $default;
 
-			$array = $array[$key];
+			$array = $array[$part];
 		}
 
 		return $array;
+	}
+
+	public static function array_set(&$array, $path, $val) {
+		
+		$path = trim($path, '. ');
+		$set_array = &$array;
+		foreach (explode('.', $path) as $part)
+			$set_array = &$set_array[$part];
+
+		$set_array = $val;
 	}
 
 	public static function possessionize($str) {
