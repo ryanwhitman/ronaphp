@@ -18,7 +18,7 @@ class Filter {
 		return self::$instance;
 	}
 	
-	public static function define($name, $default_options, $function) {
+	public static function set($name, $default_options, $function) {
 		self::instance()->filters[$name] = [
 			'default_options'	=> (array) $default_options,
 			'function'			=> $function

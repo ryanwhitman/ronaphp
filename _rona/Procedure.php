@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . '/Procedure_.php';
-require_once __DIR__ . '/Filter.php';
+require_once Config::get('rona.core') . '/Procedure_.php';
+require_once Config::get('rona.core') . '/Filter.php';
 
 class Procedure {
 
@@ -21,7 +21,7 @@ class Procedure {
 		return self::$instance;
 	}
 	
-	public static function define($name) {
+	public static function set($name) {
 		return new Procedure_($name);
 	}
 	
@@ -46,16 +46,16 @@ class Procedure {
 		// Run the filters
 			foreach ($procedure['filters'] as $filter) {
 				
-				$ret = Filter::run($filter['name'], array_merge($input_raw, $input_filtered), $filter['options']);
-				if ($ret['success'])
-					$input_filtered = array_merge($input_filtered, $ret['data']);
+				$res = Filter::run($filter['name'], array_merge($input_raw, $input_filtered), $filter['options']);
+				if ($res->success)
+					$input_filtered = array_merge($input_filtered, $res->data);
 				else
-					$error_msgs[] = $ret['message'];
+					$error_msgs[] = $res->messages;
 			}
 			
 		// If there are any error messages, return the error messages
 			if (!empty($error_msgs))
-				return Response::false($error_msgs);
+				return Response::set(false, $error_msgs);
 		
 		// Execute the procedure
 			return $procedure['execute']($input_filtered, $input_raw);

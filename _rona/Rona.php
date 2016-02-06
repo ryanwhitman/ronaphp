@@ -29,8 +29,11 @@ class Rona {
 				require_once __DIR__ . '/Helper.php';
 
 			// Default configuration
+				Config::define('rona');
 				Config::set('rona')
-					->_('working_root',	$_SERVER['DOCUMENT_ROOT'])
+					->_('root',			dirname(__DIR__))
+					->_('core',			__DIR__)
+					->_('tmp_storage',	'/cgi-bin/tmp')
 					->_('base_path',	'')
 					->_('locations')
 						->_('routes_api',	'/routes_api.php')
@@ -39,6 +42,22 @@ class Rona {
 						->_('filters',		'/model/filters')
 						->_('controllers',	'/app/controllers')
 						->_('views',		'/app/views');
+				Config::set('debug_mode', true);
+				Config::set('auth_identifier', 'at');
+
+			// Load the config file
+				require_once Config::get('rona.root') . '/config.php';
+
+			// Error handling
+				if (Config::get('debug_mode')) {
+					ini_set('display_errors', 1);
+					ini_set('display_startup_errors', 1);
+					error_reporting(-1);
+				} else {
+					ini_set('display_errors', 0);
+					ini_set('display_startup_errors', 0);
+					error_reporting(0);
+				}
 
 			// Register autoloader
 				spl_autoload_register(function($class) {
@@ -47,9 +66,6 @@ class Rona {
 						if (is_callable($autoloader) && $autoloader($class))
 							return true;
 				});
-
-			// Load the developer's custom config file
-				require_once Config::get('rona.working_root') . '/config.php';
 
 			// Rona has been initialized
 				self::instance()->was_initialized = true;
@@ -66,13 +82,14 @@ class Rona {
 			self::init();
 
 		// Load routes
-			require_once __DIR__ . '/Route.php';
-			require_once __DIR__ . '/Api.php';
-			require_once Config::get('rona.working_root') . Config::get('rona.locations.routes_api');
-			require_once Config::get('rona.working_root') . Config::get('rona.locations.routes_app');
+			require_once Config::get('rona.core') . '/Route.php';
+			require_once Config::get('rona.core') . '/Api.php';
+			require_once Config::get('rona.core') . '/App.php';
+			require_once Config::get('rona.root') . Config::get('rona.locations.routes_api');
+			require_once Config::get('rona.root') . Config::get('rona.locations.routes_app');
 
 		// Establish http method. If "_http_method" override was posted, use it. Otherwise, use default
-			require_once __DIR__ . '/Request.php';
+			require_once Config::get('rona.core') . '/Request.php';
 			Request::set('http_method', strtolower(!empty($_POST['_http_method']) ? $_POST['_http_method'] : $_SERVER['REQUEST_METHOD']));
 
 		// Establish requested route
@@ -142,6 +159,9 @@ class Rona {
 				if (empty($route_found))
 					$route_found['views'] = ['"<span style="position: absolute; top: 30%; right: 20px; left: 20px; text-align: center; font-weight: bold; font-size: 25px;">Welcome to Rona! Looks like you need to create some routes!</span>"'];
 			}
+
+		// Is this an API call?
+			$is_api = Helper::array_get($route_found, 'is_api');
 			
 		// Set the current route_vars
 			if (!empty($route_vars))
@@ -156,8 +176,17 @@ class Rona {
 				Request::set('route_options', $route_found['options']);
 
 		// Load classes
-			require_once __DIR__ . '/Response.php';
-			require_once __DIR__ . '/Procedure.php';
+			require_once Config::get('rona.core') . '/Response.php';
+			require_once Config::get('rona.core') . '/Procedure.php';
+
+		// Start session
+			if (!$is_api) {
+				$save_path = Config::get('rona.root') . Config::get('rona.tmp_storage');
+				if (!file_exists($save_path))
+					mkdir($save_path, 0777, true);
+				session_save_path($save_path);
+				session_start();
+			}
 
 		// Run the procedure
 			if (!empty($route_found['procedure'])) {
@@ -191,34 +220,39 @@ class Rona {
 				// Get the route variables
 					$input = array_merge($input, Request::route_vars());
 
-				// Get the auth header
-					if (!empty($_SERVER['HTTP_AUTH']))
-						$input = array_merge($input, ['auth' => $_SERVER['HTTP_AUTH']]);
+				// Get the auth identifier
+					$auth_identifier = Config::get('auth_identifier');
+					$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $auth_identifier)) : Helper::array_get($_SESSION, $auth_identifier);
+					if (!is_null($val))
+						$input = array_merge($input, [$auth_identifier => $val]);
 					
 				// Run the procedure
 					$procedure_res = Procedure::run($route_found['procedure'], $input);
 
 				// If this is an api route, output in json format. Otherwise, the app will continue to load
-					if (Helper::array_get($route_found, 'is_api')) {
+					if ($is_api) {
 						header('Content-Type: application/json');
 						exit(json_encode($procedure_res));
 					}
 			}
+
+		// Create the scope object
+			require_once Config::get('rona.core') . '/Scope.php';
+			$scope = Scope::instance();
+			if (isset($procedure_res))
+				$scope->procedure_res = $procedure_res;
 			
 		// Run the controllers
-			require_once __DIR__ . '/Controller.php';
-			require_once __DIR__ . '/Scope.php';
+			require_once Config::get('rona.core') . '/Controller.php';
 			if (!empty($route_found['controllers']) && is_array($route_found['controllers'])) {
 				foreach ($route_found['controllers'] as $controller) {
 					
-					$procedure_res = Helper::get($procedure_res);
-
 					if (is_callable($controller)) {
-						$controller = $controller($procedure_res);
+						$controller = $controller($scope);
 					}
 					
 					if (!empty($controller)) {
-						Controller::run($controller, $procedure_res);
+						Controller::run($controller, $scope);
 					}
 				}
 			}
@@ -230,7 +264,7 @@ class Rona {
 				foreach ($route_found['views'] as $view) {
 					
 					if (is_callable($view))
-						$view = $view();
+						$view = $view($scope);
 					
 					ob_start();
 						if (!empty($view)) {
@@ -246,14 +280,14 @@ class Rona {
 
 							// The view was not a string output, so include the file
 								else
-									Helper::load_file(Config::get('rona.working_root') . Config::get('rona.locations.views') . '/' . $view . '.php', false, false);
+									self::load_view($view, $scope);
 						}
 						$contents = ob_get_contents();
 					ob_end_clean();
 				
-					if (empty($output)) {
+					if (empty($output))
 						$output = $contents;
-					} else {
+					else {
 					
 						// Escape $n backreferences
 							$contents = preg_replace('/\$(\d)/', '\\\$$1', $contents);
@@ -274,8 +308,12 @@ class Rona {
 		$parts = explode('.', $name);
 		$name = end($parts);
 		unset($parts[count($parts) - 1]);
-		Helper::load_file(Config::get('rona.working_root') . Config::get('rona.locations.' . $type . 's') . '/' . implode('/', $parts) . '.php');
+		Helper::load_file(Config::get('rona.root') . Config::get('rona.locations.' . $type . 's') . '/' . implode('/', $parts) . '.php');
 		return $name;
+	}
+
+	public static function load_view($view, $scope) {
+		include Config::get('rona.root') . Config::get('rona.locations.views') . '/' . $view . '.php';
 	}
 }
 

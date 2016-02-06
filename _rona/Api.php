@@ -1,5 +1,7 @@
 <?php
 
+require_once Config::get('rona.core') . '/Route.php';
+
 class Api {
 
 	private static $instance;
@@ -23,31 +25,31 @@ class Api {
 	}
 
 	public static function get($path, $procedure) {
-		return self::instance()->map('get', $path, $procedure);
+		self::map('get', $path, $procedure);
 	}
 
 	public static function post($path, $procedure) {
-		return self::instance()->map('post', $path, $procedure);
+		self::map('post', $path, $procedure);
 	}
 
 	public static function put($path, $procedure) {
-		return self::instance()->map('put', $path, $procedure);
+		self::map('put', $path, $procedure);
 	}
 
 	public static function patch($path, $procedure) {
-		return self::instance()->map('patch', $path, $procedure);
+		self::map('patch', $path, $procedure);
 	}
 
 	public static function delete($path, $procedure) {
-		return self::instance()->map('delete', $path, $procedure);
+		self::map('delete', $path, $procedure);
 	}
 
 	public static function options($path, $procedure) {
-		return self::instance()->map('options', $path, $procedure);
+		self::map('options', $path, $procedure);
 	}
 
 	public static function any($path, $procedure) {
-		return self::instance()->map(Route::$http_methods, $path, $procedure);
+		self::map(Route::$http_methods, $path, $procedure);
 	}
 
 	public static function map($http_methods, $path, $procedure) {

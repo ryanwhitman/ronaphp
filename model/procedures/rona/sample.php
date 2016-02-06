@@ -2,10 +2,10 @@
 
 /* Sample procedures */
 
-Procedure::define('test')
+Procedure::set('test')
 	->execute(function($input, $input_raw) {
 
-		return Response::true('', $input_raw);
+		return Response::set(true, '', $input_raw);
 	});
 
 ?>
