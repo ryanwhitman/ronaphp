@@ -3,20 +3,10 @@
 require_once Config::get('rona.core') . '/Route.php';
 
 class App {
-
-	private static $instance;
 	
 	private function __construct() {}
 	private function __clone() {}
 	private function __wakeup() {}
-
-	private static function instance() {
-
-		if (self::$instance == NULL)
-			self::$instance = new self();
-
-		return self::$instance;
-	}
 
 	public static function get($path, $components) {
 		self::map('get', $path, $components);
@@ -43,7 +33,7 @@ class App {
 	}
 
 	public static function any($path, $components) {
-		self::map(self::$http_methods, $path, $components);
+		self::map(Config::get('http_methods'), $path, $components);
 	}
 	
 	public static function map($http_methods, $path, $components) {

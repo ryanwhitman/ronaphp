@@ -31,19 +31,20 @@ class Rona {
 			// Default configuration
 				Config::define('rona');
 				Config::set('rona')
-					->_('root',			dirname(__DIR__))
-					->_('core',			__DIR__)
-					->_('tmp_storage',	'/cgi-bin/tmp')
-					->_('base_path',	'')
+					->_('root', dirname(__DIR__))
+					->_('core', __DIR__)
+					->_('tmp_storage', '/cgi-bin/tmp')
+					->_('base_path', '')
 					->_('locations')
-						->_('routes_api',	'/routes_api.php')
-						->_('routes_app',	'/routes_app.php')
-						->_('procedures',	'/model/procedures')
-						->_('filters',		'/model/filters')
-						->_('controllers',	'/app/controllers')
-						->_('views',		'/app/views');
+						->_('routes_api', '/routes_api.php')
+						->_('routes_app', '/routes_app.php')
+						->_('procedures', '/model/procedures')
+						->_('filters', '/model/filters')
+						->_('controllers', '/app/controllers')
+						->_('views', '/app/views');
 				Config::set('debug_mode', true);
 				Config::set('auth_identifier', 'at');
+				Config::set('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
 
 			// Load the config file
 				require_once Config::get('rona.root') . '/config.php';
@@ -106,17 +107,19 @@ class Rona {
 			$route_found = '';
 			
 		// First attempt to find a direct match. If that fails, try matching a route with a variable in it.
-			if (isset(Route::get_routes()[Request::http_method()]['regular'][Request::route()])) {
-				$route_found = Route::get_routes()[Request::http_method()]['regular'][Request::route()];
-			} elseif (!empty(Route::get_routes()[Request::http_method()]['variable']) && is_array(Route::get_routes()[Request::http_method()]['variable'])) {
-				
-				foreach (Route::get_routes()[Request::http_method()]['variable'] as $k => $v) {
+			$direct_match = Helper::array_get(Route::get_routes(), Request::http_method() . '.regular.' . Request::route(), NULL);
+			if (!is_null($direct_match))
+				$route_found = $direct_match;
+			else {
+
+				$variable_matches = Helper::array_get(Route::get_routes(), Request::http_method() . '.variable', []);
+				foreach ($variable_matches as $path => $components) {
 					
 					// Reset route_var array
 						$route_vars = [];
 					
 					// Explode the route being examined into an array
-						$route_examining_arr = explode('/', $k);
+						$route_examining_arr = explode('/', $path);
 					
 					// Ensure the arrays are the same size
 						if ($route_requested_count == count($route_examining_arr)) {
@@ -145,7 +148,7 @@ class Rona {
 								}
 								
 							if ($matches_found == $matches_needed) {
-								$route_found = $v;
+								$route_found = $components;
 								break;
 							}
 						}
@@ -157,7 +160,7 @@ class Rona {
 				header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found', true, 404);
 				$route_found = Route::get_no_route();
 				if (empty($route_found))
-					$route_found['views'] = ['"<span style="position: absolute; top: 30%; right: 20px; left: 20px; text-align: center; font-weight: bold; font-size: 25px;">Welcome to Rona! Looks like you need to create some routes!</span>"'];
+					$route_found['views'] = ['"Uh oh, that page wasn\'t found."'];
 			}
 
 		// Is this an API call?
@@ -222,7 +225,7 @@ class Rona {
 
 				// Get the auth identifier
 					$auth_identifier = Config::get('auth_identifier');
-					$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $auth_identifier)) : Helper::array_get($_SESSION, $auth_identifier);
+					$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $auth_identifier), NULL) : Helper::array_get($_SESSION, $auth_identifier, NULL);
 					if (!is_null($val))
 						$input = array_merge($input, [$auth_identifier => $val]);
 					
@@ -247,13 +250,11 @@ class Rona {
 			if (!empty($route_found['controllers']) && is_array($route_found['controllers'])) {
 				foreach ($route_found['controllers'] as $controller) {
 					
-					if (is_callable($controller)) {
+					if (is_callable($controller))
 						$controller = $controller($scope);
-					}
 					
-					if (!empty($controller)) {
+					if (!empty($controller))
 						Controller::run($controller, $scope);
-					}
 				}
 			}
 			
@@ -266,8 +267,8 @@ class Rona {
 					if (is_callable($view))
 						$view = $view($scope);
 					
-					ob_start();
-						if (!empty($view)) {
+					if (!empty($view)) {
+						ob_start();
 
 							// If the view is wrapped in quotes, simply output the string
 								$first_char = substr($view, 0, 1);
@@ -281,10 +282,10 @@ class Rona {
 							// The view was not a string output, so include the file
 								else
 									self::load_view($view, $scope);
-						}
-						$contents = ob_get_contents();
-					ob_end_clean();
-				
+							$contents = ob_get_contents();
+						ob_end_clean();
+					}
+
 					if (empty($output))
 						$output = $contents;
 					else {
@@ -297,9 +298,7 @@ class Rona {
 				}
 				
 				// Remove any remaining rona_replace place holders and output the views
-					$output = str_replace('{rona_replace}', '', $output);
-					echo $output;
-					return;
+					echo str_replace('{rona_replace}', '', $output);
 			}
 	}
 

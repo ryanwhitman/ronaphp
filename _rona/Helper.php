@@ -44,18 +44,20 @@ class Helper {
 		return preg_match('/^[0-9]+$/', $x);
 	}
 
-	public static function is_alphanumeric_ci($x) {
-		return preg_match('/^[a-z0-9]+$/i', $x);
+	public static function is_alphanumeric($x, $case = 'ci') {
+
+		if ($case == 'ci')
+			return preg_match('/^[a-z0-9]+$/i', $x);
+		elseif ($case == 'lc')
+			return preg_match('/^[a-z0-9]+$/', $x);
+		elseif ($case == 'uc')
+			return preg_match('/^[A-Z0-9]+$/', $x);
+
+		return false;
 	}
 
-	public static function has_length_range($min, $max, $str) {
-		if (strlen($str) >= $min) {
-			if (strlen($str) <= $max || $max == '-1') {
-				return true;
-			}
-		}
-		
-		return false;
+	public static function has_length_range($str, $min, $max = '-1') {
+		return strlen($str) >= $min && (strlen($str) <= $max || $max == '-1');
 	}
 
 	public static function get_email($x) {
@@ -63,31 +65,29 @@ class Helper {
 		return self::is_email($email) ? $email : '';
 	}
 
-	public static function get_emails($x) {
-		$x = (array) $x;
-		$emails = array();
-		foreach ($x as $email) {
+	public static function get_emails($emails) {
+		$emails = (array) $emails;
+		$valid_emails = array();
+		foreach ($emails as $email) {
 			$email = self::get_email($email);
-			if (!empty($email)) {
-				$emails[] = $email;
-			}
+			if (!empty($email))
+				$valid_emails[] = $email;
 		}
-		return $emails;
+
+		return $valid_emails;
 	}
 
-	public static function is_email($x) {
-		return filter_var($x, FILTER_VALIDATE_EMAIL);
+	public static function is_email($email) {
+		return filter_var($email, FILTER_VALIDATE_EMAIL);
 	}
 
-	public static function are_emails($x) {
-		$x = (array) $x;
-		$are_emails = true;
-		foreach ($x as $email) {
-			if (!self::is_email($email)) {
-				$are_emails = false;
-			}
-		}
-		return $are_emails;
+	public static function are_emails($emails) {
+		$emails = (array) $emails;
+		foreach ($emails as $email)
+			if (!self::is_email($email))
+				return false;
+
+		return true;
 	}
 
 	public static function get_currency($x) {
@@ -95,9 +95,8 @@ class Helper {
 		$currency = str_replace(',', '', $currency);
 		if (is_numeric($currency)) {
 			$currency = round($currency, 2);
-			if ($currency >= -999999999 && $currency <= 999999999) {
+			if ($currency >= -999999999 && $currency <= 999999999)
 				return $currency;
-			}
 		}
 		return NULL;
 	}
@@ -110,48 +109,63 @@ class Helper {
 		return preg_match('/^[a-z][a-z`\',\. ]*$/i', $x);
 	}
 
-	public static function trim_full($x) {
-		$x = trim($x);
-		$x = preg_replace('/[ ]+(\s)/', '$1', $x);
-		$x = preg_replace('/(\s)[ ]+/', '$1', $x);
-		$x = preg_replace('/\0/', '', $x);
-		$x = preg_replace('/(\n){2,}/', '$1$1', $x);
-		$x = preg_replace('/\f/', '', $x);
-		$x = preg_replace('/(\r){2,}/', '$1$1', $x);
-		$x = preg_replace('/\t/', '', $x);
-		$x = preg_replace('/(\v){2,}/', '$1$1', $x);
-		return $x;
+	public static function trim_full($str) {
+		$str = trim($str);
+		$str = preg_replace('/[ ]+(\s)/', '$1', $str);
+		$str = preg_replace('/(\s)[ ]+/', '$1', $str);
+		$str = preg_replace('/\0/', '', $str);
+		$str = preg_replace('/(\n){2,}/', '$1$1', $str);
+		$str = preg_replace('/\f/', '', $str);
+		$str = preg_replace('/(\r){2,}/', '$1$1', $str);
+		$str = preg_replace('/\t/', '', $str);
+		$str = preg_replace('/(\v){2,}/', '$1$1', $str);
+		return $str;
 	}
 
-	public static function get_random($type, $len) {
+	public static function get_random($pattern, $len) {
 
 		$numbers = '0123456789';
-		$letters_lc = 'abcdefghijklmnopqrstuvwxyz';
-		$letters_uc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		$letters = 'abcdefghijklmnopqrstuvwxyz';
 
-		switch ($type) {
+		switch ($pattern) {
 		
-			case 'numbers':
+			case 'num':
 				$chars = $numbers;
 			break;
 		
-			case 'letters':
-				$chars = $letters_lc . $letters_uc;
+			case 'let':
+				$chars = strtolower($letters) . strtoupper($letters);
 			break;
 		
-			case 'string':
-				$chars = $letters_lc . $letters_uc . $numbers;
+			case 'let_lc':
+				$chars = strtolower($letters);
+			break;
+		
+			case 'let_uc':
+				$chars = strtoupper($letters);
+			break;
+		
+			case 'alphanum':
+				$chars = strtolower($letters) . strtoupper($letters) . $numbers;
+			break;
+		
+			case 'alphanum_lc':
+				$chars = strtolower($letters) . $numbers;
+			break;
+		
+			case 'alphanum_uc':
+				$chars = strtoupper($letters) . $numbers;
 			break;
 			
 			default:
 				return false;
 		}
 		
-		$ret = '';
-		for ($i = 0; $i < $len; $i++) {
-			$ret .= $chars[rand(0, strlen($chars) -1)];
-		}
-		return $ret;
+		$random_str = '';
+		for ($i = 0; $i < $len; $i++)
+			$random_str .= $chars[rand(0, strlen($chars) -1)];
+
+		return $random_str;
 	}
 
 	public static function get_date($x) {
@@ -201,9 +215,9 @@ class Helper {
 		$query_string = '';
 		if (!empty($query_params) && is_array($query_params)) {
 			$query_string = '?';
-			foreach ($query_params as $k => $v) {
+			foreach ($query_params as $k => $v)
 				$query_string .= $k . '=' . $v . '&';
-			}
+			
 			$query_string = trim($query_string, '&');
 		}
 

@@ -22,6 +22,20 @@ class Config {
 		return self::$instance;
 	}
 
+	public static function define($path, $val = NULL) {
+
+		# Used for constants
+
+		return self::m($path, $val, true);
+	}
+
+	public static function set($path, $val = NULL) {
+
+		# Used for variables
+
+		return self::m($path, $val, false);
+	}
+
 	public static function m($path, $val = NULL, $is_const) {
 
 		$path = strtolower(trim($path, ' .'));
@@ -46,28 +60,14 @@ class Config {
 		return true;
 	}
 
-	public static function define($path, $val = NULL) {
-
-		# Used for constants
-
-		return self::m($path, $val, true);
-	}
-
-	public static function set($path, $val = NULL) {
-
-		# Used for variables
-
-		return self::m($path, $val, false);
-	}
-
 	public static function get($path) {
 
 		$path = strtolower(trim($path, ' .'));
 
 		$variables = Helper::array_get(self::instance()->variables, $path, NULL);
 		$constants = Helper::array_get(self::instance()->constants, $path, NULL);
-
-		if (is_array($variables) && is_array($constants))
+		
+		if (is_array($constants) && is_array($variables))
 			return array_replace_recursive($variables, $constants);
 		else if (!is_null($constants))
 			return $constants;

@@ -24,7 +24,7 @@ class Procedure_ {
 	public function execute($function) {
 		Procedure::instance()->procedures[$this->name] = [
 			'filters'	=>	$this->filters,
-			'execute'		=>	$function
+			'execute'	=>	$function
 		];
 	}
 }

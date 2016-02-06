@@ -25,7 +25,7 @@ class Procedure {
 		return new Procedure_($name);
 	}
 	
-	public static function run($name, $input_raw = []) {
+	public static function run($name, $input_unfiltered = []) {
 
 		// Targeted load
 			$name = Rona::tLoad('procedure', $name);
@@ -46,7 +46,7 @@ class Procedure {
 		// Run the filters
 			foreach ($procedure['filters'] as $filter) {
 				
-				$res = Filter::run($filter['name'], array_merge($input_raw, $input_filtered), $filter['options']);
+				$res = Filter::run($filter['name'], array_merge($input_unfiltered, $input_filtered), $filter['options']);
 				if ($res->success)
 					$input_filtered = array_merge($input_filtered, $res->data);
 				else
@@ -58,7 +58,7 @@ class Procedure {
 				return Response::set(false, $error_msgs);
 		
 		// Execute the procedure
-			return $procedure['execute']($input_filtered, $input_raw);
+			return $procedure['execute']($input_filtered, $input_unfiltered);
 	}
 }
 

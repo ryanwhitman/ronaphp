@@ -5,15 +5,15 @@ require_once Config::get('rona.core') . '/Route.php';
 class Api {
 
 	private static $instance;
-
+	
 	private $base_path = '';
 	
 	private function __construct() {}
 	private function __clone() {}
 	private function __wakeup() {}
-
+	
 	public static function instance() {
-
+		
 		if (self::$instance == NULL)
 			self::$instance = new self();
 
@@ -49,12 +49,12 @@ class Api {
 	}
 
 	public static function any($path, $procedure) {
-		self::map(Route::$http_methods, $path, $procedure);
+		self::map(Config::get('http_methods'), $path, $procedure);
 	}
 
 	public static function map($http_methods, $path, $procedure) {
 
-		Route::map($http_methods, Config::get('rona.base_path') . self::instance()->base_path . $path, [
+		Route::map($http_methods, self::instance()->base_path . $path, [
 			'procedure'		=>	$procedure,
 			'is_api'		=>	true
 		]);

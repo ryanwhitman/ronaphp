@@ -4,8 +4,6 @@ class Route {
 
 	private static $instance;
 
-	public static $http_methods = ['get', 'post', 'put', 'patch', 'delete', 'options'];
-
 	private
 		$routes = [],
 		$no_route = [];
@@ -24,7 +22,21 @@ class Route {
 	
 	public static function map($http_methods, $path, $components) {
 
-		// If singular nouns were used, transfer them to plural
+		// Does this route belong to the API or app?
+			$is_api = Helper::array_get($components, 'is_api') === true ? true : false;
+
+		// Ensure path is in correct format
+			$path = (string) trim(strtolower($path), '/ ');
+			
+		// Determine route type
+			if (!$is_api && preg_match('/[*]/i', $path))
+				$type = 'wildcard';
+			elseif (preg_match('/\/{.+(}$|}\/)/', $path))
+				$type = 'variable';
+			else
+				$type = 'regular';
+
+		// If singular component nouns were used, transfer them to plural
 			if (!empty($components['controller']))
 				$components['controllers'] = $components['controller'];
 			
@@ -40,9 +52,7 @@ class Route {
 		// Establish $components_formatted array
 			$components_formatted = [];
 
-			$is_api = $components_formatted['is_api'] = Helper::array_get($components, 'is_api') === true ? true : false;
-
-			if (!empty($components['procedure']))
+			if ($type != 'wildcard' && !empty($components['procedure']))
 				$components_formatted['procedure'] = (string) $components['procedure'];
 
 			if (!$is_api) {
@@ -60,41 +70,30 @@ class Route {
 					$components_formatted['tags'] = (array) $components['tags'];
 			}
 
-		// A valid route must contain a procedure, controller, or view
-			if (empty($components_formatted['procedure']) && empty($components_formatted['controllers']) && empty($components_formatted['views']))
+		// Only proceed if a component exists
+			if (empty($components_formatted))
 				return false;
-			
-		// Ensure path is in correct format
-			$path = (string) trim(strtolower($path), '/ ');
-			
-		// Determine route type
-			if (!$is_api && preg_match('/[*]/i', $path))
-				$type = 'wildcard';
-			elseif (preg_match('/\/{.+(}$|}\/)/', $path))
-				$type = 'variable';
-			else
-				$type = 'regular';
 
 		// Turn the path into an array & get the count
 			$path_arr = explode('/', $path);
 			$path_count = count($path_arr);
 			
 		// Add routes for each http method
-			$http_methods = (array) $http_methods;
-			foreach ($http_methods as $http_method) {
+			foreach ((array) $http_methods as $http_method) {
+
+				// Merge these components with those previously created for this route. This only applies to App routes.
+					if (!$is_api)
+						$components_formatted = array_merge_recursive(Helper::array_get(self::get_routes(), $http_method . '.' . $type . '.' . $path, []), $components_formatted);
 			
-				// Find and attach wildcards
-					if ($is_api &&
-						$type != 'wildcard' &&
-						!empty(self::get_routes()[$http_method]['wildcard']) &&
-						is_array(self::get_routes()[$http_method]['wildcard'])
-					) {
+				// Find and attach wildcard components
+					if (!$is_api && $type != 'wildcard') {
+
+						$wc_routes = Helper::array_get(self::get_routes(), $http_method . '.wildcard', []);
+						$wc_components_all = [];
 						
-						$wildcard_arr = [];
-						
-						foreach (self::get_routes()[$http_method]['wildcard'] as $k => $v) {
+						foreach ($wc_routes as $wc_path => $wc_components) {
 							
-							$path_examining_arr = explode('/', $k);
+							$path_examining_arr = explode('/', $wc_path);
 							
 							$is_match = false;
 							for ($i = 0; $i < $path_count; $i++) {
@@ -115,15 +114,19 @@ class Route {
 							}
 							
 							if ($is_match)
-								$wildcard_arr = array_merge_recursive($wildcard_arr, $v);
+								$wc_components_all = array_merge_recursive($wc_components_all, $wc_components);
 						}
 					
 						// Add the wildcard array
-							if (!empty($wildcard_arr))
-								$components_formatted = array_merge_recursive($wildcard_arr, $components_formatted);
+							$components_formatted = array_merge_recursive($wc_components_all, $components_formatted);
 					}
 
-				self::instance()->routes[$http_method][$type][$path] = array_merge_recursive(Helper::get(self::instance()->routes[$http_method][$type][$path], []), $components_formatted);
+				// Add the "is_api" attribute to the route components array. This doesn't apply to wildcards
+					if ($type != 'wildcard')
+						$components_formatted['is_api'] = $is_api;
+
+				// Set the route
+					self::instance()->routes[$http_method][$type][$path] = $components_formatted;
 			}
 	}
 	
