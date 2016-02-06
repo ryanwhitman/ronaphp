@@ -1,17 +1,9 @@
 <?php
 
-/* Build App routes here */
-
 Route::no_route([
-	'views'	=>	['sample_templates/standard', 'sample/no_route']
+	'view'	=>	'"404 Page Not Found"'
 ]);
 
-App::get('*', [
-	'views'	=> '"tiger lion"'
-]);
-
-App::get('/test', [
-	'view'	=> '"bear"'
-]);
+/* Build App routes here */
 
 ?>
