@@ -225,9 +225,8 @@ class Rona {
 
 				// Get the auth identifier
 					$auth_identifier = Config::get('auth_identifier');
-					$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $auth_identifier), NULL) : Helper::array_get($_SESSION, $auth_identifier, NULL);
-					if (!is_null($val))
-						$input = array_merge($input, [$auth_identifier => $val]);
+					$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $auth_identifier)) : Helper::array_get($_SESSION, $auth_identifier);
+					$input = array_merge($input, [$auth_identifier => $val]);
 					
 				// Run the procedure
 					$procedure_res = Procedure::run($route_found['procedure'], $input);
