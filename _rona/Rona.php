@@ -35,6 +35,7 @@ class Rona {
 					->_('core', __DIR__)
 					->_('tmp_storage', '/cgi-bin/tmp')
 					->_('base_path', '')
+					->_('header_input', [])
 					->_('locations')
 						->_('routes_api', '/routes_api.php')
 						->_('routes_app', '/routes_app.php')
@@ -43,7 +44,6 @@ class Rona {
 						->_('controllers', '/app/controllers')
 						->_('views', '/app/views');
 				Config::set('debug_mode', true);
-				Config::set('auth_identifier', 'at');
 				Config::set('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
 
 			// Load the config file
@@ -223,10 +223,13 @@ class Rona {
 				// Get the route variables
 					$input = array_merge($input, Request::route_vars());
 
-				// Get the auth identifier
-					$auth_identifier = Config::get('auth_identifier');
-					$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $auth_identifier)) : Helper::array_get($_SESSION, $auth_identifier);
-					$input = array_merge($input, [$auth_identifier => $val]);
+				// Get the header input
+					$header_input = Config::get('rona.header_input');
+					if (is_array($header_input))
+						foreach ($header_input as $item) {
+							$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $item)) : Helper::array_get($_SESSION, $item);
+							$input = array_merge($input, [$item => $val]);
+						}
 					
 				// Run the procedure
 					$procedure_res = Procedure::run($route_found['procedure'], $input);
