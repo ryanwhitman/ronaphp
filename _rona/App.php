@@ -33,7 +33,7 @@ class App {
 	}
 
 	public static function any($path, $components) {
-		self::map(Config::get('http_methods'), $path, $components);
+		self::map(Config::get('rona.http_methods'), $path, $components);
 	}
 	
 	public static function map($http_methods, $path, $components) {

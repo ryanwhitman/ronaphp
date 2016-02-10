@@ -49,7 +49,7 @@ class Api {
 	}
 
 	public static function any($path, $procedure) {
-		self::map(Config::get('http_methods'), $path, $procedure);
+		self::map(Config::get('rona.http_methods'), $path, $procedure);
 	}
 
 	public static function map($http_methods, $path, $procedure) {

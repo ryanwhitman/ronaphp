@@ -29,13 +29,14 @@ class Rona {
 				require_once __DIR__ . '/Helper.php';
 
 			// Default configuration
-				Config::define('rona');
 				Config::set('rona')
 					->_('root', dirname(__DIR__))
 					->_('core', __DIR__)
 					->_('tmp_storage', '/cgi-bin/tmp')
 					->_('base_path', '')
 					->_('header_input', [])
+					->_('debug_mode', true)
+					->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options'])
 					->_('locations')
 						->_('routes_api', '/routes_api.php')
 						->_('routes_app', '/routes_app.php')
@@ -43,14 +44,12 @@ class Rona {
 						->_('filters', '/model/filters')
 						->_('controllers', '/app/controllers')
 						->_('views', '/app/views');
-				Config::set('debug_mode', true);
-				Config::set('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
 
 			// Load the config file
 				require_once Config::get('rona.root') . '/config.php';
 
 			// Error handling
-				if (Config::get('debug_mode')) {
+				if (Config::get('rona.debug_mode')) {
 					ini_set('display_errors', 1);
 					ini_set('display_startup_errors', 1);
 					error_reporting(-1);
@@ -224,12 +223,11 @@ class Rona {
 					$input = array_merge($input, Request::route_vars());
 
 				// Get the header input
-					$header_input = Config::get('rona.header_input');
-					if (is_array($header_input))
-						foreach ($header_input as $item) {
-							$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $item)) : Helper::array_get($_SESSION, $item);
-							$input = array_merge($input, [$item => $val]);
-						}
+					$header_input = (array) Config::get('rona.header_input');
+					foreach ($header_input as $item) {
+						$val = $is_api ? Helper::array_get($_SERVER, strtoupper('http_' . $item)) : Helper::array_get($_SESSION, $item);
+						$input = array_merge($input, [$item => $val]);
+					}
 					
 				// Run the procedure
 					$procedure_res = Procedure::run($route_found['procedure'], $input);
