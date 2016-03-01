@@ -181,8 +181,11 @@ class Helper {
 	}
 
 	public static function array_get($array, $path, $default = NULL) {
+
+		if (!is_array($path))
+			$path = explode('.', $path);
 		
-		foreach (explode('.', $path) as $part) {
+		foreach ($path as $part) {
 			if (!isset($array[$part]))
 				return $default;
 
