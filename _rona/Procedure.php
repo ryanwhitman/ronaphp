@@ -58,7 +58,7 @@ class Procedure {
 				return Response::set(false, $error_msgs);
 		
 		// Execute the procedure
-			return $procedure['execute']($input_filtered, $input_unfiltered);
+			return $procedure['execute']($input_filtered);
 	}
 }
 
