@@ -1,6 +1,6 @@
 <?php
 
-require_once Config::get('rona.core') . '/Route.php';
+require_once Config::get('rona.core_dir') . '/Route.php';
 
 class App {
 	

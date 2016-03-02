@@ -1,6 +1,6 @@
 <?php
 
-require_once Config::get('rona.core') . '/Response_.php';
+require_once Config::get('rona.core_dir') . '/Response_.php';
 
 class Response {
 	

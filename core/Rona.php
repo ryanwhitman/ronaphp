@@ -30,12 +30,12 @@ class Rona {
 
 			// Default configuration
 				Config::set('rona')
-					->_('root', dirname(__DIR__))
-					->_('core', __DIR__)
-					->_('tmp_storage', '/cgi-bin/tmp')
-					->_('base_path', '')
-					->_('header_input', [])
 					->_('debug_mode', true)
+					->_('base_path', '')
+					->_('base_dir', dirname(__DIR__))
+					->_('core_dir', __DIR__)
+					->_('tmp_storage', '/cgi-bin/tmp')
+					->_('header_input', [])
 					->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options'])
 					->_('locations')
 						->_('config_model', '/model/config.php')
@@ -48,9 +48,9 @@ class Rona {
 						->_('views', '/app/views');
 
 			// Load the config files
-				require_once Config::get('rona.root') . '/config.php';
-				require_once Config::get('rona.root') . Config::get('rona.locations.config_model');
-				require_once Config::get('rona.root') . Config::get('rona.locations.config_app');
+				require_once Config::get('rona.base_dir') . '/config.php';
+				require_once Config::get('rona.base_dir') . Config::get('rona.locations.config_model');
+				require_once Config::get('rona.base_dir') . Config::get('rona.locations.config_app');
 
 			// Error handling
 				if (Config::get('rona.debug_mode')) {
@@ -86,14 +86,14 @@ class Rona {
 			self::init();
 
 		// Load routes
-			require_once Config::get('rona.core') . '/Route.php';
-			require_once Config::get('rona.core') . '/Api.php';
-			require_once Config::get('rona.core') . '/App.php';
-			require_once Config::get('rona.root') . Config::get('rona.locations.api');
-			require_once Config::get('rona.root') . Config::get('rona.locations.routes');
+			require_once Config::get('rona.core_dir') . '/Route.php';
+			require_once Config::get('rona.core_dir') . '/Api.php';
+			require_once Config::get('rona.core_dir') . '/App.php';
+			require_once Config::get('rona.base_dir') . Config::get('rona.locations.api');
+			require_once Config::get('rona.base_dir') . Config::get('rona.locations.routes');
 
 		// Establish http method. If "_http_method" override was posted, use it. Otherwise, use default
-			require_once Config::get('rona.core') . '/Request.php';
+			require_once Config::get('rona.core_dir') . '/Request.php';
 			Request::set('http_method', strtolower(!empty($_POST['_http_method']) ? $_POST['_http_method'] : $_SERVER['REQUEST_METHOD']));
 
 		// Establish requested route
@@ -182,12 +182,12 @@ class Rona {
 				Request::set('route_options', $route_found['options']);
 
 		// Load classes
-			require_once Config::get('rona.core') . '/Response.php';
-			require_once Config::get('rona.core') . '/Procedure.php';
+			require_once Config::get('rona.core_dir') . '/Response.php';
+			require_once Config::get('rona.core_dir') . '/Procedure.php';
 
 		// Start session
 			if (session_status() == PHP_SESSION_NONE && !$is_api) {
-				$save_path = Config::get('rona.root') . Config::get('rona.tmp_storage');
+				$save_path = Config::get('rona.base_dir') . Config::get('rona.tmp_storage');
 				if (!file_exists($save_path))
 					mkdir($save_path, 0777, true);
 				session_save_path($save_path);
@@ -244,13 +244,13 @@ class Rona {
 			}
 
 		// Create the scope object
-			require_once Config::get('rona.core') . '/Scope.php';
+			require_once Config::get('rona.core_dir') . '/Scope.php';
 			$scope = Scope::instance();
 			if (isset($procedure_res))
 				$scope->procedure_res = $procedure_res;
 			
 		// Run the controllers
-			require_once Config::get('rona.core') . '/Controller.php';
+			require_once Config::get('rona.core_dir') . '/Controller.php';
 			if (!empty($route_found['controllers']) && is_array($route_found['controllers'])) {
 				foreach ($route_found['controllers'] as $controller) {
 					
@@ -311,12 +311,12 @@ class Rona {
 		$parts = explode('.', $name);
 		$name = end($parts);
 		unset($parts[count($parts) - 1]);
-		Helper::load_file(Config::get('rona.root') . Config::get('rona.locations.' . $type . 's') . '/' . implode('/', $parts) . '.php');
+		Helper::load_file(Config::get('rona.base_dir') . Config::get('rona.locations.' . $type . 's') . '/' . implode('/', $parts) . '.php');
 		return $name;
 	}
 
 	public static function load_view($view, $scope) {
-		include Config::get('rona.root') . Config::get('rona.locations.views') . '/' . $view . '.php';
+		include Config::get('rona.base_dir') . Config::get('rona.locations.views') . '/' . $view . '.php';
 	}
 }
 

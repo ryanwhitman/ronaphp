@@ -1,7 +1,7 @@
 <?php
 
-require_once Config::get('rona.core') . '/Procedure_.php';
-require_once Config::get('rona.core') . '/Filter.php';
+require_once Config::get('rona.core_dir') . '/Procedure_.php';
+require_once Config::get('rona.core_dir') . '/Filter.php';
 
 class Procedure {
 
