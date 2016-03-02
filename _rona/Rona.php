@@ -38,15 +38,19 @@ class Rona {
 					->_('debug_mode', true)
 					->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options'])
 					->_('locations')
-						->_('routes_api', '/routes_api.php')
-						->_('routes_app', '/routes_app.php')
-						->_('procedures', '/model/procedures')
+						->_('config_model', '/model/config.php')
+						->_('api', '/model/api.php')
 						->_('filters', '/model/filters')
+						->_('procedures', '/model/procedures')
+						->_('config_app', '/app/config.php')
+						->_('routes', '/app/routes.php')
 						->_('controllers', '/app/controllers')
 						->_('views', '/app/views');
 
-			// Load the config file
+			// Load the config files
 				require_once Config::get('rona.root') . '/config.php';
+				require_once Config::get('rona.root') . Config::get('rona.locations.config_model');
+				require_once Config::get('rona.root') . Config::get('rona.locations.config_app');
 
 			// Error handling
 				if (Config::get('rona.debug_mode')) {
@@ -85,8 +89,8 @@ class Rona {
 			require_once Config::get('rona.core') . '/Route.php';
 			require_once Config::get('rona.core') . '/Api.php';
 			require_once Config::get('rona.core') . '/App.php';
-			require_once Config::get('rona.root') . Config::get('rona.locations.routes_api');
-			require_once Config::get('rona.root') . Config::get('rona.locations.routes_app');
+			require_once Config::get('rona.root') . Config::get('rona.locations.api');
+			require_once Config::get('rona.root') . Config::get('rona.locations.routes');
 
 		// Establish http method. If "_http_method" override was posted, use it. Otherwise, use default
 			require_once Config::get('rona.core') . '/Request.php';

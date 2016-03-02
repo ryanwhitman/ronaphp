@@ -1,5 +1,5 @@
 <?
 
-/* Build configuration here */
+/* Build general configuration here */
 
 ?>
