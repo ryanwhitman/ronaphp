@@ -1,6 +1,7 @@
 <?php
 
 require_once Config::get('rona.core_dir') . '/Route.php';
+require_once Config::get('rona.core_dir') . '/Api_Filter.php';
 
 class Api {
 
@@ -25,39 +26,43 @@ class Api {
 	}
 
 	public static function get($path, $procedure) {
-		self::map('get', $path, $procedure);
+		return self::map('get', $path, $procedure);
 	}
 
 	public static function post($path, $procedure) {
-		self::map('post', $path, $procedure);
+		return self::map('post', $path, $procedure);
 	}
 
 	public static function put($path, $procedure) {
-		self::map('put', $path, $procedure);
+		return self::map('put', $path, $procedure);
 	}
 
 	public static function patch($path, $procedure) {
-		self::map('patch', $path, $procedure);
+		return self::map('patch', $path, $procedure);
 	}
 
 	public static function delete($path, $procedure) {
-		self::map('delete', $path, $procedure);
+		return self::map('delete', $path, $procedure);
 	}
 
 	public static function options($path, $procedure) {
-		self::map('options', $path, $procedure);
+		return self::map('options', $path, $procedure);
 	}
 
 	public static function any($path, $procedure) {
-		self::map(Config::get('rona.http_methods'), $path, $procedure);
+		return self::map(Config::get('rona.http_methods'), $path, $procedure);
 	}
 
 	public static function map($http_methods, $path, $procedure) {
 
-		Route::map($http_methods, self::instance()->base_path . $path, [
+		$path = self::instance()->base_path . $path;
+
+		$type = Route::map($http_methods, $path, [
 			'procedure'		=>	$procedure,
 			'is_api'		=>	true
 		]);
+
+		return new Api_Filter($http_methods, $type, $path);
 	}
 }
 

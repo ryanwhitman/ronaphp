@@ -4,7 +4,7 @@ class Route {
 
 	private static $instance;
 
-	private
+	public
 		$routes = [],
 		$no_route = [];
 	
@@ -12,7 +12,7 @@ class Route {
 	private function __clone() {}
 	private function __wakeup() {}
 
-	private static function instance() {
+	public static function instance() {
 
 		if (self::$instance == NULL)
 			self::$instance = new self();
@@ -127,6 +127,8 @@ class Route {
 
 				// Set the route
 					self::instance()->routes[$http_method][$type][$path] = $components_formatted;
+
+				return $type;
 			}
 	}
 	

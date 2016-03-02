@@ -25,7 +25,7 @@ class Procedure {
 		return new Procedure_($name);
 	}
 	
-	public static function run($name, $input_unfiltered = []) {
+	public static function run($name, $input_unfiltered = [], $premium_filters = []) {
 
 		// Targeted load
 			$name = Rona::tLoad('procedure', $name);
@@ -42,9 +42,14 @@ class Procedure {
 	
 		// Ensure the error message array starts off empty
 			$error_msgs = [];
+
+		// Create a new filter array with the premium filters at the beginning
+			$filters = $premium_filters;
+			foreach ($procedure['filters'] as $filter)
+				$filters[] = $filter;
 			
 		// Run the filters
-			foreach ($procedure['filters'] as $filter) {
+			foreach ($filters as $filter) {
 				
 				$res = Filter::run($filter['name'], array_merge($input_unfiltered, $input_filtered), $filter['options']);
 				if ($res->success)

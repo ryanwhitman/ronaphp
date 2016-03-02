@@ -234,7 +234,7 @@ class Rona {
 					}
 					
 				// Run the procedure
-					$procedure_res = Procedure::run($route_found['procedure'], $input);
+					$procedure_res = Procedure::run($route_found['procedure'], $input, Helper::array_get($route_found, 'filters', []));
 
 				// If this is an api route, output in json format. Otherwise, the app will continue to load
 					if ($is_api) {
