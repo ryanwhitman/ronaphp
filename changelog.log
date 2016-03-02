@@ -1,0 +1,33 @@
+Notable changes to implement
+
+- added filters to Api
+- unfiltered input no longer gets passed to procedure
+- changed locations of route files
+- added config files for model and app
+
+- changed is_alphanumeric_ci() to is_alphanumeric()
+- reworked Helper::has_length_range()
+- reworked Helper::get_random()
+- Reworked the scope object/class
+- changed Procedure::procedure() to Procedure::set() and Controller::controller() to Controller::set()
+- changed Procedure::filter() to Filter::set() and Procedure::run_filter() to Filter::run()
+- changed structure of folders / routes
+- changed "prep" to "filter"
+- procedure routes are now called in the api file
+- Changed App class name to Rona
+- Changed Rona::location() to Helper::location()
+- Changed Rona::ret() to Response::set() & also converted to object
+- Changed Rona::load_file() to Helper::load_file()
+- Changed Helper::load_directories() to Helper::load_directory(), and also change some of the function arguments, and removed $_SERVER['DOCUMENT_ROOT']
+- Changed Route::custom() to Route::map()
+- Eliminated ability to pass in "requested route" to App::run()
+	- Eliminated Request::reset()
+- Eliminated all route id functionality
+	- Eliminated ids in Route::get(), put, patch, etc.
+	- Eliminated Route::get_routes_by_id()
+	- Eliminated Route::path()
+	- Eliminated Route::change()
+- Procedures, controllers, etc. are now grouped and the groups only load when called.
+- In App::run(), the Procedure now runs prior to the Controllers, and the Procedure return value is injected into Controllers.
+- Added method override functionality for put, patch, etc.
+- Routes now merge with existing routes of the same route instead of overwriting.
