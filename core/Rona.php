@@ -37,6 +37,7 @@ class Rona {
 					->_('tmp_storage', '/cgi-bin/tmp')
 					->_('header_input', [])
 					->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options'])
+					->_('request_uri', $_SERVER['REQUEST_URI'])
 					->_('locations')
 						->_('config_model', '/model/config.php')
 						->_('api', '/model/api.php')
@@ -97,7 +98,7 @@ class Rona {
 			Request::set('http_method', strtolower(!empty($_POST['_http_method']) ? $_POST['_http_method'] : $_SERVER['REQUEST_METHOD']));
 
 		// Establish requested route
-			$route_requested = str_replace(Config::get('rona.base_path'), '', $_SERVER['REQUEST_URI']);
+			$route_requested = str_replace(Config::get('rona.base_path'), '', Config::get('rona.request_uri'));
 			$route_requested = strtok($route_requested, '?');
 			$route_requested = trim($route_requested, ' /');
 			Request::set('route', $route_requested);
