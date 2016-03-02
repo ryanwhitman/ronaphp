@@ -182,7 +182,7 @@ class Rona {
 			require_once Config::get('rona.core') . '/Procedure.php';
 
 		// Start session
-			if (!$is_api) {
+			if (session_status() == PHP_SESSION_NONE && !$is_api) {
 				$save_path = Config::get('rona.root') . Config::get('rona.tmp_storage');
 				if (!file_exists($save_path))
 					mkdir($save_path, 0777, true);
