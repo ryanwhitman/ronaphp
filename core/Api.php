@@ -6,23 +6,19 @@ require_once Config::get('rona.core_dir') . '/Api_Filter.php';
 class Api {
 
 	private static $instance;
-	
-	private $base_path = '';
-	
+
+	private $no_route = '';
+
 	private function __construct() {}
 	private function __clone() {}
 	private function __wakeup() {}
-	
+
 	public static function instance() {
-		
+
 		if (self::$instance == NULL)
 			self::$instance = new self();
 
 		return self::$instance;
-	}
-
-	public static function set_base_path($path) {
-		self::instance()->base_path = $path;
 	}
 
 	public static function get($path, $procedure) {
@@ -55,14 +51,20 @@ class Api {
 
 	public static function map($http_methods, $path, $procedure) {
 
-		$path = self::instance()->base_path . $path;
-
 		$type = Route::map($http_methods, $path, [
 			'procedure'		=>	$procedure,
 			'is_api'		=>	true
 		]);
 
 		return new Api_Filter($http_methods, $type, $path);
+	}
+	
+	public static function no_route($messages, $data = []) {
+		self::instance()->no_route = Response::set(false, $messages, $data);
+	}
+
+	public static function get_no_route() {
+		return self::instance()->no_route;
 	}
 }
 

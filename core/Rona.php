@@ -27,18 +27,24 @@ class Rona {
 			// Load class files
 				require_once __DIR__ . '/Config.php';
 				require_once __DIR__ . '/Helper.php';
+				require_once __DIR__ . '/Response.php';
 
 			// Default configuration
+				Config::set('rona.debug_mode', true);
+
 				Config::set('rona')
-					->_('debug_mode', true)
 					->_('base_path', '')
+					->_('api_paths', [])
 					->_('base_dir', dirname(__DIR__))
 					->_('core_dir', __DIR__)
 					->_('tmp_storage', '/cgi-bin/tmp')
+					->_('request_uri', $_SERVER['REQUEST_URI']);
+
+				Config::set('rona')
 					->_('header_input', [])
-					->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options'])
-					->_('request_uri', $_SERVER['REQUEST_URI'])
-					->_('locations')
+					->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
+
+				Config::set('rona.locations')
 						->_('config_model', '/model/config.php')
 						->_('api', '/model/api.php')
 						->_('filters', '/model/filters')
@@ -48,10 +54,8 @@ class Rona {
 						->_('controllers', '/app/controllers')
 						->_('views', '/app/views');
 
-			// Load the config files
+			// Load the general config file
 				require_once Config::get('rona.base_dir') . '/config.php';
-				require_once Config::get('rona.base_dir') . Config::get('rona.locations.config_model');
-				require_once Config::get('rona.base_dir') . Config::get('rona.locations.config_app');
 
 			// Error handling
 				if (Config::get('rona.debug_mode')) {
@@ -86,13 +90,6 @@ class Rona {
 		// Initialize Rona
 			self::init();
 
-		// Load routes
-			require_once Config::get('rona.core_dir') . '/Route.php';
-			require_once Config::get('rona.core_dir') . '/Api.php';
-			require_once Config::get('rona.core_dir') . '/App.php';
-			require_once Config::get('rona.base_dir') . Config::get('rona.locations.api');
-			require_once Config::get('rona.base_dir') . Config::get('rona.locations.routes');
-
 		// Establish http method. If "_http_method" override was posted, use it. Otherwise, use default
 			require_once Config::get('rona.core_dir') . '/Request.php';
 			Request::set('http_method', strtolower(!empty($_POST['_http_method']) ? $_POST['_http_method'] : $_SERVER['REQUEST_METHOD']));
@@ -102,6 +99,30 @@ class Rona {
 			$route_requested = strtok($route_requested, '?');
 			$route_requested = trim($route_requested, ' /');
 			Request::set('route', $route_requested);
+
+		// Is this an API route or an App route?
+			$is_api = false;
+			$api_paths = (array) Config::get('rona.api_paths');
+			foreach ($api_paths as $api_path) {
+				$api_path = trim($api_path, ' /');
+				if (!strlen($api_path) || Request::route() == $api_path || strpos(Request::route(), $api_path . '/') === 0) {
+					$is_api = true;
+					break;
+				}
+			}
+
+		// Load the appropriate resources / configuration
+			require_once Config::get('rona.core_dir') . '/Route.php';
+			if ($is_api) {
+				require_once Config::get('rona.base_dir') . Config::get('rona.locations.config_model');
+				require_once Config::get('rona.core_dir') . '/Api.php';
+				require_once Config::get('rona.base_dir') . Config::get('rona.locations.api');
+				header('Content-Type: application/json');
+			} else {
+				require_once Config::get('rona.base_dir') . Config::get('rona.locations.config_app');
+				require_once Config::get('rona.core_dir') . '/App.php';
+				require_once Config::get('rona.base_dir') . Config::get('rona.locations.routes');
+			}
 
 		// Turn the requested route into an array & get the count
 			$route_requested_arr = explode('/', Request::route());
@@ -162,13 +183,14 @@ class Rona {
 		// If $route_found is empty, load no_route
 			if (empty($route_found)) {
 				header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found', true, 404);
-				$route_found = Route::get_no_route();
-				if (empty($route_found))
-					$route_found['views'] = ['"Uh oh, that page wasn\'t found."'];
-			}
 
-		// Is this an API call?
-			$is_api = Helper::array_get($route_found, 'is_api');
+				if ($is_api) {
+					echo json_encode(Api::get_no_route());
+					return;
+				}
+
+				$route_found = App::get_no_route();
+			}
 			
 		// Set the current route_vars
 			if (!empty($route_vars))
@@ -183,7 +205,6 @@ class Rona {
 				Request::set('route_options', $route_found['options']);
 
 		// Load classes
-			require_once Config::get('rona.core_dir') . '/Response.php';
 			require_once Config::get('rona.core_dir') . '/Procedure.php';
 
 		// Start session
@@ -239,8 +260,8 @@ class Rona {
 
 				// If this is an api route, output in json format. Otherwise, the app will continue to load
 					if ($is_api) {
-						header('Content-Type: application/json');
-						exit(json_encode($procedure_res));
+						echo json_encode($procedure_res);
+						return;
 					}
 			}
 

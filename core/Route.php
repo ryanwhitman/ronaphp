@@ -4,9 +4,7 @@ class Route {
 
 	private static $instance;
 
-	public
-		$routes = [],
-		$no_route = [];
+	public $routes = [];
 	
 	private function __construct() {}
 	private function __clone() {}
@@ -18,7 +16,7 @@ class Route {
 			self::$instance = new self();
 
 		return self::$instance;
-	}	
+	}
 	
 	public static function map($http_methods, $path, $components) {
 
@@ -131,45 +129,9 @@ class Route {
 				return $type;
 			}
 	}
-	
-	public static function no_route($components) {
-
-		// If singular nouns were used, transfer them to plural
-			if (!empty($components['controller']))
-				$components['controllers'] = $components['controller'];
-			
-			if (!empty($components['view']))
-				$components['views'] = $components['view'];
-			
-			if (!empty($components['option']))
-				$components['options'] = $components['option'];
-
-		// Establish $components_formatted array
-			$components_formatted = [];
-
-			if (!empty($components['controllers']))
-				$components_formatted['controllers'] = (array) $components['controllers'];
-
-			if (!empty($components['views']))
-				$components_formatted['views'] = (array) $components['views'];
-
-			if (!empty($components['options']))
-				$components_formatted['options'] = (array) $components['options'];
-
-		// A valid no_route must contain a controller or view
-			if (empty($components_formatted['controllers']) && empty($components_formatted['views']))
-				return false;
-	
-		// Add no_route
-			self::instance()->no_route = $components_formatted;
-	}
 
 	public static function get_routes() {
 		return self::instance()->routes;
-	}
-
-	public static function get_no_route() {
-		return self::instance()->no_route;
 	}
 	
 	public static function is_active($path) {

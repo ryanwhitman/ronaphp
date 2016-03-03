@@ -1,6 +1,6 @@
 <?php
 
-Route::no_route([
+App::no_route([
 	'view'	=>	'"404 Page Not Found"'
 ]);
 
