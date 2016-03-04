@@ -1,6 +1,6 @@
 Notable changes to implement
 
-- elliminated Api::*base_path functionality and added Config::('rona.api_paths', [])
+- elliminated Api::*base_path functionality and added Config::('rona.api.paths', [])
 - Added Api::no_route, App::no_route, and eliminated Route::no_route();
 
 - added filters to Api

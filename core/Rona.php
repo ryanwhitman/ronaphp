@@ -30,32 +30,33 @@ class Rona {
 				require_once __DIR__ . '/Response.php';
 
 			// Default configuration
-				Config::set('rona.debug_mode', true);
-
 				Config::set('rona')
-					->_('base_path', '')
-					->_('api_paths', [])
-					->_('base_dir', dirname(__DIR__))
+					->_('debug_mode', true)
+					->_('system_path', '')
+					->_('system_dir', dirname(__DIR__))
 					->_('core_dir', __DIR__)
-					->_('tmp_storage', '/cgi-bin/tmp')
-					->_('request_uri', $_SERVER['REQUEST_URI']);
-
-				Config::set('rona')
+					->_('request_uri', $_SERVER['REQUEST_URI'])
 					->_('header_input', [])
 					->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
 
-				Config::set('rona.locations')
-						->_('config_model', '/model/config.php')
-						->_('api', '/model/api.php')
-						->_('filters', '/model/filters')
-						->_('procedures', '/model/procedures')
-						->_('config_app', '/app/config.php')
+				Config::set('rona.api')
+					->_('paths', [])
+					->_('locations')
+						->_('config', '/api/config.php')
+						->_('routes', '/api/routes.php')
+						->_('filters', '/api/filters')
+						->_('procedures', '/api/procedures');
+
+				Config::set('rona.app')
+					->_('tmp_storage', '/cgi-bin/tmp')
+					->_('locations')
+						->_('config', '/app/config.php')
 						->_('routes', '/app/routes.php')
 						->_('controllers', '/app/controllers')
 						->_('views', '/app/views');
 
 			// Load the general config file
-				require_once Config::get('rona.base_dir') . '/config.php';
+				require_once Config::get('rona.system_dir') . '/config.php';
 
 			// Error handling
 				if (Config::get('rona.debug_mode')) {
@@ -95,14 +96,14 @@ class Rona {
 			Request::set('http_method', strtolower(!empty($_POST['_http_method']) ? $_POST['_http_method'] : $_SERVER['REQUEST_METHOD']));
 
 		// Establish requested route
-			$route_requested = str_replace(Config::get('rona.base_path'), '', Config::get('rona.request_uri'));
+			$route_requested = str_replace(Config::get('rona.system_path'), '', Config::get('rona.request_uri'));
 			$route_requested = strtok($route_requested, '?');
 			$route_requested = trim($route_requested, ' /');
 			Request::set('route', $route_requested);
 
 		// Is this an API route or an App route?
 			$is_api = false;
-			$api_paths = (array) Config::get('rona.api_paths');
+			$api_paths = (array) Config::get('rona.api.paths');
 			foreach ($api_paths as $api_path) {
 				$api_path = trim($api_path, ' /');
 				if (!strlen($api_path) || Request::route() == $api_path || strpos(Request::route(), $api_path . '/') === 0) {
@@ -114,14 +115,14 @@ class Rona {
 		// Load the appropriate resources / configuration
 			require_once Config::get('rona.core_dir') . '/Route.php';
 			if ($is_api) {
-				require_once Config::get('rona.base_dir') . Config::get('rona.locations.config_model');
+				require_once Config::get('rona.system_dir') . Config::get('rona.api.locations.config');
 				require_once Config::get('rona.core_dir') . '/Api.php';
-				require_once Config::get('rona.base_dir') . Config::get('rona.locations.api');
+				require_once Config::get('rona.system_dir') . Config::get('rona.api.locations.routes');
 				header('Content-Type: application/json');
 			} else {
-				require_once Config::get('rona.base_dir') . Config::get('rona.locations.config_app');
+				require_once Config::get('rona.system_dir') . Config::get('rona.app.locations.config');
 				require_once Config::get('rona.core_dir') . '/App.php';
-				require_once Config::get('rona.base_dir') . Config::get('rona.locations.routes');
+				require_once Config::get('rona.system_dir') . Config::get('rona.app.locations.routes');
 			}
 
 		// Turn the requested route into an array & get the count
@@ -209,7 +210,7 @@ class Rona {
 
 		// Start session
 			if (session_status() == PHP_SESSION_NONE && !$is_api) {
-				$save_path = Config::get('rona.base_dir') . Config::get('rona.tmp_storage');
+				$save_path = Config::get('rona.system_dir') . Config::get('rona.app.tmp_storage');
 				if (!file_exists($save_path))
 					mkdir($save_path, 0777, true);
 				session_save_path($save_path);
@@ -330,15 +331,16 @@ class Rona {
 
 	public static function tLoad($type, $name) {
 
+		$seg = in_array($type, ['filter', 'procedure']) ? 'api' : 'app';
 		$parts = explode('.', $name);
 		$name = end($parts);
 		unset($parts[count($parts) - 1]);
-		Helper::load_file(Config::get('rona.base_dir') . Config::get('rona.locations.' . $type . 's') . '/' . implode('/', $parts) . '.php');
+		Helper::load_file(Config::get('rona.system_dir') . Config::get('rona.' . $seg . '.locations.' . $type . 's') . '/' . implode('/', $parts) . '.php');
 		return $name;
 	}
 
 	public static function load_view($view, $scope) {
-		include Config::get('rona.base_dir') . Config::get('rona.locations.views') . '/' . $view . '.php';
+		include Config::get('rona.system_dir') . Config::get('rona.app.locations.views') . '/' . $view . '.php';
 	}
 }
 

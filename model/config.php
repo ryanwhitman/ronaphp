@@ -1,5 +1,0 @@
-<?
-
-/* Build model configuration here */
-
-?>
