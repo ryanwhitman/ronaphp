@@ -106,7 +106,7 @@ class Rona {
 			$api_paths = (array) Config::get('rona.api.paths');
 			foreach ($api_paths as $api_path) {
 				$api_path = trim($api_path, ' /');
-				if (!strlen($api_path) || Request::route() == $api_path || strpos(Request::route(), $api_path . '/') === 0) {
+				if ($api_path === '' || $api_path == Request::route() || strpos(Request::route(), $api_path . '/') === 0) {
 					$is_api = true;
 					break;
 				}
