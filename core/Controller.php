@@ -30,7 +30,7 @@ class Controller {
 			$name = Rona::tLoad('controller', $name);
 
 		// Get the controller
-			$controller = Helper::get(self::instance()->controllers[$name]);
+			$controller = Helper::array_get(self::instance()->controllers, $name);
 
 		// Ensure controller exists
 			if (empty($controller))

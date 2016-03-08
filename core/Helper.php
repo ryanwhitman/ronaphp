@@ -10,34 +10,17 @@ class Helper {
 	private function __construct() {}
 	private function __clone() {}
 	private function __wakeup() {}
-				
-	public static function load_file($file, $require = true, $once = true) {
-		if ($require)
-			if ($once)
-				require_once $file;
-			else
-				require $file;
-		else
-			if ($once)
-				include_once $file;
-			else
-				include $file;
+
+	public static function is_emptyString($str) {
+		return $str !== false && trim($str) === '';
 	}
 
-	public static function load_directory($directory, $require = true, $once = true, $precedence = []) {
+	public static function is_nullOrEmptyString($q) {
+		return is_null($q) || self::is_emptyString($q);
+	}
 
-		$precedence = (array) $precedence;
-		$already_loaded = [];
-		foreach ($precedence as $file) {
-			$filename = $file . '.php';
-			self::load_file($directory . '/' . $filename, $require, $once);
-			$already_loaded[] = $filename;
-		}
-		
-		foreach (glob($directory . '/*.php') as $filename) {
-			if (in_array($filename, $already_loaded)) continue;
-			self::load_file($filename, $require, $once);
-		}
+	public static function is_persons_name($x) {
+		return preg_match('/^[a-z][a-z`\',\. ]*$/i', $x);
 	}
 
 	public static function is_numeric($x) {
@@ -54,6 +37,23 @@ class Helper {
 			return preg_match('/^[A-Z0-9]+$/', $x);
 
 		return false;
+	}
+
+	public static function is_currency($x) {
+		return is_numeric($x);
+	}
+
+	public static function is_email($email) {
+		return filter_var($email, FILTER_VALIDATE_EMAIL);
+	}
+
+	public static function are_emails($emails) {
+		$emails = (array) $emails;
+		foreach ($emails as $email)
+			if (!self::is_email($email))
+				return false;
+
+		return true;
 	}
 
 	public static function has_length_range($str, $min, $max = '-1') {
@@ -77,19 +77,6 @@ class Helper {
 		return $valid_emails;
 	}
 
-	public static function is_email($email) {
-		return filter_var($email, FILTER_VALIDATE_EMAIL);
-	}
-
-	public static function are_emails($emails) {
-		$emails = (array) $emails;
-		foreach ($emails as $email)
-			if (!self::is_email($email))
-				return false;
-
-		return true;
-	}
-
 	public static function get_currency($x) {
 		$currency = preg_replace('/^[\$]/', '', $x);
 		$currency = str_replace(',', '', $currency);
@@ -101,25 +88,8 @@ class Helper {
 		return NULL;
 	}
 
-	public static function is_currency($x) {
-		return is_numeric($x);
-	}
-
-	public static function is_persons_name($x) {
-		return preg_match('/^[a-z][a-z`\',\. ]*$/i', $x);
-	}
-
-	public static function trim_full($str) {
-		$str = trim($str);
-		$str = preg_replace('/[ ]+(\s)/', '$1', $str);
-		$str = preg_replace('/(\s)[ ]+/', '$1', $str);
-		$str = preg_replace('/\0/', '', $str);
-		$str = preg_replace('/(\n){2,}/', '$1$1', $str);
-		$str = preg_replace('/\f/', '', $str);
-		$str = preg_replace('/(\r){2,}/', '$1$1', $str);
-		$str = preg_replace('/\t/', '', $str);
-		$str = preg_replace('/(\v){2,}/', '$1$1', $str);
-		return $str;
+	public static function get_date($x) {
+		return date('Y-m-d', strtotime($x));
 	}
 
 	public static function get_random($pattern, $len) {
@@ -168,16 +138,17 @@ class Helper {
 		return $random_str;
 	}
 
-	public static function get_date($x) {
-		return date('Y-m-d', strtotime($x));
-	}
-
-	public static function format_currency($num, $show_dollar_sign = true) {
-		return ($show_dollar_sign ? '$' : '') . number_format($num, 2);
-	}
-
-	public static function get(&$var, $default = NULL) {
-		return isset($var) ? $var : $default;
+	public static function trim_full($str) {
+		$str = trim($str);
+		$str = preg_replace('/[ ]+(\s)/', '$1', $str);
+		$str = preg_replace('/(\s)[ ]+/', '$1', $str);
+		$str = preg_replace('/\0/', '', $str);
+		$str = preg_replace('/(\n){2,}/', '$1$1', $str);
+		$str = preg_replace('/\f/', '', $str);
+		$str = preg_replace('/(\r){2,}/', '$1$1', $str);
+		$str = preg_replace('/\t/', '', $str);
+		$str = preg_replace('/(\v){2,}/', '$1$1', $str);
+		return $str;
 	}
 
 	public static function array_get($array, $path, $default = NULL) {
@@ -209,8 +180,41 @@ class Helper {
 		return $str . '\'' . ($str[strlen($str) - 1] != 's' ? 's' : '');
 	}
 
+	public static function format_currency($num, $show_dollar_sign = true) {
+		return ($show_dollar_sign ? '$' : '') . number_format($num, 2);
+	}
+
 	public static function method_override($http_method) {
 		echo '<input type="hidden" name="_http_method" value="' . $http_method . '">';
+	}
+				
+	public static function load_file($file, $require = true, $once = true) {
+		if ($require)
+			if ($once)
+				require_once $file;
+			else
+				require $file;
+		else
+			if ($once)
+				include_once $file;
+			else
+				include $file;
+	}
+
+	public static function load_directory($directory, $require = true, $once = true, $precedence = []) {
+
+		$precedence = (array) $precedence;
+		$already_loaded = [];
+		foreach ($precedence as $file) {
+			$filename = $file . '.php';
+			self::load_file($directory . '/' . $filename, $require, $once);
+			$already_loaded[] = $filename;
+		}
+		
+		foreach (glob($directory . '/*.php') as $filename) {
+			if (in_array($filename, $already_loaded)) continue;
+			self::load_file($filename, $require, $once);
+		}
 	}
 	
 	public static function location($base, $query_params = []) {

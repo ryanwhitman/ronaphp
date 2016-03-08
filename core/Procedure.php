@@ -31,7 +31,7 @@ class Procedure {
 			$name = Rona::tLoad('procedure', $name);
 
 		// Get the procedure
-			$procedure = Helper::get(self::instance()->procedures[$name]);
+			$procedure = Helper::array_get(self::instance()->procedures, $name);
 
 		// Ensure procedure exists
 			if (empty($procedure))

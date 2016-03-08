@@ -31,7 +31,7 @@ class Filter {
 			$name = Rona::tLoad('filter', $name);
 
 		// Get the filter
-			$filter = Helper::get(self::instance()->filters[$name]);
+			$filter = Helper::array_get(self::instance()->filters, $name);
 
 		// Ensure filter exists
 			if (empty($filter))
