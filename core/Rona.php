@@ -335,17 +335,17 @@ class Rona {
 
 	public static function tLoad($type, $name) {
 
-		$type .= 's';
+		$type_plural = $type . 's';
 		$parts = explode('.', $name);
 		$name = end($parts);
 		unset($parts[count($parts) - 1]);
 
 		if ($parts[0] == 'rona') {
 			unset($parts[0]);
-			$location = Config::get('rona.core_dir') . $type;
+			$location = Config::get('rona.core_dir') . '/' . $type_plural;
 		} else {
 			$seg = in_array($type, ['filter', 'procedure']) ? 'api' : 'app';
-			$location = Config::get('rona.system_dir') . Config::get('rona.' . $seg . '.locations.' . $type);
+			$location = Config::get('rona.system_dir') . Config::get('rona.' . $seg . '.locations.' . $type_plural);
 		}
 
 		Helper::load_file($location . '/' . implode('/', $parts) . '.php');
