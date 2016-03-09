@@ -11,9 +11,9 @@ class Config_ {
 		$this->is_const = $is_const;
 	}
 
-	public function _($path, $val = NULL) {
+	public function _($path, $val = RONA_UNDEFINED) {
 
-		if (is_null($val))
+		if ($val === RONA_UNDEFINED)
 			return new self($this->starting_path . '.' . $path, $this->is_const);
 
 		Config::m($this->starting_path . '.' . $path, $val, $this->is_const);

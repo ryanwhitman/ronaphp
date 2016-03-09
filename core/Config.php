@@ -1,5 +1,7 @@
 <?php
 
+define('RONA_UNDEFINED', 'RONA__UNDEFINED__RONA');
+
 require_once __DIR__ . '/Config_.php';
 
 class Config {
@@ -22,21 +24,21 @@ class Config {
 		return self::$instance;
 	}
 
-	public static function define($path, $val = NULL) {
+	public static function define($path, $val = RONA_UNDEFINED) {
 
 		# Used for constants
 
 		return self::m($path, $val, true);
 	}
 
-	public static function set($path, $val = NULL) {
+	public static function set($path, $val = RONA_UNDEFINED) {
 
 		# Used for variables
 
 		return self::m($path, $val, false);
 	}
 
-	public static function m($path, $val = NULL, $is_const) {
+	public static function m($path, $val = RONA_UNDEFINED, $is_const) {
 
 		$path = strtolower(trim($path, ' .'));
 
@@ -44,12 +46,12 @@ class Config {
 		foreach (explode('.', $path) as $part) {
 			$path_buildup .= '.' . $part;
 			$path_buildup = trim($path_buildup, ' .');
-			$eval_arr = Helper::array_get(self::instance()->constants, $path_buildup, 'RONA__UNDEFINED__RONA');
-			if ($eval_arr !== 'RONA__UNDEFINED__RONA' && !is_array($eval_arr))
+			$eval_arr = Helper::array_get(self::instance()->constants, $path_buildup, RONA_UNDEFINED);
+			if ($eval_arr !== RONA_UNDEFINED && !is_array($eval_arr))
 				return false;
 		}
 
-		if (is_null($val))
+		if ($val === RONA_UNDEFINED)
 			return new Config_($path, $is_const);
 
 		if ($is_const)

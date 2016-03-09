@@ -59,14 +59,18 @@ class Rona {
 				require_once Config::get('rona.system_dir') . '/config.php';
 
 			// Error handling
-				if (Config::get('rona.debug_mode')) {
-					ini_set('display_errors', 1);
-					ini_set('display_startup_errors', 1);
-					error_reporting(-1);
-				} else {
-					ini_set('display_errors', 0);
-					ini_set('display_startup_errors', 0);
-					error_reporting(0);
+				$is_debug_mode = Config::get('rona.debug_mode');
+				# Checking for a boolean gives the developer the ability to skip this functionality
+				if (is_bool($is_debug_mode)) {
+					if ($is_debug_mode) {
+						ini_set('display_errors', 1);
+						ini_set('display_startup_errors', 1);
+						error_reporting(-1);
+					} else {
+						ini_set('display_errors', 0);
+						ini_set('display_startup_errors', 0);
+						error_reporting(0);
+					}
 				}
 
 			// Register autoloader
