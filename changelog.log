@@ -1,9 +1,13 @@
 Notable changes to implement
 
-- elliminated Api::*base_path functionality and added Config::('rona.api.paths', [])
-- Added Api::no_route, App::no_route, and eliminated Route::no_route();
+- Pre-built filters have been added to Core
+- Error handling can now be bypassed
+- Added Helper::is_emptyString() and Helper::is_nullOrEmptyString()
 
-- added filters to Api
+- elliminated Api::*base_path functionality and added Config::('rona.api.paths', [])
+- Added Api::no_route(), App::no_route(), and eliminated Route::no_route();
+
+- added ->filter() to Api routes
 - unfiltered input no longer gets passed to procedure
 - changed locations of route files
 - added config files for model and app
