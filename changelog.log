@@ -1,17 +1,21 @@
-Notable changes to implement
+v. 5.0.1
+
+- added filter:rona.misc.emails
+- added filter:rona.misc.numeric
+- filter:rona.misc.alphanumeric no longer has a default field of "token"
+- Changed filter:rona.misc.anything to filter:rona.util.allpass
+- Changed filter:rona.user.name to filter:rona.misc.persons_name
+- Changed filter:rona.user.password to filter:rona.misc.password and reworked
+
+v. 5.0.0
 
 - Pre-built filters have been added to Core
-- Error handling can now be bypassed
-- Added Helper::is_emptyString() and Helper::is_nullOrEmptyString()
-
 - elliminated Api::*base_path functionality and added Config::('rona.api.paths', [])
 - Added Api::no_route(), App::no_route(), and eliminated Route::no_route();
-
 - added ->filter() to Api routes
 - unfiltered input no longer gets passed to procedure
 - changed locations of route files
 - added config files for model and app
-
 - changed is_alphanumeric_ci() to is_alphanumeric()
 - reworked Helper::has_length_range()
 - reworked Helper::get_random()

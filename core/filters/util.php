@@ -1,5 +1,15 @@
 <?php
 
+Filter::set('allpass', [
+	'field'		=> ''
+	], function($input, $options) {
+
+	$val = Helper::array_get($input, $options['field']);
+	$val = trim($val);
+
+	return Response::set(true, '', [$options['field'] => $val]);
+});
+
 Filter::set('set_val', [
 		'field'		=> '',
 		'val'		=> ''
