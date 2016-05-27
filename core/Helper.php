@@ -178,13 +178,13 @@ class Helper {
 		$set_array = $val;
 	}
 
-	public static function array_to_csv(array $arr, $include_space = true) {
+	public static function array_vals_to_list(array $arr, $delimiter = ', ') {
 
-		$csv = '';
+		$list = '';
 		foreach ($arr as $v)
-			$csv .= $v . ',' . ($include_space ? ' ' : '');
+			$list .= $v . $delimiter;
 
-		return trim ($csv, ', ');
+		return trim($list, $delimiter);
 	}
 
 	public static function possessionize($str) {

@@ -115,7 +115,7 @@ class Procedure {
 		// Add an error message for the missing params
 		$num_missing_params = count($missing_params);
 		if ($num_missing_params) {
-			$mp_msg = 'Missing param' . ($num_missing_params == 1 ? '' : 's') . ': ' . (Helper::array_to_csv($missing_params));
+			$mp_msg = 'Missing param' . ($num_missing_params == 1 ? '' : 's') . ': ' . (Helper::array_vals_to_list($missing_params));
 			array_unshift($error_msgs, $mp_msg);
 		}
 			
