@@ -21,5 +21,3 @@ class Config_ {
 		return $this;
 	}
 }
-
-?>

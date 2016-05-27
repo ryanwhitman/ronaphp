@@ -57,5 +57,3 @@ class Request {
 		return self::instance()->route_options;
 	}
 }
-
-?>

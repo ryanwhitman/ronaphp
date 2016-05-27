@@ -1,5 +1,3 @@
 <?php
 
 /* Build configuration here */
-
-?>

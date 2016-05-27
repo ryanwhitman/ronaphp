@@ -14,5 +14,3 @@ class Scope {
 		return self::$instance;
 	}
 }
-
-?>

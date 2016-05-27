@@ -5,5 +5,3 @@ App::no_route([
 ]);
 
 /* Build App routes here */
-
-?>

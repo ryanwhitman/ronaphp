@@ -46,5 +46,3 @@ class Controller {
 		return in_array($controller, self::instance()->controllers_run);
 	}
 }
-
-?>

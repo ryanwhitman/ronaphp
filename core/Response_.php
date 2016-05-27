@@ -10,7 +10,7 @@ class Response_ {
 	public function __construct($success, $messages, $data) {
 		$this->success = (bool) $success;
 		$this->messages = (array) $messages;
-		$this->data = (array) $data;
+		$this->data = $data;
 	}
 
 }

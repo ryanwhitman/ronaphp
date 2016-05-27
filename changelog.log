@@ -1,4 +1,29 @@
-v. 5.0.1
+v. .5.1.0 - alpha
+
+- Added pre/post filter functionality
+- A filter now receives the following args: $param, $val, $input, $options
+- Added "basic" filter
+- removed the closing php tag from all pages
+- Modified built-in filters to accommodate new pattern
+- Deleted built-in filter "chars"
+- Changed 'reqd' to 'is_reqd'
+- Removed 'default' from default options of rona.misc.boolean filter
+- Deleted rona.misc.numeric filter and converted to pre-filter
+- Deleted rona.misc.alphanumeric filter and converted to pre-filter
+- Updated the pre-built filters; modified labels, etc.
+- Deleted the pre-built 'allpass' filter.
+- Updated Helper::is_emptyString()
+- Changed class name Api_Filter to Api_
+- Renamed Procedure..->filter() to Procedure..->param()
+- Remove $field and $input from filters. The received params are now $val and $input
+- Deleted core/filters/util and move set_val and set_val_from_input to methods within Api_. Also changed name to set_param()
+- The Response object no longer forces an array for 'data'
+- improved Helper::array_set()
+- Filter... boolean - 'return_tinyint' has been changed to 'return_int' and it now defaults to false
+- The app can no longer hook into a Procedure on route execution. The ability to hook into the API is forthcoming.
+- Changed Config('rona.header_input') to Config('rona.api.authentication.header_params')
+
+v. .5.0.1
 
 - added filter:rona.misc.emails
 - added filter:rona.misc.numeric
@@ -7,7 +32,7 @@ v. 5.0.1
 - Changed filter:rona.user.name to filter:rona.misc.persons_name
 - Changed filter:rona.user.password to filter:rona.misc.password and reworked
 
-v. 5.0.0
+v. .5.0.0
 
 - Pre-built filters have been added to Core
 - elliminated Api::*base_path functionality and added Config::('rona.api.paths', [])

@@ -1,7 +1,7 @@
 <?php
 
 require_once Config::get('rona.core_dir') . '/Route.php';
-require_once Config::get('rona.core_dir') . '/Api_Filter.php';
+require_once Config::get('rona.core_dir') . '/Api_.php';
 
 class Api {
 
@@ -21,42 +21,44 @@ class Api {
 		return self::$instance;
 	}
 
-	public static function get($path, $procedure) {
-		return self::map('get', $path, $procedure);
+	public static function get($path, $procedure, $authenticate, $set_auth_user_id_as = NULL) {
+		return self::map('get', $path, $procedure, $authenticate, $set_auth_user_id_as);
 	}
 
-	public static function post($path, $procedure) {
-		return self::map('post', $path, $procedure);
+	public static function post($path, $procedure, $authenticate, $set_auth_user_id_as = NULL) {
+		return self::map('post', $path, $procedure, $authenticate, $set_auth_user_id_as);
 	}
 
-	public static function put($path, $procedure) {
-		return self::map('put', $path, $procedure);
+	public static function put($path, $procedure, $authenticate, $set_auth_user_id_as = NULL) {
+		return self::map('put', $path, $procedure, $authenticate, $set_auth_user_id_as);
 	}
 
-	public static function patch($path, $procedure) {
-		return self::map('patch', $path, $procedure);
+	public static function patch($path, $procedure, $authenticate, $set_auth_user_id_as = NULL) {
+		return self::map('patch', $path, $procedure, $authenticate, $set_auth_user_id_as);
 	}
 
-	public static function delete($path, $procedure) {
-		return self::map('delete', $path, $procedure);
+	public static function delete($path, $procedure, $authenticate, $set_auth_user_id_as = NULL) {
+		return self::map('delete', $path, $procedure, $authenticate, $set_auth_user_id_as);
 	}
 
-	public static function options($path, $procedure) {
-		return self::map('options', $path, $procedure);
+	public static function options($path, $procedure, $authenticate, $set_auth_user_id_as = NULL) {
+		return self::map('options', $path, $procedure, $authenticate, $set_auth_user_id_as);
 	}
 
-	public static function any($path, $procedure) {
-		return self::map(Config::get('rona.http_methods'), $path, $procedure);
+	public static function any($path, $procedure, $authenticate, $set_auth_user_id_as = NULL) {
+		return self::map(Config::get('rona.http_methods'), $path, $procedure, $authenticate, $set_auth_user_id_as);
 	}
 
-	public static function map($http_methods, $path, $procedure) {
+	public static function map($http_methods, $path, $procedure, $authenticate, $set_auth_user_id_as = NULL) {
 
 		$type = Route::map($http_methods, $path, [
-			'procedure'		=>	$procedure,
-			'is_api'		=>	true
+			'is_api'				=> true,
+			'procedure'				=> $procedure,
+			'authenticate'			=> $authenticate,
+			'set_auth_user_id_as'	=> $set_auth_user_id_as
 		]);
 
-		return new Api_Filter($http_methods, $type, $path);
+		return new Api_($http_methods, $type, $path);
 	}
 	
 	public static function no_route($messages, $data = []) {
@@ -67,5 +69,3 @@ class Api {
 		return self::instance()->no_route;
 	}
 }
-
-?>

@@ -4,7 +4,7 @@ class Procedure_ {
 
 	private
 		$name,
-		$filters = [];
+		$params = [];
 	
 	function __construct($name) {
 		$this->name = (string) $name;
@@ -12,21 +12,25 @@ class Procedure_ {
 		return $this;
 	}
 	
-	public function filter($name, $options = []) {
-		$this->filters[] = [
-			'name'		=>	(string) $name,
+	public function param($param, $is_reqd, $filters = [], $options = []) {
+
+		// Prevent empty strings from resulting in [''] - an indexed array with an empty string as a value
+		if (empty($filters))
+			$filters = [];
+
+		$this->params[(string) $param] = [
+			'is_reqd'	=>	(bool) $is_reqd,
+			'filters'	=>	(array) $filters,
 			'options'	=>	(array) $options
 		];
 
 		return $this;
 	}
-	
+
 	public function execute($function) {
 		Procedure::instance()->procedures[$this->name] = [
-			'filters'	=>	$this->filters,
+			'params'	=>	$this->params,
 			'execute'	=>	$function
 		];
 	}
 }
-
-?>

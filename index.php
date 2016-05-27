@@ -6,5 +6,3 @@ Rona::init();
 /* Run additional code here */
 
 Rona::run();
-
-?>

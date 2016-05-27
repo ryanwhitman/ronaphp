@@ -12,7 +12,7 @@ class Helper {
 	private function __wakeup() {}
 
 	public static function is_emptyString($str) {
-		return $str !== false && trim($str) === '';
+		return is_string($str) && trim($str) === '';
 	}
 
 	public static function is_nullOrEmptyString($q) {
@@ -31,9 +31,9 @@ class Helper {
 
 		if ($case == 'ci')
 			return preg_match('/^[a-z0-9]+$/i', $x);
-		elseif ($case == 'lc')
+		else if ($case == 'lc')
 			return preg_match('/^[a-z0-9]+$/', $x);
-		elseif ($case == 'uc')
+		else if ($case == 'uc')
 			return preg_match('/^[A-Z0-9]+$/', $x);
 
 		return false;
@@ -167,13 +167,24 @@ class Helper {
 	}
 
 	public static function array_set(&$array, $path, $val) {
-		
-		$path = trim($path, '. ');
+
+		if (!is_array($path))
+			$path = explode('.', $path);
+
 		$set_array = &$array;
-		foreach (explode('.', $path) as $part)
+		foreach ($path as $part)
 			$set_array = &$set_array[$part];
 
 		$set_array = $val;
+	}
+
+	public static function array_to_csv(array $arr, $include_space = true) {
+
+		$csv = '';
+		foreach ($arr as $v)
+			$csv .= $v . ',' . ($include_space ? ' ' : '');
+
+		return trim ($csv, ', ');
 	}
 
 	public static function possessionize($str) {
@@ -232,6 +243,12 @@ class Helper {
 		exit;
 	}
 
-}
+	public static function call_func($func, $arg) {
 
-?>
+		if (is_callable($func))
+			return $func($arg);
+
+		return call_user_func($func, $arg);
+	}
+
+}

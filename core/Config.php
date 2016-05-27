@@ -79,5 +79,3 @@ class Config {
 			return NULL;
 	}
 }
-
-?>

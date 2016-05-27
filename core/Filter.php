@@ -25,20 +25,22 @@ class Filter {
 		];
 	}
 	
-	public static function run($name, $input, $options = []) {
+	public static function run($name, $val, $options = []) {
 
 		// Targeted load
-			$name = Rona::tLoad('filter', $name);
+		$name = Rona::tLoad('filter', $name);
 
 		// Get the filter
-			$filter = Helper::array_get(self::instance()->filters, $name);
+		$filter = Helper::array_get(self::instance()->filters, $name);
 
 		// Ensure filter exists
-			if (empty($filter))
-				throw new Exception('The filter "' . $name . '" does not exist.');
+		if (empty($filter))
+			throw new Exception('The filter "' . $name . '" does not exist.');
 
-		return $filter['function']($input, array_merge($filter['default_options'], $options));
+		// Merge the option arrays
+		$options = array_merge($filter['default_options'], $options);
+
+		// Run the filter and return the response object
+		return $filter['function']($val, $options);
 	}
 }
-
-?>
