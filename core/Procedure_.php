@@ -12,13 +12,14 @@ class Procedure_ {
 		return $this;
 	}
 	
-	public function param($param, $is_reqd, $filters = [], $options = []) {
+	public function param($param, $label, $is_reqd, $filters = [], $options = []) {
 
 		// Prevent empty strings from resulting in [''] - an indexed array with an empty string as a value
 		if (empty($filters))
 			$filters = [];
 
 		$this->params[(string) $param] = [
+			'label'		=>	(string) $label,
 			'is_reqd'	=>	(bool) $is_reqd,
 			'filters'	=>	(array) $filters,
 			'options'	=>	(array) $options

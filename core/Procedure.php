@@ -46,7 +46,7 @@ class Procedure {
 		$procedure = self::get($name);
 
 		// Establish arrays
-		$input_processed = $error_msgs = $missing_params = [];
+		$input_processed = $error_msgs = [];
 
 		// Run through each param
 		foreach ($procedure['params'] as $param => $props) {
@@ -55,52 +55,78 @@ class Procedure {
 			$val = Helper::array_get($input_raw, $param);
 
 			// Find the default value, if applicable
-			if (is_null($val) && isset($props['options']['default']))
+			if (Helper::is_nullOrEmptyString($val) && !Helper::is_nullOrEmptyString(Helper::array_get($props, 'options.default')))
 				$val = $props['options']['default'];
 
-			// If dependent_param was declared, then proceed only if that param exists and is not null
+			// Instantiate the $dependencies_met boolean as true
+			$dependencies_met = true;
+
+			// If dependencies were defined, then run filters only if those conditions are met
+			foreach (Helper::array_get($props, 'options.dependencies', []) as $dependent_param => $dependent_val) {
+
+				if (!Helper::array_get($input_processed, $dependent_param) === $dependent_val) {
+					$dependencies_met = false;
+					break;
+				}
+			}
+
+			// If dependent_param was declared, then run filters only if that param exists and is not null
 			$dependent_param = Helper::array_get($props, 'options.dependent_param');
 			if (isset($dependent_param) && !isset($input_processed[$dependent_param]))
-				continue;
+				$dependencies_met = false;
 
-			// If dependent_true was declared, then proceed only if that param exists, is not null, and evaluates to true
+			// If dependent_true was declared, then run filters only if that param exists, is not null, and evaluates to true
 			$dependent_true = Helper::array_get($props, 'options.dependent_true');
 			if (isset($dependent_true) && (!isset($input_processed[$dependent_true]) || !$input_processed[$dependent_true]))
-				continue;
+				$dependencies_met = false;
 
-			// If dependent_false was declared, then proceed only if that param exists, is not null, and evaluates to false
+			// If dependent_false was declared, then run filters only if that param exists, is not null, and evaluates to false
 			$dependent_false = Helper::array_get($props, 'options.dependent_false');
 			if (isset($dependent_false) && (!isset($input_processed[$dependent_false]) || $input_processed[$dependent_false]))
-				continue;
+				$dependencies_met = false;
 
-			// If the param was not passed in at all, then deal with it as either is_reqd or !is_reqd
-			if (is_null($val)) {
+			// If the dependency checks were met, then proceed
+			if ($dependencies_met) {
 
-				if ($props['is_reqd'])
-					$missing_params[] = $param;
-
-				continue;
-			}
-
-			// Run the filters
-			foreach ($props['filters'] as $k => $v) {
-
-				if (is_array($v)) {
-					$name = $k;
-					$options = $v;
-				} else {
-					$name = $v;
-					$options = [];
+				// If the param is required and the value is either null or an empty string, record the error and move to the next param
+				if ($props['is_reqd'] && Helper::is_nullOrEmptyString($val)) {
+					$error_msgs[] = 'You must provide ' . Helper::indefinite_article($props['label']) . '.';
+					continue;
 				}
 
-				$res = Filter::run($name, $val, $options);
-				if ($res->success)
-					$val = $res->data;
-				else {
-					$error_msgs = array_merge($error_msgs, $res->messages);
-					continue 2;
+				// If the value is just an empty string, just trim it and leave it be
+				if (Helper::is_emptyString($val))
+					$val = trim($val);
+
+				// If the value is not null, then it must have a value of some sort, so run it through the filters
+				else if (!is_null($val)) {
+
+					foreach ($props['filters'] as $k => $v) {
+
+						if (is_array($v)) {
+							$name = $k;
+							$options = $v;
+						} else {
+							$name = $v;
+							$options = [];
+						}
+
+						$res = Filter::run($name, $val, $props['label'], $options);
+						if ($res->success)
+							$val = $res->data;
+
+						// Since this value created an error in the filter, we'll record the error message and skip any additional filters for this param
+						else {
+							$error_msgs = array_merge($error_msgs, $res->messages);
+							continue 2;
+						}
+					}
 				}
 			}
+
+			// Since the dependency checks failed, we'll just insert a NULL value for the param
+			else
+				$val = NULL;
 
 			// Save the value into the $input_processed array
 			$to_param = Helper::array_get($props['options'], 'to_param');
@@ -110,13 +136,6 @@ class Procedure {
 			$path = trim($path, '. ');
 
 			Helper::array_set($input_processed, $path, $val);
-		}
-
-		// Add an error message for the missing params
-		$num_missing_params = count($missing_params);
-		if ($num_missing_params) {
-			$mp_msg = 'Missing param' . ($num_missing_params == 1 ? '' : 's') . ': ' . (Helper::array_vals_to_list($missing_params));
-			array_unshift($error_msgs, $mp_msg);
 		}
 			
 		// If there are any error messages, return them

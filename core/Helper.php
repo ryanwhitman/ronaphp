@@ -191,6 +191,24 @@ class Helper {
 		return $str . '\'' . ($str[strlen($str) - 1] != 's' ? 's' : '');
 	}
 
+	public static function indefinite_article($word, $output_word = true) {
+		$indefinite_article = in_array(strtolower(substr($word, 0, 1)), ['a', 'e', 'i', 'o', 'u']) ? 'an' : 'a';
+		return $indefinite_article . ($output_word ? ' ' . $word : '');
+	}
+
+	public static function pluralize($word) {
+
+		switch (substr($word, -0, 1)) {
+
+			case 'e':
+				return $word . 's';
+				break;
+
+			default:
+				return $word . 'es';
+		}
+	}
+
 	public static function format_currency($num, $show_dollar_sign = true) {
 		return ($show_dollar_sign ? '$' : '') . number_format($num, 2);
 	}

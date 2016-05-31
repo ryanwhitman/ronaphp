@@ -25,7 +25,7 @@ class Filter {
 		];
 	}
 	
-	public static function run($name, $val, $options = []) {
+	public static function run($name, $val, $label, $options = []) {
 
 		// Targeted load
 		$name = Rona::tLoad('filter', $name);
@@ -41,6 +41,6 @@ class Filter {
 		$options = array_merge($filter['default_options'], $options);
 
 		// Run the filter and return the response object
-		return $filter['function']($val, $options);
+		return $filter['function']($val, $label, $options);
 	}
 }

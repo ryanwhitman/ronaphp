@@ -1,26 +1,17 @@
 <?php
 
-Filter::set('basic', [], function($val, $options) {
-
-	return Response::set(true, '', $val);
-});
-
-Filter::set('email', [
-		'label'		=> 'email address'
-	], function($val, $options) {
+Filter::set('email', [], function($val, $label, $options) {
 		
 	$val = Helper::get_email($val);
 	if (Helper::is_email($val))
 		return Response::set(true, '', $val);
 	
-	return Response::set(false, "The {$options['label']} you provided is invalid.");
+	return Response::set(false, "The $label you provided is invalid.");
 });
 
 Filter::set('emails', [
-		'label_singular'	=> 'email address',
-		'label_plural'		=> 'email addresses',
 		'all_match'			=> true
-	], function($val, $options) {
+	], function($val, $label, $options) {
 	
 	// Ensure $val is an array
 	$val = (array) $val;
@@ -37,7 +28,7 @@ Filter::set('emails', [
 	// if 'all_match' is set to false, then ensure at least 1 legitimate email address was provided.
 	if (!$options['all_match']) {
 		if ($refined_count == 0)
-			return Response::set(false, "You must provide at least 1 valid {$options['label_singular']}.");
+			return Response::set(false, "You must provide at least 1 valid $label.");
 	}
 
 	// If 'all_match' is set to true, then the initial count must be the same as the new count
@@ -46,7 +37,7 @@ Filter::set('emails', [
 		if ($refined_count != $initial_count) {
 			$num_invalids = $initial_count - $refined_count;
 			$label = $num_invalids == 1 ? $options['label_singular'] : $options['label_plural'];
-			return Response::set(false, "You provided $num_invalids invalid $label.");
+			return Response::set(false, "You provided $num_invalids invalid " . Helper::pluralize($label) . ".");
 		}
 	}
 			
@@ -54,10 +45,8 @@ Filter::set('emails', [
 });
 
 Filter::set('boolean', [
-		'label1'			=> 'option',
-		'label2'			=> 'true or false',
 		'return_int'		=> false
-	], function($val, $options) {
+	], function($val, $label, $options) {
 
 	// Convert similar inputs to a boolean
 	if (
@@ -88,51 +77,45 @@ Filter::set('boolean', [
 		return Response::set(true, '', $val);
 	}
 	
-	return Response::set(false, "The {$options['label1']} you provided is invalid. It must be either {$options['label2']}.");
+	return Response::set(false, "The value you provided for \"$label\" is invalid.");
 });
 
-Filter::set('persons_name', [
-		'label'		=> 'name'
-	], function($val, $options) {
+Filter::set('persons_name', [], function($val, $label, $options) {
 
 	$val = Helper::trim_full($val);
 
 	if (Helper::is_persons_name($val))
 		return Response::set(true, '', $val);
 
-	return Response::set(false, "The {$options['label']} you provided is invalid.");
+	return Response::set(false, "The $label you provided is invalid.");
 });
 
 Filter::set('password', [
-	'label'			=> 'password',
 	'min_length'	=> 8,
 	'max_length'	=> 30
-	], function($val, $options) {
+	], function($val, $label, $options) {
 
 	$val = trim($val);
 
 	if (strlen($val) >= $options['min_length'] && strlen($val) <= $options['max_length'])
 		return Response::set(true, '', $val);
 		
-	return Response::set(false, "The {$options['label']} you provided is invalid. It must be between {$options['min_length']} and {$options['max_length']} characters in length.");
+	return Response::set(false, "The $label you provided is invalid. It must be between {$options['min_length']} and {$options['max_length']} characters in length.");
 });
 
-Filter::set('numeric', [
-		'label'	=> 'number'
-	], function($val, $options) {
+Filter::set('numeric', [], function($val, $label, $options) {
 
 	$val = trim($val);
 
 	if (Helper::is_numeric($val))
 		return Response::set(true, '', $val);
 	
-	return Response::set(false, "The {$options['label']} you provided does not have a numeric value.");
+	return Response::set(false, "The $label you provided does not have a numeric value.");
 });
 
 Filter::set('alphanumeric', [
-		'label'		=> 'input',
 		'case'		=> 'ci'
-	], function($val, $options) {
+	], function($val, $label, $options) {
 
 	$case = $options['case'];
 	$val = trim($val);
@@ -141,5 +124,5 @@ Filter::set('alphanumeric', [
 		return Response::set(true, '', $val);
 	
 	$additonal_label = in_array($case, ['lc', 'uc']) ? ' It must also contain only ' . ($case == 'lc' ? 'lowercase' : 'uppercase') . ' letters.' : '';
-	return Response::set(false, "The {$options['label']} you provided does not have an alphanumeric value.$additonal_label");
+	return Response::set(false, "The $label you provided does not have an alphanumeric value.$additonal_label");
 });

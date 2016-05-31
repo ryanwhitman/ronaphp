@@ -1,27 +1,28 @@
 v. .5.1.0 - alpha
 
-- Added pre/post filter functionality
-- A filter now receives the following args: $param, $val, $input, $options
-- Added "basic" filter
+- Overhauled the filter functionality. Added a "is_reqd" check prior to filter.
+- A filter now receives the following args: $val, $label, $options
 - removed the closing php tag from all pages
 - Modified built-in filters to accommodate new pattern
 - Deleted built-in filter "chars"
-- Changed 'reqd' to 'is_reqd'
 - Removed 'default' from default options of rona.misc.boolean filter
-- Deleted rona.misc.numeric filter and converted to pre-filter
-- Deleted rona.misc.alphanumeric filter and converted to pre-filter
-- Updated the pre-built filters; modified labels, etc.
 - Deleted the pre-built 'allpass' filter.
 - Updated Helper::is_emptyString()
 - Changed class name Api_Filter to Api_
 - Renamed Procedure..->filter() to Procedure..->param()
-- Remove $field and $input from filters. The received params are now $val and $input
-- Deleted core/filters/util and move set_val and set_val_from_input to methods within Api_. Also changed name to set_param()
+- Deleted core/filters/util and moved set_val to Api_->set_param()
 - The Response object no longer forces an array for 'data'
 - improved Helper::array_set()
-- Filter... boolean - 'return_tinyint' has been changed to 'return_int' and it now defaults to false
-- The app can no longer hook into a Procedure on route execution. The ability to hook into the API is forthcoming.
+- pre-built filter "boolean" - 'return_tinyint' has been changed to 'return_int' and it now defaults to false
+- The app can no longer hook into a Procedure on route execution. The ability to hook into the API is forthcoming and will be triggered by a hidden form field called "_api_endpoint".
 - Changed Config('rona.header_input') to Config('rona.api.authentication.header_params')
+- removed basic filter
+- Added Helper::pluralize() & Helper::indefinite_article()
+
+
+
+
+
 
 v. .5.0.1
 
