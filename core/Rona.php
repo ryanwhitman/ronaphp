@@ -426,20 +426,25 @@ class Rona {
 
 	public static function tLoad($type, $name) {
 
-		$type_plural = $type . 's';
+		// Convert $name into an array
 		$parts = explode('.', $name);
+
+		// The actual name of the item is the last array item
 		$name = end($parts);
+
+		// Remove the last array item, which is the name
 		unset($parts[count($parts) - 1]);
 
-		if ($parts[0] == 'rona') {
-			unset($parts[0]);
-			$location = Config::get('rona.core_dir') . '/' . $type_plural;
-		} else {
-			$seg = in_array($type, ['filter', 'procedure']) ? 'api' : 'app';
-			$location = Config::get('rona.system_dir') . Config::get('rona.' . $seg . '.locations.' . $type_plural);
-		}
+		// Determine the location of the file
+		if ($parts[0] == 'rona')
+			$location = Config::get('rona.core_dir') . '/filters.php';
+		else
+			$location = Config::get('rona.system_dir') . Config::get(['rona', in_array($type, ['filter', 'procedure']) ? 'api' : 'app', 'locations', $type . 's']) . '/' . implode('/', $parts) . '.php';
 
-		Helper::load_file($location . '/' . implode('/', $parts) . '.php');
+		// Load the file
+		Helper::load_file($location);
+
+		// Return the name of the item
 		return $name;
 	}
 

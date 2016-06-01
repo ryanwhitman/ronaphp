@@ -64,7 +64,7 @@ class Config {
 
 	public static function get($path) {
 
-		$path = strtolower(trim($path, ' .'));
+		// $path = strtolower(trim($path, ' .'));
 
 		$variables = Helper::array_get(self::instance()->variables, $path, NULL);
 		$constants = Helper::array_get(self::instance()->constants, $path, NULL);

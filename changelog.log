@@ -1,3 +1,10 @@
+v. .5.2.0
+
+Added reqd_param and opt_param methods to Procedure_ class
+Added pre-built date filter (filter needs improvement)
+Added pre-built string filter
+Pre-built filters are now called by 'rona.[filter]' instead of 'rona.misc.[filter]'
+
 v. .5.1.0
 
 - Overhauled the filter functionality. Added a "is_reqd" check prior to filter. All params now pass thru to the Procedure, including NULL & empty string values.

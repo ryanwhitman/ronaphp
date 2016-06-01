@@ -1,5 +1,24 @@
 <?php
 
+Filter::set('string', [
+		'trim_full'		=> false, // true or false
+		'trim'			=> ' ' // false disables, mask will be used otherwise
+	], function($val, $label, $options) {
+
+	if (is_string($val)) {
+
+		if ($options['trim_full'])
+			$val = Helper::trim_full($val);
+
+		if ($options['trim'] !== false)
+			$val = trim($val, $options['trim']);
+
+		return Response::set(true, '', $val);	
+	}
+
+	return Response::set(false, "The $label you provided is invalid.");
+});
+
 Filter::set('email', [], function($val, $label, $options) {
 		
 	$val = Helper::get_email($val);
@@ -125,4 +144,17 @@ Filter::set('alphanumeric', [
 	
 	$additonal_label = in_array($case, ['lc', 'uc']) ? ' It must also contain only ' . ($case == 'lc' ? 'lowercase' : 'uppercase') . ' letters.' : '';
 	return Response::set(false, "The $label you provided does not have an alphanumeric value.$additonal_label");
+});
+
+Filter::set('date', [
+		'output_format'	=> 'Y-m-d'
+	], function($val, $label, $options) {
+
+	$date = date($options['output_format'], strtotime($val));
+
+	$dt = DateTime::createFromFormat($options['output_format'], $date);
+	if ($dt !== false && !array_sum($dt->getLastErrors()))
+		return Response::set(false, $date, $date);
+
+	return Response::set(false, "The $label you provided is invalid.");
 });

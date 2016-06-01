@@ -27,6 +27,16 @@ class Procedure_ {
 
 		return $this;
 	}
+	
+	public function reqd_param($param, $label, $filters = [], $options = []) {
+
+		return $this->param($param, $label, true, $filters, $options);
+	}
+	
+	public function opt_param($param, $label, $filters = [], $options = []) {
+
+		return $this->param($param, $label, false, $filters, $options);
+	}
 
 	public function execute($function) {
 		Procedure::instance()->procedures[$this->name] = [
