@@ -1,8 +1,7 @@
-v. .5.1.0 - alpha
+v. .5.1.0
 
-- Overhauled the filter functionality. Added a "is_reqd" check prior to filter.
+- Overhauled the filter functionality. Added a "is_reqd" check prior to filter. All params now pass thru to the Procedure, including NULL & empty string values.
 - A filter now receives the following args: $val, $label, $options
-- removed the closing php tag from all pages
 - Modified built-in filters to accommodate new pattern
 - Deleted built-in filter "chars"
 - Removed 'default' from default options of rona.misc.boolean filter
@@ -16,13 +15,7 @@ v. .5.1.0 - alpha
 - pre-built filter "boolean" - 'return_tinyint' has been changed to 'return_int' and it now defaults to false
 - The app can no longer hook into a Procedure on route execution. The ability to hook into the API is forthcoming and will be triggered by a hidden form field called "_api_endpoint".
 - Changed Config('rona.header_input') to Config('rona.api.authentication.header_params')
-- removed basic filter
 - Added Helper::pluralize() & Helper::indefinite_article()
-
-
-
-
-
 
 v. .5.0.1
 
