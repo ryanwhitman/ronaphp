@@ -1,3 +1,9 @@
+v. .5.3.0
+
+- Changed directories: the directories for filters and procedures are now at the root level.
+- Fixed the bug that was in the pre-built date filter. It was still returning test data on success.
+- When a filter returns a failure and does not have a message, the Filter::run() method now provides a default error message. A lot of pre-built filters were changed to take advantage of this. "Response::set(false)"
+
 v. .5.2.0
 
 Added reqd_param and opt_param methods to Procedure_ class

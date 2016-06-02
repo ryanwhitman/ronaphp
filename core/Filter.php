@@ -40,7 +40,14 @@ class Filter {
 		// Merge the option arrays
 		$options = array_merge($filter['default_options'], $options);
 
-		// Run the filter and return the response object
-		return $filter['function']($val, $label, $options);
+		// Run the filter
+		$res = $filter['function']($val, $label, $options);
+
+		// If the filter failed and there is no message, attach a default one
+		if (!$res->success && empty($res->messages))
+			$res->messages[] = "The $label you provided is invalid.";
+
+		// Return the response object
+		return $res;
 	}
 }

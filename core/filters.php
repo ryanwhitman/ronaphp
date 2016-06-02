@@ -16,7 +16,7 @@ Filter::set('string', [
 		return Response::set(true, '', $val);	
 	}
 
-	return Response::set(false, "The $label you provided is invalid.");
+	return Response::set(false);
 });
 
 Filter::set('email', [], function($val, $label, $options) {
@@ -25,7 +25,7 @@ Filter::set('email', [], function($val, $label, $options) {
 	if (Helper::is_email($val))
 		return Response::set(true, '', $val);
 	
-	return Response::set(false, "The $label you provided is invalid.");
+	return Response::set(false);
 });
 
 Filter::set('emails', [
@@ -47,7 +47,7 @@ Filter::set('emails', [
 	// if 'all_match' is set to false, then ensure at least 1 legitimate email address was provided.
 	if (!$options['all_match']) {
 		if ($refined_count == 0)
-			return Response::set(false, "You must provide at least 1 valid $label.");
+			return Response::set(false, "You must provide a valid $label.");
 	}
 
 	// If 'all_match' is set to true, then the initial count must be the same as the new count
@@ -96,7 +96,7 @@ Filter::set('boolean', [
 		return Response::set(true, '', $val);
 	}
 	
-	return Response::set(false, "The value you provided for \"$label\" is invalid.");
+	return Response::set(false);
 });
 
 Filter::set('persons_name', [], function($val, $label, $options) {
@@ -106,7 +106,7 @@ Filter::set('persons_name', [], function($val, $label, $options) {
 	if (Helper::is_persons_name($val))
 		return Response::set(true, '', $val);
 
-	return Response::set(false, "The $label you provided is invalid.");
+	return Response::set(false);
 });
 
 Filter::set('password', [
@@ -129,7 +129,7 @@ Filter::set('numeric', [], function($val, $label, $options) {
 	if (Helper::is_numeric($val))
 		return Response::set(true, '', $val);
 	
-	return Response::set(false, "The $label you provided does not have a numeric value.");
+	return Response::set(false);
 });
 
 Filter::set('alphanumeric', [
@@ -142,19 +142,20 @@ Filter::set('alphanumeric', [
 	if (Helper::is_alphanumeric($val, $case))
 		return Response::set(true, '', $val);
 	
-	$additonal_label = in_array($case, ['lc', 'uc']) ? ' It must also contain only ' . ($case == 'lc' ? 'lowercase' : 'uppercase') . ' letters.' : '';
-	return Response::set(false, "The $label you provided does not have an alphanumeric value.$additonal_label");
+	return Response::set(false);
 });
 
 Filter::set('date', [
 		'output_format'	=> 'Y-m-d'
 	], function($val, $label, $options) {
 
+	#** This function needs to be modified as it basically validates anything
+
 	$date = date($options['output_format'], strtotime($val));
 
 	$dt = DateTime::createFromFormat($options['output_format'], $date);
 	if ($dt !== false && !array_sum($dt->getLastErrors()))
-		return Response::set(false, $date, $date);
+		return Response::set(true, '', $date);
 
-	return Response::set(false, "The $label you provided is invalid.");
+	return Response::set(false);
 });

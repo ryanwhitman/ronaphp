@@ -25,90 +25,88 @@ class Rona {
 		if (!self::instance()->was_initialized) {
 
 			// Load class files
-				require_once __DIR__ . '/Config.php';
-				require_once __DIR__ . '/Helper.php';
-				require_once __DIR__ . '/Response.php';
+			require_once __DIR__ . '/Config.php';
+			require_once __DIR__ . '/Helper.php';
+			require_once __DIR__ . '/Response.php';
 
 			// Default configuration
-				Config::set('rona')
-					->_('debug_mode', true)
-					->_('system_path', '')
-					->_('system_dir', dirname(__DIR__))
-					->_('core_dir', __DIR__)
-					->_('request_uri', $_SERVER['REQUEST_URI'])
-					->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
+			Config::set('rona')
+				->_('debug_mode', true)
+				->_('system_path', '')
+				->_('system_dir', dirname(__DIR__))
+				->_('core_dir', __DIR__)
+				->_('request_uri', $_SERVER['REQUEST_URI'])
+				->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
 
-				Config::set('rona.api')
-					->_('paths', [])
-					->_('locations')
-						->_('config', '/api/config.php')
-						->_('routes', '/api/routes.php')
-						->_('filters', '/api/filters')
-						->_('procedures', '/api/procedures');
+			Config::set('rona.locations')
+				->_('api_config', '/api/config.php')
+				->_('api_routes', '/api/routes.php')
+				->_('app_config', '/app/config.php')
+				->_('app_routes', '/app/routes.php')
+				->_('filters', '/filters')
+				->_('procedures', '/procedures')
+				->_('controllers', '/app/controllers')
+				->_('views', '/app/views');
 
-				Config::set('rona.api.hooks')
-					->_('onAuthentication_failure', function($res) {
+			Config::set('rona.api.paths', []);
 
-						echo json_encode($res);
-						return false;
-					})
-					->_('onParam_failure', function($res) {
+			Config::set('rona.api.hooks')
+				->_('onAuthentication_failure', function($res) {
 
-						echo json_encode($res);
-						return false;
-					})
-					->_('onAuthorization_failure', function($res) {
+					echo json_encode($res);
+					return false;
+				})
+				->_('onParam_failure', function($res) {
 
-						echo json_encode($res);
-						return false;
-					})
-					->_('onSuccess', function($res) {
+					echo json_encode($res);
+					return false;
+				})
+				->_('onAuthorization_failure', function($res) {
 
-						echo json_encode($res);
-						return true;
-					});
+					echo json_encode($res);
+					return false;
+				})
+				->_('onSuccess', function($res) {
 
-				Config::set('rona.api.authentication')
-					->_('inject_query_string', false)
-					->_('procedure', '')
-					->_('header_params', []);
-
-				Config::set('rona.app')
-					->_('tmp_storage', '/cgi-bin/tmp')
-					->_('locations')
-						->_('config', '/app/config.php')
-						->_('routes', '/app/routes.php')
-						->_('controllers', '/app/controllers')
-						->_('views', '/app/views');					
-
-			// Load the general config file
-				require_once Config::get('rona.system_dir') . '/config.php';
-
-			// Error handling
-				$is_debug_mode = Config::get('rona.debug_mode');
-				# Checking for a boolean gives the developer the ability to skip this functionality
-				if (is_bool($is_debug_mode)) {
-					if ($is_debug_mode) {
-						ini_set('display_errors', 1);
-						ini_set('display_startup_errors', 1);
-						error_reporting(-1);
-					} else {
-						ini_set('display_errors', 0);
-						ini_set('display_startup_errors', 0);
-						error_reporting(0);
-					}
-				}
-
-			// Register autoloader
-				spl_autoload_register(function($class) {
-
-					foreach (self::instance()->autoloaders as $autoloader)
-						if (is_callable($autoloader) && $autoloader($class))
-							return true;
+					echo json_encode($res);
+					return true;
 				});
 
+			Config::set('rona.api.authentication')
+				->_('inject_query_string', false)
+				->_('procedure', '')
+				->_('header_params', []);
+
+			Config::set('rona.app.tmp_storage', '/cgi-bin/tmp');
+
+			// Load the general config file
+			require_once Config::get('rona.system_dir') . '/config.php';
+
+			// Error handling
+			$is_debug_mode = Config::get('rona.debug_mode');
+			# Checking for a boolean gives the developer the ability to skip this functionality
+			if (is_bool($is_debug_mode)) {
+				if ($is_debug_mode) {
+					ini_set('display_errors', 1);
+					ini_set('display_startup_errors', 1);
+					error_reporting(-1);
+				} else {
+					ini_set('display_errors', 0);
+					ini_set('display_startup_errors', 0);
+					error_reporting(0);
+				}
+			}
+
+			// Register autoloader
+			spl_autoload_register(function($class) {
+
+				foreach (self::instance()->autoloaders as $autoloader)
+					if (is_callable($autoloader) && $autoloader($class))
+						return true;
+			});
+
 			// Rona has been initialized
-				self::instance()->was_initialized = true;
+			self::instance()->was_initialized = true;
 		}
 	}
 
@@ -148,14 +146,14 @@ class Rona {
 		// Load the appropriate resources / configuration
 		require_once Config::get('rona.core_dir') . '/Route.php';
 		if ($is_api) {
-			require_once Config::get('rona.system_dir') . Config::get('rona.api.locations.config');
+			require_once Config::get('rona.system_dir') . Config::get('rona.locations.api_config');
 			require_once Config::get('rona.core_dir') . '/Api.php';
-			require_once Config::get('rona.system_dir') . Config::get('rona.api.locations.routes');
+			require_once Config::get('rona.system_dir') . Config::get('rona.locations.api_routes');
 			header('Content-Type: application/json');
 		} else {
-			require_once Config::get('rona.system_dir') . Config::get('rona.app.locations.config');
+			require_once Config::get('rona.system_dir') . Config::get('rona.locations.app_config');
 			require_once Config::get('rona.core_dir') . '/App.php';
-			require_once Config::get('rona.system_dir') . Config::get('rona.app.locations.routes');
+			require_once Config::get('rona.system_dir') . Config::get('rona.locations.app_routes');
 		}
 
 		// Turn the requested route into an array & get the count
@@ -439,7 +437,7 @@ class Rona {
 		if ($parts[0] == 'rona')
 			$location = Config::get('rona.core_dir') . '/filters.php';
 		else
-			$location = Config::get('rona.system_dir') . Config::get(['rona', in_array($type, ['filter', 'procedure']) ? 'api' : 'app', 'locations', $type . 's']) . '/' . implode('/', $parts) . '.php';
+			$location = Config::get('rona.system_dir') . Config::get(['rona', 'locations', $type . 's']) . '/' . implode('/', $parts) . '.php';
 
 		// Load the file
 		Helper::load_file($location);
@@ -449,6 +447,6 @@ class Rona {
 	}
 
 	public static function load_view($view, $scope) {
-		include Config::get('rona.system_dir') . Config::get('rona.app.locations.views') . '/' . $view . '.php';
+		include Config::get('rona.system_dir') . Config::get('rona.locations.views') . '/' . $view . '.php';
 	}
 }
