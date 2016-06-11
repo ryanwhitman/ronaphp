@@ -42,42 +42,27 @@ class Route {
 
 		if ($is_api) {
 
-				$components_formatted['procedure'] = (string) $components['procedure'];
-				$components_formatted['authenticate'] = (bool) $components['authenticate'];
-				$components_formatted['set_auth_user_id_as'] = (string) $components['set_auth_user_id_as'];
+			$components_formatted['procedure'] = (string) $components['procedure'];
 
-				// Set the default hooks
-				$default_hooks = Config::get('rona.api.hooks');
-				$components_formatted['hooks'] = [
-					'onAuthentication_failure'	=> $default_hooks['onauthentication_failure'],
-					'onParam_failure'			=> $default_hooks['onparam_failure'],
-					'onAuthorization_failure'	=> $default_hooks['onauthorization_failure'],
-					'onSuccess'					=> $default_hooks['onsuccess']
-				];
+			// Set the default hooks
+			$default_hooks = Config::get('rona.api.hooks');
+			$components_formatted['hooks'] = [
+				'onAuthentication_failure'	=> $default_hooks['onauthentication_failure'],
+				'onParam_failure'			=> $default_hooks['onparam_failure'],
+				'onAuthorization_failure'	=> $default_hooks['onauthorization_failure'],
+				'onSuccess'					=> $default_hooks['onsuccess']
+			];
 
 		} else {
 
-			# If singular component nouns were used, transfer them to plural
-			if (!empty($components['controller']))
-				$components['controllers'] = $components['controller'];
-
 			if (!empty($components['controllers']))
-				$components_formatted['controllers'] = (array) $components['controllers'];
-			
-			if (!empty($components['view']))
-				$components['views'] = $components['view'];
+				$components_formatted['controllers'] = (array) $components['controllers'];			
 
 			if (!empty($components['views']))
-				$components_formatted['views'] = (array) $components['views'];
-			
-			if (!empty($components['option']))
-				$components['options'] = $components['option'];
+				$components_formatted['views'] = (array) $components['views'];			
 
 			if (!empty($components['options']))
-				$components_formatted['options'] = (array) $components['options'];
-			
-			if (!empty($components['tag']))
-				$components['tags'] = $components['tag'];
+				$components_formatted['options'] = (array) $components['options'];			
 
 			if (!empty($components['tags']))
 				$components_formatted['tags'] = (array) $components['tags'];

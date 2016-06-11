@@ -6,7 +6,8 @@ class Rona {
 
 	private
 		$was_initialized = false,
-		$autoloaders = [];
+		$autoloaders = [],
+		$tLoad_namespace = '';
 	
 	private function __construct() {}
 	private function __clone() {}
@@ -29,55 +30,8 @@ class Rona {
 			require_once __DIR__ . '/Helper.php';
 			require_once __DIR__ . '/Response.php';
 
-			// Default configuration
-			Config::set('rona')
-				->_('debug_mode', true)
-				->_('system_path', '')
-				->_('system_dir', dirname(__DIR__))
-				->_('core_dir', __DIR__)
-				->_('request_uri', $_SERVER['REQUEST_URI'])
-				->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
-
-			Config::set('rona.locations')
-				->_('api_config', '/api/config.php')
-				->_('api_routes', '/api/routes.php')
-				->_('app_config', '/app/config.php')
-				->_('app_routes', '/app/routes.php')
-				->_('filters', '/filters')
-				->_('procedures', '/procedures')
-				->_('controllers', '/app/controllers')
-				->_('views', '/app/views');
-
-			Config::set('rona.api.paths', []);
-
-			Config::set('rona.api.hooks')
-				->_('onAuthentication_failure', function($res) {
-
-					echo json_encode($res);
-					return false;
-				})
-				->_('onParam_failure', function($res) {
-
-					echo json_encode($res);
-					return false;
-				})
-				->_('onAuthorization_failure', function($res) {
-
-					echo json_encode($res);
-					return false;
-				})
-				->_('onSuccess', function($res) {
-
-					echo json_encode($res);
-					return true;
-				});
-
-			Config::set('rona.api.authentication')
-				->_('inject_query_string', false)
-				->_('procedure', '')
-				->_('header_params', []);
-
-			Config::set('rona.app.tmp_storage', '/cgi-bin/tmp');
+			// Load Default Configuration
+			self::load_default_config();
 
 			// Load the general config file
 			require_once Config::get('rona.system_dir') . '/config.php';
@@ -108,6 +62,122 @@ class Rona {
 			// Rona has been initialized
 			self::instance()->was_initialized = true;
 		}
+	}
+
+	private static function load_default_config() {
+
+		// All default configurations start with "rona"
+		$rona = Config::set('rona');
+
+		// General
+		$rona
+			->_('debug_mode', true)
+			->_('system_path', '')
+			->_('system_dir', dirname(__DIR__))
+			->_('core_dir', __DIR__)
+			->_('request_uri', $_SERVER['REQUEST_URI'])
+			->_('http_methods', ['get', 'post', 'put', 'patch', 'delete', 'options']);
+
+		// tLoad (targeted load)
+		$rona->_('tload')
+			->_('namespace_delimiter', '.')
+			->_('file_delimiter', '.'); # Using a "/" will enable folder nesting.
+
+		// Location of core entities
+		$rona->_('locations')
+			->_('api_config', '/api/config.php')
+			->_('api_routes', '/api/routes.php')
+			->_('app_config', '/app/config.php')
+			->_('app_routes', '/app/routes.php')
+			->_('filters', '/filters')
+			->_('procedures', '/procedures')
+			->_('controllers', '/app/controllers')
+			->_('views', '/app/views');
+
+		// Start an API config object
+		$api = $rona->_('api');
+
+		// API base paths
+		$api
+			->_('paths', []);
+
+		// API Hooks
+		$api->_('hooks')
+			->_('onAuthentication_failure', function($res) {
+
+				echo json_encode($res);
+				return false;
+			})
+			->_('onParam_failure', function($res) {
+
+				echo json_encode($res);
+				return false;
+			})
+			->_('onAuthorization_failure', function($res) {
+
+				echo json_encode($res);
+				return false;
+			})
+			->_('onSuccess', function($res) {
+
+				echo json_encode($res);
+				return true;
+			});
+
+		// API Authentication
+		$api->_('authentication')
+			->_('inject_query_string', false)
+			->_('procedure', '')
+			->_('header_params', []);
+
+		// App Session Storage
+		$rona
+			->_('app.tmp_storage', '/cgi-bin/tmp');
+
+		// Start a filters config object
+		$filters = $rona->_('filters');
+
+		// Pre-built Filter Options
+		$filters->_('options')
+			->_('string.trim_full', false)
+			->_('string.trim', ' ')
+			->_('emails.all_match', true)
+			->_('boolean.return_int', false)
+			->_('password.min_length', 8)
+			->_('password.max_length', 30)
+			->_('alphanumeric.case', 'ci')
+			->_('date.output_format', 'Y-m-d');
+
+		// Pre-built Filter Messages *can either be a string or a function
+		$filters->_('messages')
+			->_('default.failure', function($vars) {
+				return "The {$vars['label']} you provided is invalid.";
+			})
+			->_('string.success', NULL)
+			->_('string.failure', NULL)
+			->_('email.success', NULL)
+			->_('email.failure', NULL)
+			->_('emails.success', NULL)
+			->_('emails.failure.at_least_1', function($vars) {
+				return "You must provide a valid {$vars['label']}.";
+			})
+			->_('emails.failure.all_must_match', function($vars) {
+				return "You provided {$vars['num_invalids']} invalid " . Helper::pluralize($vars['label']) . ".";
+			})
+			->_('boolean.success', NULL)
+			->_('boolean.failure', NULL)
+			->_('persons_name.success', NULL)
+			->_('persons_name.failure', NULL)
+			->_('password.success', NULL)
+			->_('password.failure', function($vars) {
+				return "The {$vars['label']} you provided is invalid. It must be between {$vars['options']['min_length']} and {$vars['options']['max_length']} characters in length.";
+			})
+			->_('numeric.success', NULL)
+			->_('numeric.failure', NULL)
+			->_('alphanumeric.success', NULL)
+			->_('alphanumeric.failure', NULL)
+			->_('date.success', NULL)
+			->_('date.failure', NULL);
 	}
 
 	public static function autoload_register($function) {
@@ -243,26 +313,37 @@ class Rona {
 			# We may eventually include the query string data in all requests. For now, it's just used for authentication and in GET requests.
 
 			// Authenticate request
-			if ($route_found['authenticate']) {
+			$authenticate = Helper::array_get($route_found, 'authenticate', false);
+			if ($authenticate) {
 
 				// Ensure auth procedure has been configured
 				$auth_procedure = Config::get('rona.api.authentication.procedure');
 				if (empty($auth_procedure))
 					throw New Exception('The authentication procedure needs to be configured.');
 
-				// Establish input
-				$auth_input = [];
+				// Establish raw input array
+				$auth_input_raw = [];
 
 				// Add the query string to the input array if it's enabled
 				if (Config::get('rona.api.authentication.inject_query_string'))
-					$auth_input = $query_string_data;
+					$auth_input_raw = $query_string_data;
 
 				// Add header data *** if this is an internal app request, we'll need to use Helper::array_get($_SESSION, $item); That needs to be wired in, though.
 				foreach ((array) Config::get('rona.api.authentication.header_params') as $param)
-					$auth_input = array_merge($auth_input, [$param => Helper::array_get($_SERVER, strtoupper('http_' . $param))]);
+					$auth_input_raw = array_merge($auth_input_raw, [$param => Helper::array_get($_SERVER, strtoupper('http_' . $param))]);
 
-				// Authenticate the user by running the procedure
-				$res = Procedure::run($auth_procedure, $auth_input);
+				// Process the raw authentication input
+				$res = Procedure::process_input($auth_procedure, $auth_input_raw);
+				if (!$res->success) {
+					http_response_code(400);
+					echo json_encode($res);
+					return false;
+				}
+
+				$auth_input_processed = $res->data;
+
+				// Authenticate the user by executing the procedure with the processed input
+				$res = Procedure::execute($auth_procedure, $auth_input_processed);
 				if (!$res->success) {
 					http_response_code(401);
 					return Helper::call_func($route_found['hooks']['onAuthorization_failure'], $res);
@@ -303,7 +384,7 @@ class Rona {
 			# End - get payload message-body
 
 			// If the 'set_auth_user_id_as' was set for user authentication, add it
-			if ($route_found['set_auth_user_id_as'])
+			if (isset($route_found['set_auth_user_id_as']))
 				$input_processed[$route_found['set_auth_user_id_as']] = $auth_user_id;
 
 			// Set params
@@ -322,14 +403,19 @@ class Rona {
 			$input_processed = array_merge($res->data, $input_processed);
 
 			// Run authorization checks, if applicable
-			if ($route_found['authenticate']) {
+			if ($authenticate) {
 
-				$temp_input = $input_processed;
-				$temp_input['auth_user_id'] = $auth_user_id;
+				$authorization_input = $input_processed;
+				$authorization_input['auth_user_id'] = $auth_user_id;
 
 				foreach (Helper::array_get($route_found, 'authorizations', []) as $procedure => $switches) {
 
-					$res = Procedure::run($procedure, $temp_input);
+					// Switches enable the developer to modify the param names passed into the procedure. Loop thru each and make the switch
+					$switched_authorization_input = $authorization_input;
+					foreach ((array) $switches as $newParam => $existingParam)
+						Helper::array_set($switched_authorization_input, $newParam, Helper::array_get($switched_authorization_input, $existingParam));
+
+					$res = Procedure::run($procedure, $switched_authorization_input);
 					if (!$res->success) {
 						http_response_code(403);
 						return Helper::call_func($route_found['hooks']['onAuthorization_failure'], $res);
@@ -339,6 +425,11 @@ class Rona {
 		
 			// Run the procedure
 			$res = Procedure::execute($route_found['procedure'], $input_processed);
+			if (!$res->success) {
+				http_response_code(400);
+				echo json_encode($res);
+				return false;
+			}
 			return Helper::call_func($route_found['hooks']['onSuccess'], $res);
 		}
 
@@ -422,28 +513,44 @@ class Rona {
 			}
 	}
 
-	public static function tLoad($type, $name) {
+	public static function tLoad($type, $fullname) {
 
-		// Convert $name into an array
-		$parts = explode('.', $name);
+		// Get delimiters
+		$namespace_delimiter = Config::get('rona.tload.namespace_delimiter');
+		$file_delimiter = Config::get('rona.tload.file_delimiter');
 
-		// The actual name of the item is the last array item
-		$name = end($parts);
+		// Convert fullname into its parts
+		$parts = explode($namespace_delimiter, $fullname);
 
-		// Remove the last array item, which is the name
+		// Remove the last array item, which is the actual name
 		unset($parts[count($parts) - 1]);
+
+		// Derive the tLoad namespace
+		$tLoad_namespace = implode($namespace_delimiter, $parts);
+
+		// Set the tLoad namespace
+		self::set_tLoad_namespace($tLoad_namespace);
 
 		// Determine the location of the file
 		if ($parts[0] == 'rona')
 			$location = Config::get('rona.core_dir') . '/filters.php';
 		else
-			$location = Config::get('rona.system_dir') . Config::get(['rona', 'locations', $type . 's']) . '/' . implode('/', $parts) . '.php';
+			$location = Config::get('rona.system_dir') . Config::get(['rona', 'locations', $type . 's']) . '/' . implode($file_delimiter, $parts) . '.php';
+
+		// Ensure file exists
+		if (!file_exists($location))
+			throw New Exception("'" . self::get_tLoad_namespace() . "' is not a valid $type namespace.");
 
 		// Load the file
 		Helper::load_file($location);
+	}
 
-		// Return the name of the item
-		return $name;
+	private static function set_tLoad_namespace($namespace) {
+		self::instance()->tLoad_namespace = $namespace;
+	}
+
+	public static function get_tLoad_namespace() {
+		return self::instance()->tLoad_namespace;
 	}
 
 	public static function load_view($view, $scope) {

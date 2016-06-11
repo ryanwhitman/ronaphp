@@ -23,14 +23,24 @@ class Api_ {
 		return new self($this->http_methods, $this->type, $this->path);
 	}
 
+	public function authenticate($set_auth_user_id_as = NULL) {
+
+		foreach ($this->http_methods as $http_method) {
+			Route::instance()->routes[$http_method][$this->type][$this->path]['authenticate'] = true;
+			Route::instance()->routes[$http_method][$this->type][$this->path]['set_auth_user_id_as'] = $set_auth_user_id_as;
+		}
+
+		return new self($this->http_methods, $this->type, $this->path);
+	}
+
+	public function authorize($procedure, $switches = []) {
+
+		return $this->set_component('authorizations', $procedure, $switches);
+	}
+
 	public function set_param($param, $val) {
 
 		return $this->set_component('set_param', (string) $param, $val);
-	}
-
-	public function authorization($procedure, $switches = []) {
-
-		return $this->set_component('authorizations', $procedure, $switches);
 	}
 
 	public function onAuthentication_failure($func) {

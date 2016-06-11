@@ -269,4 +269,12 @@ class Helper {
 		return call_user_func($func, $arg);
 	}
 
+	public static function func_or($func_or, $arg) {
+
+		if (is_callable($func_or))
+			return $func_or($arg);
+
+		return $func_or;
+	}
+
 }

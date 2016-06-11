@@ -19,23 +19,23 @@ class Filter {
 	}
 	
 	public static function set($name, $default_options, $function) {
-		self::instance()->filters[$name] = [
+		self::instance()->filters[Rona::get_tLoad_namespace() . '.' . $name] = [
 			'default_options'	=> (array) $default_options,
 			'function'			=> $function
 		];
 	}
 	
-	public static function run($name, $val, $label, $options = []) {
+	public static function run($fullname, $val, $label, $options = []) {
 
 		// Targeted load
-		$name = Rona::tLoad('filter', $name);
+		Rona::tLoad('filter', $fullname);
 
 		// Get the filter
-		$filter = Helper::array_get(self::instance()->filters, $name);
+		$filter = Helper::array_get(self::instance()->filters, [$fullname]);
 
 		// Ensure filter exists
 		if (empty($filter))
-			throw new Exception('The filter "' . $name . '" does not exist.');
+			throw new Exception('The filter "' . $fullname . '" does not exist.');
 
 		// Merge the option arrays
 		$options = array_merge($filter['default_options'], $options);
@@ -45,7 +45,7 @@ class Filter {
 
 		// If the filter failed and there is no message, attach a default one
 		if (!$res->success && empty($res->messages))
-			$res->messages[] = "The $label you provided is invalid.";
+			$res->messages[] = Helper::func_or(Config::get('rona.filters.messages.default.failure'), get_defined_vars());
 
 		// Return the response object
 		return $res;

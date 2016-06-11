@@ -1,8 +1,8 @@
 <?php
 
 Filter::set('string', [
-		'trim_full'		=> false, // true or false
-		'trim'			=> ' ' // false disables, mask will be used otherwise
+		'trim_full'		=> Config::get('rona.filters.options.string.trim_full'), // true or false
+		'trim'			=> Config::get('rona.filters.options.string.trim') // false disables, mask will be used otherwise
 	], function($val, $label, $options) {
 
 	if (is_string($val)) {
@@ -13,23 +13,23 @@ Filter::set('string', [
 		if ($options['trim'] !== false)
 			$val = trim($val, $options['trim']);
 
-		return Response::set(true, '', $val);	
+		return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.string.success'), get_defined_vars()), $val);
 	}
 
-	return Response::set(false);
+	return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.string.failure'), get_defined_vars()));
 });
 
 Filter::set('email', [], function($val, $label, $options) {
 		
 	$val = Helper::get_email($val);
 	if (Helper::is_email($val))
-		return Response::set(true, '', $val);
-	
-	return Response::set(false);
+		return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.email.success'), get_defined_vars()), $val);
+
+	return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.email.failure'), get_defined_vars()));
 });
 
 Filter::set('emails', [
-		'all_match'			=> true
+		'all_match'		=> Config::get('rona.filters.options.emails.all_match')
 	], function($val, $label, $options) {
 	
 	// Ensure $val is an array
@@ -47,7 +47,7 @@ Filter::set('emails', [
 	// if 'all_match' is set to false, then ensure at least 1 legitimate email address was provided.
 	if (!$options['all_match']) {
 		if ($refined_count == 0)
-			return Response::set(false, "You must provide a valid $label.");
+			return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.emails.failure.at_least_1'), get_defined_vars()));
 	}
 
 	// If 'all_match' is set to true, then the initial count must be the same as the new count
@@ -55,16 +55,15 @@ Filter::set('emails', [
 		
 		if ($refined_count != $initial_count) {
 			$num_invalids = $initial_count - $refined_count;
-			$label = $num_invalids == 1 ? $options['label_singular'] : $options['label_plural'];
-			return Response::set(false, "You provided $num_invalids invalid " . Helper::pluralize($label) . ".");
+			return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.emails.failure.all_must_match'), get_defined_vars()));
 		}
-	}
-			
-	return Response::set(true, '', $val);
+	}			
+	
+	return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.emails.success'), get_defined_vars()), $val);
 });
 
 Filter::set('boolean', [
-		'return_int'		=> false
+		'return_int'	=> Config::get('rona.filters.options.boolean.return_int')
 	], function($val, $label, $options) {
 
 	// Convert similar inputs to a boolean
@@ -92,11 +91,11 @@ Filter::set('boolean', [
 
 		if ($options['return_int'])
 			$val = $val == false ? 0 : 1;
-
-		return Response::set(true, '', $val);
+		
+		return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.boolean.success'), get_defined_vars()), $val);
 	}
 	
-	return Response::set(false);
+	return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.boolean.failure'), get_defined_vars()));
 });
 
 Filter::set('persons_name', [], function($val, $label, $options) {
@@ -104,22 +103,23 @@ Filter::set('persons_name', [], function($val, $label, $options) {
 	$val = Helper::trim_full($val);
 
 	if (Helper::is_persons_name($val))
-		return Response::set(true, '', $val);
-
-	return Response::set(false);
+		return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.persons_name.success'), get_defined_vars()), $val);
+	
+	return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.persons_name.failure'), get_defined_vars()));
 });
 
 Filter::set('password', [
-	'min_length'	=> 8,
-	'max_length'	=> 30
+	'min_length'	=> Config::get('rona.filters.options.password.min_length'),
+	'max_length'	=> Config::get('rona.filters.options.password.max_length')
 	], function($val, $label, $options) {
 
 	$val = trim($val);
+	$pw_length = strlen($val);
 
-	if (strlen($val) >= $options['min_length'] && strlen($val) <= $options['max_length'])
-		return Response::set(true, '', $val);
-		
-	return Response::set(false, "The $label you provided is invalid. It must be between {$options['min_length']} and {$options['max_length']} characters in length.");
+	if ($pw_length >= $options['min_length'] && $pw_length <= $options['max_length'])
+		return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.password.success'), get_defined_vars()), $val);
+	
+	return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.password.failure'), get_defined_vars()));
 });
 
 Filter::set('numeric', [], function($val, $label, $options) {
@@ -127,26 +127,26 @@ Filter::set('numeric', [], function($val, $label, $options) {
 	$val = trim($val);
 
 	if (Helper::is_numeric($val))
-		return Response::set(true, '', $val);
+		return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.numeric.success'), get_defined_vars()), $val);
 	
-	return Response::set(false);
+	return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.numeric.failure'), get_defined_vars()));
 });
 
 Filter::set('alphanumeric', [
-		'case'		=> 'ci'
+		'case'		=> Config::get('rona.filters.options.alphanumeric.case')
 	], function($val, $label, $options) {
 
 	$case = $options['case'];
 	$val = trim($val);
 
 	if (Helper::is_alphanumeric($val, $case))
-		return Response::set(true, '', $val);
+		return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.alphanumeric.success'), get_defined_vars()), $val);
 	
-	return Response::set(false);
+	return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.alphanumeric.failure'), get_defined_vars()));
 });
 
 Filter::set('date', [
-		'output_format'	=> 'Y-m-d'
+		'output_format'	=> Config::get('rona.filters.options.date.output_format')
 	], function($val, $label, $options) {
 
 	#** This function needs to be modified as it basically validates anything
@@ -155,7 +155,7 @@ Filter::set('date', [
 
 	$dt = DateTime::createFromFormat($options['output_format'], $date);
 	if ($dt !== false && !array_sum($dt->getLastErrors()))
-		return Response::set(true, '', $date);
-
-	return Response::set(false);
+		return Response::set(true, Helper::func_or(Config::get('rona.filters.messages.date.success'), get_defined_vars()), $date);
+	
+	return Response::set(false, Helper::func_or(Config::get('rona.filters.messages.date.failure'), get_defined_vars()));
 });

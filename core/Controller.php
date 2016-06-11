@@ -21,25 +21,25 @@ class Controller {
 	}
 	
 	public static function set($name, $function) {
-		self::instance()->controllers[$name] = $function;
+		self::instance()->controllers[Rona::get_tLoad_namespace() . '.' . $name] = $function;
 	}
 	
-	public static function run($name, $args = NULL) {
+	public static function run($fullname, $args = NULL) {
 
 		// Targeted load
-			$name = Rona::tLoad('controller', $name);
+		Rona::tLoad('controller', $fullname);
 
 		// Get the controller
-			$controller = Helper::array_get(self::instance()->controllers, $name);
+		$controller = Helper::array_get(self::instance()->controllers, [$fullname]);
 
 		// Ensure controller exists
-			if (empty($controller))
-				throw new Exception('The controller "' . $name . '" does not exist.');
+		if (empty($controller))
+			throw new Exception('The controller "' . $fullname . '" does not exist.');
 
 		$args = func_get_args();
 		unset($args[0]);
 		call_user_func_array($controller, $args);
-		self::instance()->controllers_run[] = $name;
+		self::instance()->controllers_run[] = $fullname;
 	}
 	
 	public static function was_run($controller) {
