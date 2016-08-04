@@ -1,3 +1,7 @@
+---------- v. .5.4.1 ----------
+
+- Added docblock comments at the file level.
+
 ---------- v. .5.4.0 ----------
 
 - The Procedure prep functionality will no longer insert a param with a NULL value into the processed input. Meaning, if the param wasn't passed in at all (and it wasn't required), the param failed the dependency checks, or it was explicitly passed in with a NULL value, then it will not exist in the processed input that gets fed to the Procedure itself.

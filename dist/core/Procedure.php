@@ -1,4 +1,14 @@
 <?php
+/**
+ * This file houses the Procedure class. Additionally, it loads the Procedure class dependencies.
+ *
+ * @package RonaPHP
+ * @copyright Copyright (c) 2016 Ryan Whitman (http://www.ryanwhitman.com)
+ * @license https://opensource.org/licenses/MIT MIT
+ * @version .5.4.1
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @since .5.4.1
+ */
 
 require_once Config::get('rona.core_dir') . '/Procedure_.php';
 require_once Config::get('rona.core_dir') . '/Filter.php';

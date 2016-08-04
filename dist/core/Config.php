@@ -1,4 +1,14 @@
 <?php
+/**
+ * This file houses the Config class. Additionally, it loads the Config class dependencies and defines a constant.
+ *
+ * @package RonaPHP
+ * @copyright Copyright (c) 2016 Ryan Whitman (http://www.ryanwhitman.com)
+ * @license https://opensource.org/licenses/MIT MIT
+ * @version .5.4.1
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @since .5.4.1
+ */
 
 define('RONA_UNDEFINED', 'RONA__UNDEFINED__RONA');
 
