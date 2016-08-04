@@ -1,4 +1,14 @@
 <?php
+/**
+ * This file houses the pre-built filters.
+ *
+ * @package RonaPHP
+ * @copyright Copyright (c) 2016 Ryan Whitman (http://www.ryanwhitman.com)
+ * @license https://opensource.org/licenses/MIT MIT
+ * @version .5.4.1
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @since .5.4.1
+ */
 
 Filter::set('string', [
 		'trim_full'		=> Config::get('rona.filters.options.string.trim_full'), // true or false
