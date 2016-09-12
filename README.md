@@ -2,4 +2,4 @@
 RonaPHP is a PHP framework.
 
 ## Current Version
-.5.4.1
+.5.4.2

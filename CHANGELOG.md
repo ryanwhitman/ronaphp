@@ -1,3 +1,7 @@
+---------- v. .5.4.2 ----------
+
+- The person's name validation method now accepts hyphens.
+
 ---------- v. .5.4.1 ----------
 
 - Added docblock comments at the file level.
