@@ -5,7 +5,7 @@
  * @package RonaPHP
  * @copyright Copyright (c) 2016 Ryan Whitman (http://www.ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT MIT
- * @version .5.4.1
+ * @version .5.4.2
  * @link https://github.com/RyanWhitman/ronaphp
  * @since .5.4.1
  */
@@ -30,7 +30,7 @@ class Helper {
 	}
 
 	public static function is_persons_name($x) {
-		return preg_match('/^[a-z][a-z`\',\. ]*$/i', $x);
+		return preg_match('/^[a-z][a-z`\',\.\- ]*$/i', $x);
 	}
 
 	public static function is_numeric($x) {
