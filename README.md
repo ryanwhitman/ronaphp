@@ -1,5 +1,5 @@
 # RonaPHP
-RonaPHP is a PHP framework.
+RonaPHP is modular MVC framework.
 
 ## Current Version
-.5.4.2
+1.0.0

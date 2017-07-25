@@ -1,32 +1,96 @@
 <?php
-/**
- * This file houses the Helper class.
- *
- * @package RonaPHP
- * @copyright Copyright (c) 2016 Ryan Whitman (http://www.ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT MIT
- * @version .5.4.2
- * @link https://github.com/RyanWhitman/ronaphp
- * @since .5.4.1
- */
 
-class Helper {
+namespace Rona\Helper;
 
-	const
-		SECS_IN_DAY = 86400,
-		SECS_IN_YEAR = 31536000,
-		SECS_IN_SEMIYEAR = 15768000;
-	
-	private function __construct() {}
-	private function __clone() {}
-	private function __wakeup() {}
+abstract class Helper {
+
+	public static
+		$secs_in_day = 86400,
+		$secs_in_year = 31536000,
+		$secs_in_semiyear = 15768000;
+
+	/**
+	 * Get the value that's associated with the provided array key. The array key can belong to an indexed array, an associative array, or a multidimensional array. If the provided key does not exist, the $default value is returned instead. This method allows the developer to bypass "isset()."
+	 * 
+	 * @param     array           $array       The array to search.
+	 * @param     array|string    $path        A key, multiple keys in the format of an array, or multiple keys in the format of a string separated by a period(.).
+	 * @param     mixed           $default     The value to return when the key fails the "isset()" test.
+	 * @return    mixed                        The value that's associated with the provided key or the $default value when that key fails the "isset()" test.
+	 */
+	public static function array_get($array, $path, $default = NULL) {
+
+		// If the path is not already an array, it's assumed to be a string in which the dot is the delimiter for array items.
+		if (!is_array($path))
+			$path = explode('.', $path);
+		
+		// Loop thru each of the path parts. Keep going until either the array key is not found (return default) or the array loop has completed.
+		foreach ($path as $part) {
+			if (!isset($array[$part]))
+				return $default;
+			$array = $array[$part];
+		}
+
+		// The array key must have been found. Return the value.
+		return $array;
+	}
+
+	public static function array_set(&$array, $path, $val) {
+
+		if (!is_array($path))
+			$path = explode('.', $path);
+
+		$set_array = &$array;
+		foreach ($path as $part)
+			$set_array = &$set_array[$part];
+
+		$set_array = $val;
+	}
+
+	public static function func_or($func_or, $arg) {
+
+		if (is_callable($func_or))
+			return $func_or($arg);
+
+		return $func_or;
+	}
+
+	public static function pluralize($word) {
+
+		switch (substr($word, -0, 1)) {
+
+			case 'e':
+				return $word . 's';
+				break;
+
+			default:
+				return $word . 'es';
+		}
+	}
 
 	public static function is_emptyString($str) {
 		return is_string($str) && trim($str) === '';
 	}
 
 	public static function is_nullOrEmptyString($q) {
-		return is_null($q) || self::is_emptyString($q);
+		return is_null($q) || static::is_emptyString($q);
+	}
+
+	public static function indefinite_article($word, $output_word = true) {
+		$indefinite_article = in_array(strtolower(substr($word, 0, 1)), ['a', 'e', 'i', 'o', 'u']) ? 'an' : 'a';
+		return $indefinite_article . ($output_word ? ' ' . $word : '');
+	}
+
+	public static function trim_full($str) {
+		$str = trim($str);
+		$str = preg_replace('/[ ]+(\s)/', '$1', $str);
+		$str = preg_replace('/(\s)[ ]+/', '$1', $str);
+		$str = preg_replace('/\0/', '', $str);
+		$str = preg_replace('/(\n){2,}/', '$1$1', $str);
+		$str = preg_replace('/\f/', '', $str);
+		$str = preg_replace('/(\r){2,}/', '$1$1', $str);
+		$str = preg_replace('/\t/', '', $str);
+		$str = preg_replace('/(\v){2,}/', '$1$1', $str);
+		return $str;
 	}
 
 	public static function is_persons_name($x) {
@@ -60,7 +124,7 @@ class Helper {
 	public static function are_emails($emails) {
 		$emails = (array) $emails;
 		foreach ($emails as $email)
-			if (!self::is_email($email))
+			if (!static::is_email($email))
 				return false;
 
 		return true;
@@ -72,14 +136,14 @@ class Helper {
 
 	public static function get_email($x) {
 		$email = filter_var($x, FILTER_SANITIZE_EMAIL);
-		return self::is_email($email) ? $email : '';
+		return static::is_email($email) ? $email : '';
 	}
 
 	public static function get_emails($emails) {
 		$emails = (array) $emails;
 		$valid_emails = array();
 		foreach ($emails as $email) {
-			$email = self::get_email($email);
+			$email = static::get_email($email);
 			if (!empty($email))
 				$valid_emails[] = $email;
 		}
@@ -148,46 +212,6 @@ class Helper {
 		return $random_str;
 	}
 
-	public static function trim_full($str) {
-		$str = trim($str);
-		$str = preg_replace('/[ ]+(\s)/', '$1', $str);
-		$str = preg_replace('/(\s)[ ]+/', '$1', $str);
-		$str = preg_replace('/\0/', '', $str);
-		$str = preg_replace('/(\n){2,}/', '$1$1', $str);
-		$str = preg_replace('/\f/', '', $str);
-		$str = preg_replace('/(\r){2,}/', '$1$1', $str);
-		$str = preg_replace('/\t/', '', $str);
-		$str = preg_replace('/(\v){2,}/', '$1$1', $str);
-		return $str;
-	}
-
-	public static function array_get($array, $path, $default = NULL) {
-
-		if (!is_array($path))
-			$path = explode('.', $path);
-		
-		foreach ($path as $part) {
-			if (!isset($array[$part]))
-				return $default;
-
-			$array = $array[$part];
-		}
-
-		return $array;
-	}
-
-	public static function array_set(&$array, $path, $val) {
-
-		if (!is_array($path))
-			$path = explode('.', $path);
-
-		$set_array = &$array;
-		foreach ($path as $part)
-			$set_array = &$set_array[$part];
-
-		$set_array = $val;
-	}
-
 	public static function array_vals_to_list(array $arr, $delimiter = ', ') {
 
 		$list = '';
@@ -201,30 +225,12 @@ class Helper {
 		return $str . '\'' . ($str[strlen($str) - 1] != 's' ? 's' : '');
 	}
 
-	public static function indefinite_article($word, $output_word = true) {
-		$indefinite_article = in_array(strtolower(substr($word, 0, 1)), ['a', 'e', 'i', 'o', 'u']) ? 'an' : 'a';
-		return $indefinite_article . ($output_word ? ' ' . $word : '');
-	}
-
-	public static function pluralize($word) {
-
-		switch (substr($word, -0, 1)) {
-
-			case 'e':
-				return $word . 's';
-				break;
-
-			default:
-				return $word . 'es';
-		}
-	}
-
 	public static function format_currency($num, $show_dollar_sign = true) {
 		return ($show_dollar_sign ? '$' : '') . number_format($num, 2);
 	}
 
-	public static function method_override($http_method) {
-		echo '<input type="hidden" name="_http_method" value="' . $http_method . '">';
+	public static function method_override($method) {
+		echo '<input type="hidden" name="_method" value="' . $method . '">';
 	}
 				
 	public static function load_file($file, $require = true, $once = true) {
@@ -246,16 +252,16 @@ class Helper {
 		$already_loaded = [];
 		foreach ($precedence as $file) {
 			$filename = $file . '.php';
-			self::load_file($directory . '/' . $filename, $require, $once);
+			static::load_file($directory . '/' . $filename, $require, $once);
 			$already_loaded[] = $filename;
 		}
 		
 		foreach (glob($directory . '/*.php') as $filename) {
 			if (in_array($filename, $already_loaded)) continue;
-			self::load_file($filename, $require, $once);
+			static::load_file($filename, $require, $once);
 		}
 	}
-	
+
 	public static function location($base, $query_params = []) {
 
 		$query_string = '';
@@ -279,12 +285,15 @@ class Helper {
 		return call_user_func($func, $arg);
 	}
 
-	public static function func_or($func_or, $arg) {
-
-		if (is_callable($func_or))
-			return $func_or($arg);
-
-		return $func_or;
+	public static function startsWith(string $haystack, string $needle): bool {
+		$length = strlen($needle);
+		return (substr($haystack, 0, $length) === $needle);
 	}
 
+	public static function endsWith(string $haystack, string $needle): bool {
+		$length = strlen($needle);
+		if ($length == 0)
+			return true;
+		return (substr($haystack, -$length) === $needle);
+	}
 }

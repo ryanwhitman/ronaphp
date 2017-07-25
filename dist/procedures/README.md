@@ -1,1 +1,0 @@
-Build procedures in this directory.

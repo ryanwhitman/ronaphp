@@ -1,3 +1,7 @@
+---------- v. 1.0.0 ----------
+
+- Complete overhaul.
+
 ---------- v. .5.4.2 ----------
 
 - The person's name validation method now accepts hyphens.
