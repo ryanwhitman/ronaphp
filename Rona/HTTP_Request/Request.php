@@ -1,14 +1,4 @@
 <?php
-/**
- * This file houses the Request class.
- *
- * @package RonaPHP
- * @copyright Copyright (c) 2016 Ryan Whitman (http://www.ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT MIT
- * @version .5.4.1
- * @link https://github.com/RyanWhitman/ronaphp
- * @since .5.4.1
- */
 
 namespace Rona\HTTP_Request;
 

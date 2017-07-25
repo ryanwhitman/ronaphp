@@ -1,13 +1,4 @@
 <?php
-/**
- * RonaPHP Response is a standardized response class.
- *
- * @package RonaPHP Response
- * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT MIT
- * @version 1.0.0
- * @link https://github.com/RyanWhitman/ronaphp_response
- */
 
 namespace Rona\Response;
 

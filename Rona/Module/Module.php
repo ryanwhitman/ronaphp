@@ -3,6 +3,7 @@
 namespace Rona\Module;
 
 use Exception;
+use Rona\Response\Response as Response;
 
 class Module {
 
@@ -79,9 +80,5 @@ class Module {
 		}
 
 		return $persist ? $res : current($res);
-	}
-
-	public function response($success = NULL, $messages = [], $data = NULL) {
-		return new \Rona\Response\Response($success, $messages, $data);
 	}
 }

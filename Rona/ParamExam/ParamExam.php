@@ -1,22 +1,11 @@
 <?php
-/**
- * RonaPHP ParamExam is a tool used to validate, sanitize, and alter parameters.
- *
- * @package RonaPHP ParamExam
- * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT MIT
- * @version .5.1.1
- * @link https://github.com/RyanWhitman/ronaphp_paramexam
- */
 
 namespace Rona\ParamExam;
 
 use Exception;
 use Rona\Helper\Helper as Helper;
+use Rona\Response\Response as Response;
 
-/**
- * The main class for the ParamExam functionality.
- */
 class ParamExam {
 	
 	/**
@@ -31,75 +20,42 @@ class ParamExam {
 	 */
 	public function __construct() {
 
-		// Load the default filters.
-		$this->load_default_filters();
-	}
-
-	/**
-	 * Produce a response object.
-	 * 
-	 * @param     bool     $is_valid        Whether or not the parameter is valid.
-	 * @param     string   $message         The response message explaining why the parameter is or isn't valid.
-	 * @param     string   $filtered_val    The sanitized and altered value, ready for usage.
-	 * @return    object                    The response object.
-	 */
-	protected function response($is_valid, $message = '', $filtered_val = '') {
-
-		// Prepare and return the response object.
-		$response = new \stdClass();
-		$response->is_valid = (bool) $is_valid;
-		$response->message = $message;
-		$response->filtered_val = $filtered_val;
-		return $response;
-	}
-
-	/**
-	 * A short-hand method for a valid response.
-	 * 
-	 * @param     mixed   $filtered_val    The sanitized and altered value, ready for usage.
-	 * @param     string  $message         The response message explaining why the parameter is valid.
-	 * @return    object                   The response object.
-	 */
-	protected function res_valid($filtered_val, $message = '') {
-		return $this->response(true, $message, $filtered_val);
-	}
-
-	protected function res_invalid($message = '') {
-		return $this->response(false, $message);
+		// Register the stock filters.
+		$this->register_stock_filters();
 	}
 
 	public function config_get($string) {
 
 		switch ($string) {
 
-			case 'rona.filters.options.string.trim_full': return false;
-			case 'rona.filters.options.string.trim': return ' ';
-			case 'rona.filters.options.emails.all_match': return true;
-			case 'rona.filters.options.boolean.return_int': return false;
-			case 'rona.filters.options.password.min_length': return 8;
-			case 'rona.filters.options.password.max_length': return 30;
-			case 'rona.filters.options.alphanumeric.case': return 'ci';
-			case 'rona.filters.options.date.output_format': return 'Y-m-d';
-			case 'rona.filters.message.default.failure': return function($vars) {return 'An invalid value was provided for this param.';};
-			case 'rona.filters.message.string.is_valid': return NULL;
-			case 'rona.filters.message.string.failure': return NULL;
-			case 'rona.filters.message.email.is_valid': return NULL;
-			case 'rona.filters.message.email.failure': return NULL;
-			case 'rona.filters.message.emails.is_valid': return NULL;
-			case 'rona.filters.message.emails.failure.at_least_1': return function($vars) {return "You must provide a valid {$vars['param']}.";};
-			case 'rona.filters.message.emails.failure.all_must_match': return function($vars) {return "You provided {$vars['num_invalids']} invalid " . Helper::pluralize($vars['param']) . ".";};
-			case 'rona.filters.message.boolean.is_valid': return NULL;
-			case 'rona.filters.message.boolean.failure': return NULL;
-			case 'rona.filters.message.persons_name.is_valid': return NULL;
-			case 'rona.filters.message.persons_name.failure': return NULL;
-			case 'rona.filters.message.password.is_valid': return NULL;
-			case 'rona.filters.message.password.failure': return function($vars) {return "The {$vars['param']} you provided is invalid. It must be between {$vars['options']['min_length']} and {$vars['options']['max_length']} characters in length.";};
-			case 'rona.filters.message.numeric.is_valid': return NULL;
-			case 'rona.filters.message.numeric.failure': return NULL;
-			case 'rona.filters.message.alphanumeric.is_valid': return NULL;
-			case 'rona.filters.message.alphanumeric.failure': return NULL;
-			case 'rona.filters.message.date.is_valid': return NULL;
-			case 'rona.filters.message.date.failure': return NULL;
+			case 'options.string.trim_full': return false;
+			case 'options.string.trim': return ' ';
+			case 'options.emails.all_match': return true;
+			case 'options.boolean.return_int': return false;
+			case 'options.password.min_length': return 8;
+			case 'options.password.max_length': return 30;
+			case 'options.alphanumeric.case': return 'ci';
+			case 'options.date.output_format': return 'Y-m-d';
+			case 'message.default.failure': return function($vars) {return 'An invalid value was provided for this param.';};
+			case 'message.string.is_valid': return NULL;
+			case 'message.string.failure': return NULL;
+			case 'message.email.is_valid': return NULL;
+			case 'message.email.failure': return NULL;
+			case 'message.emails.is_valid': return NULL;
+			case 'message.emails.failure.at_least_1': return function($vars) {return "You must provide a valid {$vars['param']}.";};
+			case 'message.emails.failure.all_must_match': return function($vars) {return "You provided {$vars['num_invalids']} invalid " . Helper::pluralize($vars['param']) . ".";};
+			case 'message.boolean.is_valid': return NULL;
+			case 'message.boolean.failure': return NULL;
+			case 'message.persons_name.is_valid': return NULL;
+			case 'message.persons_name.failure': return NULL;
+			case 'message.password.is_valid': return NULL;
+			case 'message.password.failure': return function($vars) {return "The {$vars['param']} you provided is invalid. It must be between {$vars['options']['min_length']} and {$vars['options']['max_length']} characters in length.";};
+			case 'message.numeric.is_valid': return NULL;
+			case 'message.numeric.failure': return NULL;
+			case 'message.alphanumeric.is_valid': return NULL;
+			case 'message.alphanumeric.failure': return NULL;
+			case 'message.date.is_valid': return NULL;
+			case 'message.date.failure': return NULL;
 		}
 	}
 	
@@ -119,8 +75,8 @@ class ParamExam {
 		$res = $filter['function']($val, $options);
 
 		// If the filter failed and there is no message, attach a default one
-		if (!$res->is_valid && empty($res->message))
-			$res->message = Helper::func_or($this->config_get('rona.filters.message.default.failure'), get_defined_vars());
+		if (!$res->success && empty($res->message))
+			$res->message = Helper::func_or($this->config_get('message.default.failure'), get_defined_vars());
 
 		// Return the response object
 		return $res;
@@ -195,15 +151,15 @@ class ParamExam {
 					}
 
 					$res = $this->apply_filter($name, $val, $options);
-					if ($res->is_valid)
-						$val = $res->filtered_val;
+					if ($res->success)
+						$val = $res->data;
 
 					// Since this value created an error in the filter, we'll record the error message and skip any additional filters for this param
 					else {
 
 						$error_msgs[] = [
 							'param'		=> $param,
-							'message'	=> Helper::func_or($this->config_get('rona.filters.message.default.failure'), get_defined_vars()),
+							'message'	=> Helper::func_or($this->config_get('message.default.failure'), get_defined_vars()),
 							'help_text'	=> $props['help_text']
 						];
 
@@ -226,24 +182,24 @@ class ParamExam {
 			
 		// If there are any error messages, return them
 		if (!empty($error_msgs))
-			return $this->response(false, $error_msgs);
+			return new Response(false, $error_msgs);
 
 		// Otherwise, return processed input
-		return $this->response(true, '', $input_processed);
+		return new Response(true, '', $input_processed);
 	}
 
-	public function register_filter($name, $default_options, $function) {
+	public function register_filter(string $name, array $default_options, callable $function) {
 		$this->filters[$name] = [
-			'default_options'	=> (array) $default_options,
+			'default_options'	=> $default_options,
 			'function'			=> $function
 		];
 	}
 
-	public function load_default_filters() {
+	public function register_stock_filters() {
 
 		$this->register_filter('string', [
-				'trim_full'		=> $this->config_get('rona.filters.options.string.trim_full'), // true or false
-				'trim'			=> $this->config_get('rona.filters.options.string.trim') // false disables, mask will be used otherwise
+				'trim_full'		=> $this->config_get('options.string.trim_full'), // true or false
+				'trim'			=> $this->config_get('options.string.trim') // false disables, mask will be used otherwise
 			], function($val, $options) {
 
 			if (is_string($val)) {
@@ -254,23 +210,23 @@ class ParamExam {
 				if ($options['trim'] !== false)
 					$val = trim($val, $options['trim']);
 
-				return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.string.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config_get('message.string.is_valid'), get_defined_vars()), $val);
 			}
 
-			return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.string.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config_get('message.string.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('email', [], function($val, $options) {
 				
 			$val = Helper::get_email($val);
 			if (Helper::is_email($val))
-				return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.email.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config_get('message.email.is_valid'), get_defined_vars()), $val);
 
-			return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.email.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config_get('message.email.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('emails', [
-				'all_match'		=> $this->config_get('rona.filters.options.emails.all_match')
+				'all_match'		=> $this->config_get('options.emails.all_match')
 			], function($val, $options) {
 			
 			// Ensure $val is an array
@@ -288,7 +244,7 @@ class ParamExam {
 			// if 'all_match' is set to false, then ensure at least 1 legitimate email address was provided.
 			if (!$options['all_match']) {
 				if ($refined_count == 0)
-					return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.emails.failure.at_least_1'), get_defined_vars()));
+					return new Response(false, Helper::func_or($this->config_get('message.emails.failure.at_least_1'), get_defined_vars()));
 			}
 
 			// If 'all_match' is set to true, then the initial count must be the same as the new count
@@ -296,15 +252,15 @@ class ParamExam {
 				
 				if ($refined_count != $initial_count) {
 					$num_invalids = $initial_count - $refined_count;
-					return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.emails.failure.all_must_match'), get_defined_vars()));
+					return new Response(false, Helper::func_or($this->config_get('message.emails.failure.all_must_match'), get_defined_vars()));
 				}
 			}			
 			
-			return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.emails.is_valid'), get_defined_vars()), $val);
+			return new Response(true, Helper::func_or($this->config_get('message.emails.is_valid'), get_defined_vars()), $val);
 		});
 
 		$this->register_filter('boolean', [
-				'return_int'	=> $this->config_get('rona.filters.options.boolean.return_int')
+				'return_int'	=> $this->config_get('options.boolean.return_int')
 			], function($val, $options) {
 
 			// Convert similar inputs to a boolean
@@ -333,10 +289,10 @@ class ParamExam {
 				if ($options['return_int'])
 					$val = $val == false ? 0 : 1;
 				
-				return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.boolean.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config_get('message.boolean.is_valid'), get_defined_vars()), $val);
 			}
 			
-			return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.boolean.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config_get('message.boolean.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('persons_name', [], function($val, $options) {
@@ -344,23 +300,23 @@ class ParamExam {
 			$val = Helper::trim_full($val);
 
 			if (Helper::is_persons_name($val))
-				return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.persons_name.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config_get('message.persons_name.is_valid'), get_defined_vars()), $val);
 			
-			return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.persons_name.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config_get('message.persons_name.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('password', [
-			'min_length'	=> $this->config_get('rona.filters.options.password.min_length'),
-			'max_length'	=> $this->config_get('rona.filters.options.password.max_length')
+			'min_length'	=> $this->config_get('options.password.min_length'),
+			'max_length'	=> $this->config_get('options.password.max_length')
 			], function($val, $options) {
 
 			$val = trim($val);
 			$pw_length = strlen($val);
 
 			if ($pw_length >= $options['min_length'] && $pw_length <= $options['max_length'])
-				return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.password.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config_get('message.password.is_valid'), get_defined_vars()), $val);
 			
-			return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.password.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config_get('message.password.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('numeric', [], function($val, $options) {
@@ -368,26 +324,26 @@ class ParamExam {
 			$val = trim($val);
 
 			if (Helper::is_numeric($val))
-				return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.numeric.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config_get('message.numeric.is_valid'), get_defined_vars()), $val);
 			
-			return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.numeric.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config_get('message.numeric.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('alphanumeric', [
-				'case'		=> $this->config_get('rona.filters.options.alphanumeric.case')
+				'case'		=> $this->config_get('options.alphanumeric.case')
 			], function($val, $options) {
 
 			$case = $options['case'];
 			$val = trim($val);
 
 			if (Helper::is_alphanumeric($val, $case))
-				return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.alphanumeric.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config_get('message.alphanumeric.is_valid'), get_defined_vars()), $val);
 			
-			return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.alphanumeric.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config_get('message.alphanumeric.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('date', [
-				'output_format'	=> $this->config_get('rona.filters.options.date.output_format')
+				'output_format'	=> $this->config_get('options.date.output_format')
 			], function($val, $options) {
 
 			#** This function needs to be modified as it basically validates anything
@@ -396,9 +352,9 @@ class ParamExam {
 
 			$dt = \DateTime::createFromFormat($options['output_format'], $date);
 			if ($dt !== false && !array_sum($dt->getLastErrors()))
-				return $this->response(true, Helper::func_or($this->config_get('rona.filters.message.date.is_valid'), get_defined_vars()), $date);
+				return new Response(true, Helper::func_or($this->config_get('message.date.is_valid'), get_defined_vars()), $date);
 			
-			return $this->response(false, Helper::func_or($this->config_get('rona.filters.message.date.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config_get('message.date.failure'), get_defined_vars()));
 		});
 	}
 }
