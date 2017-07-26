@@ -10,13 +10,13 @@ class App {
 
 	protected $modules = [];
 
-	public $request;
+	public $http_request;
 
 	public $route;
 
 	public $scope;
 
-	public $response;
+	public $http_response;
 
 	public function __construct() {
 
@@ -33,10 +33,10 @@ class App {
 		$this->register_config();
 
 		// Create the HTTP Request, Route, Scope, and HTTP Response objects.
-		$this->request = new \Rona\HTTP_Request($this);
+		$this->http_request = new \Rona\HTTP_Request($this);
 		$this->route = new \Rona\Routing\Route($this);
 		$this->scope = new \Rona\Scope;
-		$this->response = new \Rona\HTTP_Response\Response($this);
+		$this->http_response = new \Rona\HTTP_Response\Response($this);
 	}
 
 	protected function spl_autoload_register(): bool {
@@ -136,7 +136,7 @@ class App {
 			foreach (['abstract', 'non_abstract'] as $type) {
 
 				// Get the matching routes.
-				$matches = $route_matcher->get_matches($module->route_store[$type]->get_routes(), $this->request->get_method(), $this->request->get_path());
+				$matches = $route_matcher->get_matches($module->route_store[$type]->get_routes(), $this->http_request->get_method(), $this->http_request->get_path());
 				if (!empty($matches)) {
 					if ($type == 'non_abstract') {
 						$non_abstract_route = array_pop($matches);
@@ -151,7 +151,7 @@ class App {
 
 		// When a non-abstract route was found:
 		if ($non_abstract_route) {
-			$this->request->set_path_vars($non_abstract_route['path_vars']);
+			$this->http_request->set_path_vars($non_abstract_route['path_vars']);
 			
 			// Add the non-abstract route to the end of the route queues array.
 			$route_queues[] = ['module' => $non_abstract_route_module, 'route_queue' => $non_abstract_route['route_queue']];
@@ -174,13 +174,16 @@ class App {
 					$this->route->append_controller($controller);
 
 				$this->route->set_active_module($the_controller['module']);
-				$this->response->set_active_module($the_controller['module']);
+				$this->http_response->set_active_module($the_controller['module']);
 
-				if (call_user_func($the_controller['callback'], $this->request, $this->route, $this->scope, $this->response) === false)
+				$res = call_user_func($the_controller['callback'], $this->http_request, $this->route, $this->scope, $this->http_response);
+				if ($res === false)
 					break;
+				else if (is_object($res) && is_a($res, '\Rona\HTTP_Response\Response'))
+					$this->http_response = $res;
 			}
 
-			$this->response->output();
+			$this->http_response->output();
 
 			// Run a hook.
 			$this->run_hook('http_response_sent');
