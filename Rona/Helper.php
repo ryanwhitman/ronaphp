@@ -1,6 +1,6 @@
 <?php
 
-namespace Rona\Helper;
+namespace Rona;
 
 abstract class Helper {
 

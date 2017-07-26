@@ -1,9 +1,12 @@
 <?php
 
-namespace Rona\Module;
+namespace Rona;
 
 use Exception;
-use Rona\Response\Response as Response;
+use Rona\App;
+use Rona\Routing\Store;
+use Rona\Config\Config;
+use Rona\Response;
 
 class Module {
 
@@ -13,7 +16,7 @@ class Module {
 
 	protected $app;
 
-	public function __construct(\Rona\App\App $app, string $name = NULL) {
+	public function __construct(App $app, string $name = NULL) {
 
 		// Set the Rona instance.
 		$this->app = $app;
@@ -28,15 +31,15 @@ class Module {
 			throw new Exception('A module must have a name.');
 
 		// Create a config object for this module.
-		$this->config = new \Rona\Config\Config;
+		$this->config = new Config;
 
 		// Register this module's config.
 		$this->register_config();
 
 		// Create route store objects for this module.
 		$this->route_store = [
-			'abstract'			=> new \Rona\Routing\Route_Store($this->app()->config('http_methods')),
-			'non_abstract'		=> new \Rona\Routing\Route_Store($this->app()->config('http_methods'))
+			'abstract'			=> new Store($this->app()->config('http_methods')),
+			'non_abstract'		=> new Store($this->app()->config('http_methods'))
 		];
 	}
 
@@ -44,7 +47,7 @@ class Module {
 		return $this->name;
 	}
 
-	public function app(): \Rona\App\App {
+	public function app(): App {
 		return $this->app;
 	}
 

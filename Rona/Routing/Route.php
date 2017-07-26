@@ -4,7 +4,7 @@ namespace Rona\Routing;
 
 use Exception;
 use Closure;
-use Rona\Module\Module as Module;
+use Rona\Module;
 
 class Route {
 
@@ -18,7 +18,7 @@ class Route {
 		'last'		=> []
 	];
 
-	public function __construct(\Rona\App\App $app) {
+	public function __construct(\Rona\App $app) {
 		$this->app = $app;
 	}
 

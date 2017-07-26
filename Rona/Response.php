@@ -1,6 +1,6 @@
 <?php
 
-namespace Rona\Response;
+namespace Rona;
 
 class Response {
 

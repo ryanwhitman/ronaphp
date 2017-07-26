@@ -16,11 +16,11 @@ class Response {
 
 	protected $body;
 
-	public function __construct(\Rona\App\App $app) {
+	public function __construct(\Rona\App $app) {
 		$this->app = $app;
 	}
 
-	public function set_active_module(\Rona\Module\Module $active_module = NULL) {
+	public function set_active_module(\Rona\Module $active_module = NULL) {
 		$this->active_module = $active_module;
 	}
 

@@ -1,7 +1,7 @@
 <?php
 
 namespace Rona\ParamExam;
-use Rona\Helper\Helper as Helper;
+use Rona\Helper;
 
 class ParamSet {
 

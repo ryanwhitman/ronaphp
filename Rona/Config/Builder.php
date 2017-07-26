@@ -2,7 +2,7 @@
 
 namespace Rona\Config;
 
-class Config_Builder {
+class Builder {
 
 	protected $config_inst;
 

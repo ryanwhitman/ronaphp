@@ -10,7 +10,7 @@ class View {
 
 	public $components = [];
 
-	public function set_active_module(\Rona\Module\Module $active_module = NULL) {
+	public function set_active_module(\Rona\Module $active_module = NULL) {
 		$this->active_module = $active_module;
 	}
 

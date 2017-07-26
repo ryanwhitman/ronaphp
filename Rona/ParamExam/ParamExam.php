@@ -3,11 +3,14 @@
 namespace Rona\ParamExam;
 
 use Exception;
-use Rona\Helper\Helper as Helper;
-use Rona\Response\Response as Response;
+use Rona\Helper;
+use Rona\Config\Config;
+use Rona\Response;
 
 class ParamExam {
-	
+
+	protected $config;
+
 	/**
 	 * An associative array of filters.
 	 * 
@@ -20,44 +23,64 @@ class ParamExam {
 	 */
 	public function __construct() {
 
+		// Create a config object.
+		$this->config = new Config;
+
+		$this->register_stock_config();
+
+		$this->register_config();
+
 		// Register the stock filters.
 		$this->register_stock_filters();
+
+		// Register filters.
 	}
 
-	public function config_get($string) {
-
-		switch ($string) {
-
-			case 'options.string.trim_full': return false;
-			case 'options.string.trim': return ' ';
-			case 'options.emails.all_match': return true;
-			case 'options.boolean.return_int': return false;
-			case 'options.password.min_length': return 8;
-			case 'options.password.max_length': return 30;
-			case 'options.alphanumeric.case': return 'ci';
-			case 'options.date.output_format': return 'Y-m-d';
-			case 'message.default.failure': return function($vars) {return 'An invalid value was provided for this param.';};
-			case 'message.string.is_valid': return NULL;
-			case 'message.string.failure': return NULL;
-			case 'message.email.is_valid': return NULL;
-			case 'message.email.failure': return NULL;
-			case 'message.emails.is_valid': return NULL;
-			case 'message.emails.failure.at_least_1': return function($vars) {return "You must provide a valid {$vars['param']}.";};
-			case 'message.emails.failure.all_must_match': return function($vars) {return "You provided {$vars['num_invalids']} invalid " . Helper::pluralize($vars['param']) . ".";};
-			case 'message.boolean.is_valid': return NULL;
-			case 'message.boolean.failure': return NULL;
-			case 'message.persons_name.is_valid': return NULL;
-			case 'message.persons_name.failure': return NULL;
-			case 'message.password.is_valid': return NULL;
-			case 'message.password.failure': return function($vars) {return "The {$vars['param']} you provided is invalid. It must be between {$vars['options']['min_length']} and {$vars['options']['max_length']} characters in length.";};
-			case 'message.numeric.is_valid': return NULL;
-			case 'message.numeric.failure': return NULL;
-			case 'message.alphanumeric.is_valid': return NULL;
-			case 'message.alphanumeric.failure': return NULL;
-			case 'message.date.is_valid': return NULL;
-			case 'message.date.failure': return NULL;
-		}
+	public function config(string $item = NULL) {
+		return is_null($item) ? $this->config : $this->config->get($item);
 	}
+
+	protected function register_stock_config() {
+
+		$this->config()->set('filters.string.options.trim_full', false);
+		$this->config()->set('filters.string.options.trim', ' ');
+		$this->config()->set('filters.emails.options.all_match', true);
+		$this->config()->set('filters.boolean.options.return_int', false);
+		$this->config()->set('filters.password.options.min_length', 8);
+		$this->config()->set('filters.password.options.max_length', 30);
+		$this->config()->set('filters.alphanumeric.options.case', 'ci');
+		$this->config()->set('filters.date.options.output_format', 'Y-m-d');
+		$this->config()->set('filters.default.message.failure', function($vars) {
+			return 'An invalid value was provided for this param.';
+		});
+		$this->config()->set('filters.string.message.is_valid', NULL);
+		$this->config()->set('filters.string.message.failure', NULL);
+		$this->config()->set('filters.email.message.is_valid', NULL);
+		$this->config()->set('filters.email.message.failure', NULL);
+		$this->config()->set('filters.emails.message.is_valid', NULL);
+		$this->config()->set('filters.emails.message.failure.at_least_1', function($vars) {
+			return "You must provide a valid {$vars['param']}.";
+		});
+		$this->config()->set('filters.emails.message.failure.all_must_match', function($vars) {
+			return "You provided {$vars['num_invalids']} invalid " . Helper::pluralize($vars['param']) . ".";
+		});
+		$this->config()->set('filters.boolean.message.is_valid', NULL);
+		$this->config()->set('filters.boolean.message.failure', NULL);
+		$this->config()->set('filters.persons_name.message.is_valid', NULL);
+		$this->config()->set('filters.persons_name.message.failure', NULL);
+		$this->config()->set('filters.password.message.is_valid', NULL);
+		$this->config()->set('filters.password.message.failure', function($vars) {
+			return "The {$vars['param']} you provided is invalid. It must be between {$vars['options']['min_length']} and {$vars['options']['max_length']} characters in length.";
+		});
+		$this->config()->set('filters.numeric.message.is_valid', NULL);
+		$this->config()->set('filters.numeric.message.failure', NULL);
+		$this->config()->set('filters.alphanumeric.message.is_valid', NULL);
+		$this->config()->set('filters.alphanumeric.message.failure', NULL);
+		$this->config()->set('filters.date.message.is_valid', NULL);
+		$this->config()->set('filters.date.message.failure', NULL);
+	}
+
+	protected function register_config() {}
 	
 	public function apply_filter($name, $val, $options = []) {
 
@@ -76,7 +99,7 @@ class ParamExam {
 
 		// If the filter failed and there is no message, attach a default one
 		if (!$res->success && empty($res->message))
-			$res->message = Helper::func_or($this->config_get('message.default.failure'), get_defined_vars());
+			$res->message = Helper::func_or($this->config('filters.default.message.failure'), get_defined_vars());
 
 		// Return the response object
 		return $res;
@@ -94,28 +117,28 @@ class ParamExam {
 			$val = Helper::array_get($unfiltered_data, $param);
 
 			// Find the default value, if applicable
-			if (Helper::is_nullOrEmptyString($val) && !Helper::is_nullOrEmptyString(Helper::array_get($props, 'options.default')))
+			if (Helper::is_nullOrEmptyString($val) && !Helper::is_nullOrEmptyString(Helper::array_get($props, 'filters.default.options')))
 				$val = $props['options']['default'];
 
 			// If dependencies were defined, then run filters only if those conditions are met
-			foreach (Helper::array_get($props, 'options.dependencies', []) as $dependent_param => $dependent_val) {
+			foreach (Helper::array_get($props, 'filters.dependencies.options', []) as $dependent_param => $dependent_val) {
 
 				if (!Helper::array_get($input_processed, $dependent_param) === $dependent_val)
 					continue 2;
 			}
 
 			// If dependent_param was declared, then proceed only if that param exists and is not null
-			$dependent_param = Helper::array_get($props, 'options.dependent_param');
+			$dependent_param = Helper::array_get($props, 'filters.dependent_param.options');
 			if (isset($dependent_param) && !isset($input_processed[$dependent_param]))
 				continue;
 
 			// If dependent_true was declared, then proceed only if that param exists, is not null, and evaluates to true
-			$dependent_true = Helper::array_get($props, 'options.dependent_true');
+			$dependent_true = Helper::array_get($props, 'filters.dependent_true.options');
 			if (isset($dependent_true) && (!isset($input_processed[$dependent_true]) || !$input_processed[$dependent_true]))
 				continue;
 
 			// If dependent_false was declared, then proceed only if that param exists, is not null, and evaluates to false
-			$dependent_false = Helper::array_get($props, 'options.dependent_false');
+			$dependent_false = Helper::array_get($props, 'filters.dependent_false.options');
 			if (isset($dependent_false) && (!isset($input_processed[$dependent_false]) || $input_processed[$dependent_false]))
 				continue;
 
@@ -134,7 +157,7 @@ class ParamExam {
 				continue;
 
 			// If the param is just an empty string and the "allow empty string" option was set, just trim it and leave it be
-			if (Helper::is_emptyString($val) && Helper::array_get($props, 'options.allow_empty_string'))
+			if (Helper::is_emptyString($val) && Helper::array_get($props, 'filters.allow_empty_string.options'))
 				$val = trim($val);
 
 			// The param has a value of some sort and empty strings are disallowed, so run it through the filters
@@ -159,7 +182,7 @@ class ParamExam {
 
 						$error_msgs[] = [
 							'param'		=> $param,
-							'message'	=> Helper::func_or($this->config_get('message.default.failure'), get_defined_vars()),
+							'message'	=> Helper::func_or($this->config('filters.default.message.failure'), get_defined_vars()),
 							'help_text'	=> $props['help_text']
 						];
 
@@ -198,8 +221,8 @@ class ParamExam {
 	public function register_stock_filters() {
 
 		$this->register_filter('string', [
-				'trim_full'		=> $this->config_get('options.string.trim_full'), // true or false
-				'trim'			=> $this->config_get('options.string.trim') // false disables, mask will be used otherwise
+				'trim_full'		=> $this->config('filters.string.options.trim_full'), // true or false
+				'trim'			=> $this->config('filters.string.options.trim') // false disables, mask will be used otherwise
 			], function($val, $options) {
 
 			if (is_string($val)) {
@@ -210,23 +233,23 @@ class ParamExam {
 				if ($options['trim'] !== false)
 					$val = trim($val, $options['trim']);
 
-				return new Response(true, Helper::func_or($this->config_get('message.string.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config('filters.string.message.is_valid'), get_defined_vars()), $val);
 			}
 
-			return new Response(false, Helper::func_or($this->config_get('message.string.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config('filters.string.message.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('email', [], function($val, $options) {
 				
 			$val = Helper::get_email($val);
 			if (Helper::is_email($val))
-				return new Response(true, Helper::func_or($this->config_get('message.email.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config('filters.email.message.is_valid'), get_defined_vars()), $val);
 
-			return new Response(false, Helper::func_or($this->config_get('message.email.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config('filters.email.message.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('emails', [
-				'all_match'		=> $this->config_get('options.emails.all_match')
+				'all_match'		=> $this->config('filters.emails.options.all_match')
 			], function($val, $options) {
 			
 			// Ensure $val is an array
@@ -244,7 +267,7 @@ class ParamExam {
 			// if 'all_match' is set to false, then ensure at least 1 legitimate email address was provided.
 			if (!$options['all_match']) {
 				if ($refined_count == 0)
-					return new Response(false, Helper::func_or($this->config_get('message.emails.failure.at_least_1'), get_defined_vars()));
+					return new Response(false, Helper::func_or($this->config('filters.emails.message.failure.at_least_1'), get_defined_vars()));
 			}
 
 			// If 'all_match' is set to true, then the initial count must be the same as the new count
@@ -252,15 +275,15 @@ class ParamExam {
 				
 				if ($refined_count != $initial_count) {
 					$num_invalids = $initial_count - $refined_count;
-					return new Response(false, Helper::func_or($this->config_get('message.emails.failure.all_must_match'), get_defined_vars()));
+					return new Response(false, Helper::func_or($this->config('filters.emails.message.failure.all_must_match'), get_defined_vars()));
 				}
 			}			
 			
-			return new Response(true, Helper::func_or($this->config_get('message.emails.is_valid'), get_defined_vars()), $val);
+			return new Response(true, Helper::func_or($this->config('filters.emails.message.is_valid'), get_defined_vars()), $val);
 		});
 
 		$this->register_filter('boolean', [
-				'return_int'	=> $this->config_get('options.boolean.return_int')
+				'return_int'	=> $this->config('filters.boolean.options.return_int')
 			], function($val, $options) {
 
 			// Convert similar inputs to a boolean
@@ -289,10 +312,10 @@ class ParamExam {
 				if ($options['return_int'])
 					$val = $val == false ? 0 : 1;
 				
-				return new Response(true, Helper::func_or($this->config_get('message.boolean.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config('filters.boolean.message.is_valid'), get_defined_vars()), $val);
 			}
 			
-			return new Response(false, Helper::func_or($this->config_get('message.boolean.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config('filters.boolean.message.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('persons_name', [], function($val, $options) {
@@ -300,23 +323,23 @@ class ParamExam {
 			$val = Helper::trim_full($val);
 
 			if (Helper::is_persons_name($val))
-				return new Response(true, Helper::func_or($this->config_get('message.persons_name.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config('filters.persons_name.message.is_valid'), get_defined_vars()), $val);
 			
-			return new Response(false, Helper::func_or($this->config_get('message.persons_name.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config('filters.persons_name.message.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('password', [
-			'min_length'	=> $this->config_get('options.password.min_length'),
-			'max_length'	=> $this->config_get('options.password.max_length')
+			'min_length'	=> $this->config('filters.password.options.min_length'),
+			'max_length'	=> $this->config('filters.password.options.max_length')
 			], function($val, $options) {
 
 			$val = trim($val);
 			$pw_length = strlen($val);
 
 			if ($pw_length >= $options['min_length'] && $pw_length <= $options['max_length'])
-				return new Response(true, Helper::func_or($this->config_get('message.password.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config('filters.password.message.is_valid'), get_defined_vars()), $val);
 			
-			return new Response(false, Helper::func_or($this->config_get('message.password.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config('filters.password.message.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('numeric', [], function($val, $options) {
@@ -324,26 +347,26 @@ class ParamExam {
 			$val = trim($val);
 
 			if (Helper::is_numeric($val))
-				return new Response(true, Helper::func_or($this->config_get('message.numeric.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config('filters.numeric.message.is_valid'), get_defined_vars()), $val);
 			
-			return new Response(false, Helper::func_or($this->config_get('message.numeric.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config('filters.numeric.message.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('alphanumeric', [
-				'case'		=> $this->config_get('options.alphanumeric.case')
+				'case'		=> $this->config('filters.alphanumeric.options.case')
 			], function($val, $options) {
 
 			$case = $options['case'];
 			$val = trim($val);
 
 			if (Helper::is_alphanumeric($val, $case))
-				return new Response(true, Helper::func_or($this->config_get('message.alphanumeric.is_valid'), get_defined_vars()), $val);
+				return new Response(true, Helper::func_or($this->config('filters.alphanumeric.message.is_valid'), get_defined_vars()), $val);
 			
-			return new Response(false, Helper::func_or($this->config_get('message.alphanumeric.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config('filters.alphanumeric.message.failure'), get_defined_vars()));
 		});
 
 		$this->register_filter('date', [
-				'output_format'	=> $this->config_get('options.date.output_format')
+				'output_format'	=> $this->config('filters.date.options.output_format')
 			], function($val, $options) {
 
 			#** This function needs to be modified as it basically validates anything
@@ -352,9 +375,11 @@ class ParamExam {
 
 			$dt = \DateTime::createFromFormat($options['output_format'], $date);
 			if ($dt !== false && !array_sum($dt->getLastErrors()))
-				return new Response(true, Helper::func_or($this->config_get('message.date.is_valid'), get_defined_vars()), $date);
+				return new Response(true, Helper::func_or($this->config('filters.date.message.is_valid'), get_defined_vars()), $date);
 			
-			return new Response(false, Helper::func_or($this->config_get('message.date.failure'), get_defined_vars()));
+			return new Response(false, Helper::func_or($this->config('filters.date.message.failure'), get_defined_vars()));
 		});
 	}
+
+	public function register_filters() {}
 }

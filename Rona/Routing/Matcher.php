@@ -2,7 +2,7 @@
 
 namespace Rona\Routing;
 
-class Route_Matcher {
+class Matcher {
 
 	protected $path_vars_matched;
 

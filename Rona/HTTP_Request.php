@@ -1,8 +1,8 @@
 <?php
 
-namespace Rona\HTTP_Request;
+namespace Rona;
 
-class Request {
+class HTTP_Request {
 
 	protected $original_method;
 
@@ -32,7 +32,7 @@ class Request {
 
 	protected $input;
 
-	public function __construct(\Rona\App\App $app) {
+	public function __construct(\Rona\App $app) {
 
 		// If the getallheaders function doesn't exist natively, create it.
 		if (!function_exists('getallheaders')) {

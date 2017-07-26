@@ -2,7 +2,7 @@
 
 namespace Rona\Routing;
 
-class Route_Store {
+class Store {
 
 	protected $http_methods;
 
@@ -47,7 +47,7 @@ class Route_Store {
 	public function map($methods, $paths, $controller = NULL) {
 
 		// Create a Route Queue object.
-		$route_queue = new Route_Queue();
+		$route_queue = new Queue();
 
 		// If a controller was passed in, append it to the route queue.
 		if (!is_null($controller))

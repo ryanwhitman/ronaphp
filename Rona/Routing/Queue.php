@@ -2,7 +2,7 @@
 
 namespace Rona\Routing;
 
-class Route_Queue {
+class Queue {
 
 	protected $queue = [];
 

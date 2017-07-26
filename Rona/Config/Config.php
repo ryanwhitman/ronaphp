@@ -1,7 +1,7 @@
 <?php
 
 namespace Rona\Config;
-use Rona\Helper\Helper as Helper;
+use Rona\Helper;
 
 define('RONA_UNDEFINED', 'RONA__UNDEFINED__RONA');
 
@@ -35,7 +35,7 @@ class Config {
 		}
 
 		if ($val === RONA_UNDEFINED)
-			return new Config_Builder($this, $path, $is_const);
+			return new Builder($this, $path, $is_const);
 
 		if ($is_const)
 			Helper::array_set($this->constants, $path, $val);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Rona\App;
+namespace Rona;
 
 use Exception;
 
@@ -33,15 +33,15 @@ class App {
 		$this->register_config();
 
 		// Create the HTTP Request, Route, Scope, and HTTP Response objects.
-		$this->request = new \Rona\HTTP_Request\Request($this);
+		$this->request = new \Rona\HTTP_Request($this);
 		$this->route = new \Rona\Routing\Route($this);
-		$this->scope = new \Rona\Scope\Scope;
+		$this->scope = new \Rona\Scope;
 		$this->response = new \Rona\HTTP_Response\Response($this);
 	}
 
 	protected function spl_autoload_register(): bool {
 		return spl_autoload_register(function($class) {
-			$file = dirname(dirname(__DIR__)) . '/' . str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
+			$file = dirname(__DIR__) . '/' . str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
 			if (file_exists($file)) {
 				require_once $file;
 				return true;
@@ -70,8 +70,8 @@ class App {
 	public function register_module(string $classname, string $name = NULL) {
 
 		// Ensure the qualified class name is a subclass of the Rona module class.
-		if (!is_subclass_of($classname, '\Rona\Module\Module'))
-			throw new Exception("$classname is not a subclass of '\Rona\Module\Module'.");
+		if (!is_subclass_of($classname, '\Rona\Module'))
+			throw new Exception("$classname is not a subclass of '\Rona\Module'.");
 
 		// Instantiate the module.
 		$module = new $classname($this, $name);
@@ -122,7 +122,7 @@ class App {
 		$this->run_hook('modules_registered');
 
 		// Create a route matching object.
-		$route_matcher = new \Rona\Routing\Route_Matcher;
+		$route_matcher = new \Rona\Routing\Matcher;
 	
 		// Loop thru each module and get the matching routes.
 		$route_queues = [];

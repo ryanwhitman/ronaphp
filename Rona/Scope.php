@@ -1,5 +1,5 @@
 <?php
 
-namespace Rona\Scope;
+namespace Rona;
 
 class Scope {}
