@@ -1,6 +1,8 @@
 <?php
 
 namespace Rona\Config;
+
+use Exception;
 use Rona\Helper;
 
 define('RONA_UNDEFINED', 'RONA__UNDEFINED__RONA');
@@ -11,17 +13,17 @@ class Config {
 
 	protected $variables = [];
 
-	public function define($path, $val = RONA_UNDEFINED) {
+	public function define(string $path, $val = RONA_UNDEFINED) {
 
 		return $this->m($path, $val, true);
 	}
 
-	public function set($path, $val = RONA_UNDEFINED) {
+	public function set(string $path, $val = RONA_UNDEFINED) {
 
 		return $this->m($path, $val, false);
 	}
 
-	public function m($path, $val = RONA_UNDEFINED, $is_const) {
+	public function m(string $path, $val = RONA_UNDEFINED, bool $is_const) {
 
 		$path = strtolower(trim($path, ' .'));
 
@@ -45,9 +47,9 @@ class Config {
 		return true;
 	}
 
-	public function get($path) {
+	public function get(string $path) {
 
-		// $path = strtolower(trim($path, ' .'));
+		$path = strtolower(trim($path, ' .'));
 
 		$variables = Helper::array_get($this->variables, $path, NULL);
 		$constants = Helper::array_get($this->constants, $path, NULL);
@@ -59,6 +61,6 @@ class Config {
 		else if (!is_null($variables))
 			return $variables;
 		else
-			return NULL;
+			throw new Exception("The configuration '$path' does not exist.");
 	}
 }

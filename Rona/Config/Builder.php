@@ -10,13 +10,13 @@ class Builder {
 
 	protected $is_const;
 	
-	public function __construct(Config $config_inst, $starting_path, $is_const) {
+	public function __construct(Config $config_inst, string $starting_path, bool $is_const) {
 		$this->config_inst = $config_inst;
 		$this->starting_path = $starting_path;
 		$this->is_const = $is_const;
 	}
 
-	public function _($path, $val = RONA_UNDEFINED) {
+	public function _(string $path, $val = RONA_UNDEFINED): self {
 
 		if ($val === RONA_UNDEFINED)
 			return new static($this->config_inst, $this->starting_path . '.' . $path, $this->is_const);

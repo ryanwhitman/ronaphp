@@ -121,7 +121,7 @@ class ParamExam {
 				$val = $props['options']['default'];
 
 			// If dependencies were defined, then run filters only if those conditions are met
-			foreach (Helper::array_get($props, 'filters.dependencies.options', []) as $dependent_param => $dependent_val) {
+			foreach ($props['filters']['dependencies']['options'] ?? [] as $dependent_param => $dependent_val) {
 
 				if (!Helper::array_get($input_processed, $dependent_param) === $dependent_val)
 					continue 2;

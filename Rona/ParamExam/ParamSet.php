@@ -25,11 +25,11 @@ class ParamSet {
 	
 	public function reqd_param($param, $props = []) {
 
-		return $this->param($param, true, Helper::array_get($props, 'help_text', ''), Helper::array_get($props, 'filters', []), Helper::array_get($props, 'options', []));
+		return $this->param($param, true, $props['help_text'] ?? '', $props['filters'] ?? [], $props['options'] ?? []);
 	}
 	
 	public function opt_param($param, $props = []) {
 
-		return $this->param($param, false, Helper::array_get($props, 'help_text', ''), Helper::array_get($props, 'filters', []), Helper::array_get($props, 'options', []));
+		return $this->param($param, false, $props['help_text'] ?? '', $props['filters'] ?? [], $props['options'] ?? []);
 	}
 }
