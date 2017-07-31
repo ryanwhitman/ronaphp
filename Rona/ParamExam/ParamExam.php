@@ -107,8 +107,8 @@ class ParamExam {
 		$res = $filter['function']($val, $options);
 
 		// If the filter failed and there is no message, attach a default one
-		if (!$res->success && empty($res->message))
-			$res->message = Helper::func_or($this->config('filters.default.message.failure'), get_defined_vars());
+		if (!$res->success && empty($res->messages))
+			$res->messages = Helper::func_or($this->config('filters.default.message.failure'), get_defined_vars());
 
 		// Return the response object
 		return $res;
@@ -196,7 +196,7 @@ class ParamExam {
 						];
 
 
-						// $error_msgs = array_merge($error_msgs, $res->message);
+						// $error_msgs = array_merge($error_msgs, $res->messages);
 						continue 2;
 					}
 				}

@@ -34,7 +34,7 @@ abstract class Helper {
 		
 		// Loop thru each of the path parts. Keep going until either the array key is not found (return default) or the array loop has completed.
 		foreach ($path as $part) {
-			if (!isset($array[$part]))
+			if (!array_key_exists($part, $array))
 				return $default;
 			$array = $array[$part];
 		}

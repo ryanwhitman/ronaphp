@@ -59,14 +59,14 @@ class Config {
 
 		$path = strtolower(trim($path, ' .'));
 
-		$variables = Helper::array_get($this->variables, $path, NULL);
-		$constants = Helper::array_get($this->constants, $path, NULL);
+		$variables = Helper::array_get($this->variables, $path, RONA_UNDEFINED);
+		$constants = Helper::array_get($this->constants, $path, RONA_UNDEFINED);
 		
 		if (is_array($constants) && is_array($variables))
 			return array_replace_recursive($variables, $constants);
-		else if (!is_null($constants))
+		else if ($constants !== RONA_UNDEFINED)
 			return $constants;
-		else if (!is_null($variables))
+		else if ($variables !== RONA_UNDEFINED)
 			return $variables;
 		else
 			throw new Exception("The configuration '$path' does not exist.");
