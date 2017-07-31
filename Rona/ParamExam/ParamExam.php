@@ -42,6 +42,7 @@ class ParamExam {
 		$this->register_stock_filters();
 
 		// Register filters.
+		$this->register_filters();
 	}
 
 	public function config(string $item = NULL) {
@@ -226,7 +227,7 @@ class ParamExam {
 		];
 	}
 
-	public function register_stock_filters() {
+	protected function register_stock_filters() {
 
 		$this->register_filter('string', [
 				'trim_full'		=> $this->config('filters.string.options.trim_full'), // true or false
@@ -389,5 +390,5 @@ class ParamExam {
 		});
 	}
 
-	public function register_filters() {}
+	protected function register_filters() {}
 }
