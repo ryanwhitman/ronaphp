@@ -1,13 +1,22 @@
 <?php
+/**
+ * @package RonaPHP
+ * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
+ * @license https://opensource.org/licenses/MIT   MIT
+ * @version 1.0.0 - beta
+ * @link https://github.com/RyanWhitman/ronaphp/tree/v1
+ * @since 1.0.0 - beta
+ */
 
 namespace Rona;
 
 abstract class Helper {
 
-	public static
-		$secs_in_day = 86400,
-		$secs_in_year = 31536000,
-		$secs_in_semiyear = 15768000;
+	public static $secs_in_day = 86400;
+
+	public static $secs_in_year = 31536000;
+
+	public static $secs_in_semiyear = 15768000;
 
 	/**
 	 * Get the value that's associated with the provided array key. The array key can belong to an indexed array, an associative array, or a multidimensional array. If the provided key does not exist, the $default value is returned instead. This method allows the developer to bypass "isset()."
