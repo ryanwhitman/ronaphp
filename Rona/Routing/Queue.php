@@ -4,12 +4,15 @@ namespace Rona\Routing;
 
 class Queue {
 
+	protected $data = [];
+
 	protected $queue = [];
 
 	protected $route;
 
 	public function process(Route $route) {
 		$this->route = $route;
+		$this->route->data = array_merge($this->route->data, $this->data);
 		foreach ($this->queue as $item) {
 			call_user_func_array($item['func'], $item['args']);
 		}
@@ -54,5 +57,10 @@ class Queue {
 		return $this->queue([], function() {
 			$this->route->remove_controllers();
 		});
+	}
+
+	public function data(array $data): self {
+		$this->data = $data;
+		return $this;
 	}
 }

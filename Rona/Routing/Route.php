@@ -18,6 +18,8 @@ class Route {
 		'last'		=> []
 	];
 
+	public $data = [];
+
 	public function __construct(\Rona\App $app) {
 		$this->app = $app;
 	}
