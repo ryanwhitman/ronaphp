@@ -16,6 +16,8 @@ use Rona\Module;
 
 class Route {
 
+	public $route_found = false;
+
 	protected $app;
 
 	protected $active_module;
