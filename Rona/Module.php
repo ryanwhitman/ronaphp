@@ -65,6 +65,8 @@ class Module {
 
 	protected function register_config() {}
 
+	public function module_registered() {}
+
 	protected function register_abstract_route() {
 		return $this->route_store['abstract'];
 	}

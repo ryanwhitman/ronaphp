@@ -98,6 +98,9 @@ class App {
 
 		// Store the module in the app.
 		$this->modules[$module->name()] = $module;
+
+		// Execute the module's module_registered method.
+		$module->module_registered();
 	}
 
 	public function modules(): array {
