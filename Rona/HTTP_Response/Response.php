@@ -71,6 +71,7 @@ class Response {
 		
 				$body = (function() {
 					ob_start();
+						$scope = $this->app->scope;
 						include $this->view->template['module']->run_hook('view_template', false, $this->view->template['module'], $this->view->template['template']);
 					return ob_get_clean();
 				})();
@@ -86,27 +87,32 @@ class Response {
 
 							foreach ($components['items'] as $item) {
 
-								// Stylesheet
-								if ($components['type'] == 'stylesheet')
-									echo $components['module']->run_hook('view_stylesheet', false, $components['module'], $item);
+								switch ($components['type']) {
 
-								// Javascript
-								else if ($components['type'] == 'javascript')
-									echo $components['module']->run_hook('view_javascript', false, $components['module'], $item);
+									// Stylesheet
+									case 'stylesheet':
+										echo $components['module']->run_hook('view_stylesheet', false, $components['module'], $item);
+										break;
 
-								// File
-								else if ($components['type'] == 'file') {
-									echo (function($module, $item) {
-										ob_start();
-											$scope = $this->app->scope;
-											include $module->run_hook('view_file', false, $module, $item);
-										return ob_get_clean();
-									})($components['module'], $item);
-								}
+									// Javascript
+									case 'javascript':
+										echo $components['module']->run_hook('view_javascript', false, $components['module'], $item);
+										break;
 
-								// Content
-								else if ($components['type'] == 'content') {
-									echo $item;
+									// File
+									case 'file':
+										echo (function($module, $item) {
+											ob_start();
+												$scope = $this->app->scope;
+												include $module->run_hook('view_file', false, $module, $item);
+											return ob_get_clean();
+										})($components['module'], $item);
+										break;
+
+									// Content
+									case 'content':
+										echo $item;
+										break;
 								}
 							}
 						}
