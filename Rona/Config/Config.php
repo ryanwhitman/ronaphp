@@ -13,25 +13,25 @@ namespace Rona\Config;
 use Exception;
 use Rona\Helper;
 
-define('RONA_UNDEFINED', 'RONA__UNDEFINED__RONA');
-
 class Config {
+
+	const RONA_UNDEFINED = 'rona__undefined__rona';
 
 	protected $constants = [];
 
 	protected $variables = [];
 
-	public function define(string $path, $val = RONA_UNDEFINED) {
+	public function define(string $path, $val = self::RONA_UNDEFINED) {
 
 		return $this->m($path, $val, true);
 	}
 
-	public function set(string $path, $val = RONA_UNDEFINED) {
+	public function set(string $path, $val = self::RONA_UNDEFINED) {
 
 		return $this->m($path, $val, false);
 	}
 
-	public function m(string $path, $val = RONA_UNDEFINED, bool $is_const) {
+	public function m(string $path, $val = self::RONA_UNDEFINED, bool $is_const) {
 
 		$path = strtolower(trim($path, ' .'));
 
@@ -39,12 +39,12 @@ class Config {
 		foreach (explode('.', $path) as $part) {
 			$path_buildup .= '.' . $part;
 			$path_buildup = trim($path_buildup, ' .');
-			$eval_arr = Helper::array_get($this->constants, $path_buildup, RONA_UNDEFINED);
-			if ($eval_arr !== RONA_UNDEFINED && !is_array($eval_arr))
+			$eval_arr = Helper::array_get($this->constants, $path_buildup, self::RONA_UNDEFINED);
+			if ($eval_arr !== self::RONA_UNDEFINED && !is_array($eval_arr))
 				return false;
 		}
 
-		if ($val === RONA_UNDEFINED)
+		if ($val === self::RONA_UNDEFINED)
 			return new Builder($this, $path, $is_const);
 
 		if ($is_const)
@@ -59,14 +59,14 @@ class Config {
 
 		$path = strtolower(trim($path, ' .'));
 
-		$variables = Helper::array_get($this->variables, $path, RONA_UNDEFINED);
-		$constants = Helper::array_get($this->constants, $path, RONA_UNDEFINED);
+		$variables = Helper::array_get($this->variables, $path, self::RONA_UNDEFINED);
+		$constants = Helper::array_get($this->constants, $path, self::RONA_UNDEFINED);
 		
 		if (is_array($constants) && is_array($variables))
 			return array_replace_recursive($variables, $constants);
-		else if ($constants !== RONA_UNDEFINED)
+		else if ($constants !== self::RONA_UNDEFINED)
 			return $constants;
-		else if ($variables !== RONA_UNDEFINED)
+		else if ($variables !== self::RONA_UNDEFINED)
 			return $variables;
 		else
 			throw new Exception("The configuration '$path' does not exist.");
