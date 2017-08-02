@@ -47,7 +47,8 @@ class Module {
 		// Create route store objects for this module.
 		$this->route_store = [
 			'abstract'			=> new Store($this->app()->config('http_methods')),
-			'non_abstract'		=> new Store($this->app()->config('http_methods'))
+			'non_abstract'		=> new Store($this->app()->config('http_methods')),
+			'no_route'			=> new Store($this->app()->config('http_methods'))
 		];
 	}
 
@@ -73,6 +74,10 @@ class Module {
 
 	protected function register_route() {
 		return $this->route_store['non_abstract'];
+	}
+
+	protected function register_no_route() {
+		return $this->route_store['no_route'];
 	}
 
 	public function register_routes() {}

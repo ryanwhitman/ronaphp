@@ -18,6 +18,8 @@ class Route {
 
 	public $route_found = false;
 
+	public $is_no_route = false;
+
 	protected $app;
 
 	protected $active_module;
