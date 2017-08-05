@@ -67,7 +67,7 @@ class Response {
 		} else {
 			header('Content-Type: text/html;charset=utf-8');
 
-			if (!empty($this->view->template)) {
+			if ($this->view->template) {
 		
 				$body = (function() {
 					ob_start();
