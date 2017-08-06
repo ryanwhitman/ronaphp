@@ -14,6 +14,8 @@ class Response {
 
 	protected $app;
 
+	protected $route_module;
+
 	protected $active_module;
 
 	protected $is_json = false;
@@ -28,7 +30,11 @@ class Response {
 		$this->app = $app;
 	}
 
-	public function set_active_module(\Rona\Module $active_module = NULL) {
+	public function set_route_module(\Rona\Module $route_module) {
+		$this->route_module = $route_module;
+	}
+
+	public function set_active_module(\Rona\Module $active_module) {
 		$this->active_module = $active_module;
 	}
 
@@ -68,13 +74,12 @@ class Response {
 			header('Content-Type: text/html;charset=utf-8');
 
 			if ($this->view->template) {
-		
-				$body = (function() {
-					ob_start();
-						$scope = $this->app->scope;
-						include $this->view->template['module']->run_hook('view_template', false, $this->view->template['module'], $this->view->template['template']);
-					return ob_get_clean();
-				})();
+
+				ob_start();
+					(function() {
+						$this->route_module->include($this->view->template['module']->run_hook('view_template', false, $this->view->template['module'], $this->view->template['template']));
+					})();
+				$body = ob_get_clean();
 
 				foreach ($this->view->components as $placeholder => $sections) {
 
@@ -101,11 +106,8 @@ class Response {
 
 									// File
 									case 'file':
-										echo (function($module, $item) {
-											ob_start();
-												$scope = $this->app->scope;
-												include $module->run_hook('view_file', false, $module, $item);
-											return ob_get_clean();
+										(function($module, $item) {
+											$this->route_module->include($module->run_hook('view_file', false, $module, $item));
 										})($components['module'], $item);
 										break;
 
@@ -116,7 +118,6 @@ class Response {
 								}
 							}
 						}
-
 					$contents = ob_get_clean();
 
 					// Escape $n backreferences

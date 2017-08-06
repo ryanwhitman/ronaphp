@@ -200,6 +200,9 @@ class App {
 			// Add the non-abstract route to the end of the route queues array.
 			$route_queues[] = ['module' => $route_module_to_use, 'route_queue' => $route_to_use['route_queue']];
 
+			// Set the route module in the HTTP response object.
+			$this->http_response->set_route_module($route_module_to_use);
+
 			// Loop thru each route queue and execute.
 			foreach ($route_queues as $route_queue) {
 				$this->route->set_active_module($route_queue['module']);

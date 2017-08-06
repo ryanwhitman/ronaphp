@@ -99,4 +99,9 @@ class Module {
 
 		return $persist ? $res : current($res);
 	}
+
+	public function include(string $file) {
+		$scope = $this->app()->scope;
+		include $file;
+	}
 }
