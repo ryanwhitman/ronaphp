@@ -55,12 +55,9 @@ abstract class Helper {
 		$set_array = $val;
 	}
 
-	public static function func_or($func_or, $arg) {
+	public static function func_or($func_or, ...$args) {
 
-		if (is_callable($func_or))
-			return $func_or($arg);
-
-		return $func_or;
+		return is_callable($func_or) ? call_user_func_array($func_or, $args) : $func_or;
 	}
 
 	public static function pluralize($word) {

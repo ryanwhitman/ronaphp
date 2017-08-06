@@ -10,6 +10,8 @@
 
 namespace Rona\HTTP_Response;
 
+use Rona\Helper;
+
 class Response {
 
 	protected $app;
@@ -77,7 +79,7 @@ class Response {
 
 				ob_start();
 					(function() {
-						$this->route_module->include($this->view->template['module']->run_hook('view_template', false, $this->view->template['module'], $this->view->template['template']));
+						$this->route_module->include($this->view->template['module']->run_hook('view_template', false, $this->view->template['module'], Helper::func_or($this->view->template['template'])));
 					})();
 				$body = ob_get_clean();
 
@@ -96,24 +98,24 @@ class Response {
 
 									// Stylesheet
 									case 'stylesheet':
-										echo $components['module']->run_hook('view_stylesheet', false, $components['module'], $item);
+										echo $components['module']->run_hook('view_stylesheet', false, $components['module'], Helper::func_or($item));
 										break;
 
 									// Javascript
 									case 'javascript':
-										echo $components['module']->run_hook('view_javascript', false, $components['module'], $item);
+										echo $components['module']->run_hook('view_javascript', false, $components['module'], Helper::func_or($item));
 										break;
 
 									// File
 									case 'file':
 										(function($module, $item) {
-											$this->route_module->include($module->run_hook('view_file', false, $module, $item));
+											$this->route_module->include($module->run_hook('view_file', false, $module, Helper::func_or($item)));
 										})($components['module'], $item);
 										break;
 
 									// Content
 									case 'content':
-										echo $item;
+										echo Helper::func_or($item);
 										break;
 								}
 							}

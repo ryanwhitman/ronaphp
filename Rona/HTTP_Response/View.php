@@ -28,13 +28,9 @@ class View {
 		if ($template === false)
 			$this->template = false;
 
-		// If a string was passing in, set the template.
-		else if (is_string($template))
-			$this->template = ['module' => $this->active_module, 'template' => $template];
-
-		// Otherwise, throw an exception.
+		// Otherwise, set the template.
 		else
-			throw new \Exception("An invalid template was identified in the module '{$this->active_module->name()}'. The value must either be false or of type string.");
+			$this->template = ['module' => $this->active_module, 'template' => $template];
 
 		// Response
 		return $this;
