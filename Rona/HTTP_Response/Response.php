@@ -16,7 +16,7 @@ class Response {
 
 	protected $app;
 
-	protected $route_module;
+	public $route_module;
 
 	protected $active_module;
 
