@@ -126,7 +126,7 @@ class ParamExam {
 			$val = Helper::array_get($unfiltered_data, $param);
 
 			// Find the default value, if applicable
-			if (Helper::is_nullOrEmptyString($val) && !Helper::is_nullOrEmptyString(Helper::array_get($props, 'filters.default.options')))
+			if (Helper::is_nullOrEmptyString($val) && !Helper::is_nullOrEmptyString(Helper::array_get($props, 'options.default')))
 				$val = $props['options']['default'];
 
 			// If dependencies were defined, then run filters only if those conditions are met
@@ -137,17 +137,17 @@ class ParamExam {
 			}
 
 			// If dependent_param was declared, then proceed only if that param exists and is not null
-			$dependent_param = Helper::array_get($props, 'filters.dependent_param.options');
+			$dependent_param = Helper::array_get($props, 'options.dependent_param');
 			if (isset($dependent_param) && !isset($input_processed[$dependent_param]))
 				continue;
 
 			// If dependent_true was declared, then proceed only if that param exists, is not null, and evaluates to true
-			$dependent_true = Helper::array_get($props, 'filters.dependent_true.options');
+			$dependent_true = Helper::array_get($props, 'options.dependent_true');
 			if (isset($dependent_true) && (!isset($input_processed[$dependent_true]) || !$input_processed[$dependent_true]))
 				continue;
 
 			// If dependent_false was declared, then proceed only if that param exists, is not null, and evaluates to false
-			$dependent_false = Helper::array_get($props, 'filters.dependent_false.options');
+			$dependent_false = Helper::array_get($props, 'options.dependent_false');
 			if (isset($dependent_false) && (!isset($input_processed[$dependent_false]) || $input_processed[$dependent_false]))
 				continue;
 
@@ -166,7 +166,7 @@ class ParamExam {
 				continue;
 
 			// If the param is just an empty string and the "allow empty string" option was set, just trim it and leave it be
-			if (Helper::is_emptyString($val) && Helper::array_get($props, 'filters.allow_empty_string.options'))
+			if (Helper::is_emptyString($val) && Helper::array_get($props, 'options.allow_empty_string'))
 				$val = trim($val);
 
 			// The param has a value of some sort and empty strings are disallowed, so run it through the filters
