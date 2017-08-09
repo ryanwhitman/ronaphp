@@ -33,7 +33,7 @@ class Config {
 
 	public function m(string $path, $val = self::RONA_UNDEFINED, bool $is_const) {
 
-		$path = strtolower(trim($path, ' .'));
+		$path = trim($path, ' .');
 
 		$path_buildup = '';
 		foreach (explode('.', $path) as $part) {
@@ -57,7 +57,7 @@ class Config {
 
 	public function get(string $path) {
 
-		$path = strtolower(trim($path, ' .'));
+		$path = trim($path, ' .');
 
 		$variables = Helper::array_get($this->variables, $path, self::RONA_UNDEFINED);
 		$constants = Helper::array_get($this->constants, $path, self::RONA_UNDEFINED);
