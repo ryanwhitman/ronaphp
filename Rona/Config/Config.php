@@ -17,9 +17,9 @@ class Config {
 
 	const RONA_UNDEFINED = 'rona__undefined__rona';
 
-	protected $constants = [];
+	public $constants = [];
 
-	protected $variables = [];
+	public $variables = [];
 
 	public function define(string $path, $val = self::RONA_UNDEFINED) {
 
