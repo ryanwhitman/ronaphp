@@ -75,7 +75,7 @@ class Response {
 		} else {
 			header('Content-Type: text/html;charset=utf-8');
 
-			if ($this->view->template) {
+			if (is_object($this->view) && $this->view->template) {
 
 				ob_start();
 					(function() {
