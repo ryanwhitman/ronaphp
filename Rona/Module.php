@@ -20,14 +20,25 @@ class Module {
 
 	protected $name;
 
-	protected $config;
-
 	protected $app;
 
-	public function __construct(App $app, string $name = NULL) {
+	protected $config;
 
-		// Set the Rona instance.
-		$this->app = $app;
+	/**
+	 * An array that holds services.
+	 * 
+	 * @var array
+	 */
+	protected $services = [];
+
+	/**
+	 * An associative array that holds the return value of service callbacks. Key = service name; Value = the return value of the service callback.
+	 * 
+	 * @var array
+	 */
+	protected $service_callback_ret_vals = [];
+
+	public function __construct(App $app, string $name = NULL) {
 
 		// If a module name was passed in thru the construct, set it.
 		if (!is_null($name))
@@ -38,11 +49,17 @@ class Module {
 		if (!$this->name())
 			throw new Exception('A module must have a name.');
 
+		// Set the Rona instance.
+		$this->app = $app;
+
 		// Create a config object for this module.
 		$this->config = new Config;
 
 		// Register this module's config.
 		$this->register_config();
+
+		// Register this module's services.
+		$this->register_services();
 
 		// Create route store objects for this module.
 		$this->route_store = [
@@ -67,6 +84,51 @@ class Module {
 	protected function register_config() {}
 
 	public function module_registered() {}
+
+	/**
+	 * Register a service.
+	 * 
+	 * @param     string      $name        The name of the service.
+	 * @param     callable    $callback    The callback to execute.
+	 * @return    void
+	 */
+	public function register_service(string $name, callable $callback) {
+
+		// Ensure service name hasn't already been registered.
+		if (isset($this->services[$name]))
+			throw new Exception("The service '$name' has already been registered.");
+
+		// Set the service.
+		$this->services[$name] = $callback;
+	}
+
+	/**
+	 * A holding method to register services.
+	 * 
+	 * @return void
+	 */
+	protected function register_services() {}
+
+	/**
+	 * Get a service.
+	 * 
+	 * @param     string      $name       The name of the service.
+	 * @param     bool        $get_new    If true, the service callback will be executed and returned. This allows the developer to get a new instantiated object, for instance.
+	 * @return    mixed                   The value returned from the service callback.
+	 */
+	public function get_service(string $name, bool $get_new = false) {
+
+		// Ensure the service has been registered.
+		if (!isset($this->services[$name]))
+			throw new Exception("The service '$name' has not been registered.");
+
+		// If either the service callback has not already been executed or "$get_new" is true, execute the service callback.
+		if (!isset($this->service_callback_ret_vals[$name]) || $get_new)
+			$this->service_callback_ret_vals[$name] = $this->services[$name]($this);
+
+		// Return the service callback return value.
+		return $this->service_callback_ret_vals[$name];
+	}
 
 	protected function register_abstract_route() {
 		return $this->route_store['abstract'];
