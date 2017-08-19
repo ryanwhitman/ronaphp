@@ -66,7 +66,7 @@ class App {
 		});
 	}
 
-	private function register_stock_config() {
+	protected function register_stock_config() {
 		$this->config()->set('base_path', '');
 		$this->config()->set('request_path', strtok($_SERVER['REQUEST_URI'] ?? '', '?'));
 		$this->config()->set('http_methods', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
