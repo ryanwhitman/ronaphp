@@ -17,7 +17,7 @@ class App {
 	protected $config;
 
 	/**
-	 * An array that holds services.
+	 * An array that holds the services.
 	 * 
 	 * @var array
 	 */
@@ -131,6 +131,13 @@ class App {
 	}
 
 	/**
+	 * A holding method to register services.
+	 * 
+	 * @return void
+	 */
+	protected function register_services() {}
+
+	/**
 	 * Register a service.
 	 * 
 	 * @param     string      $name        The name of the service.
@@ -148,31 +155,83 @@ class App {
 	}
 
 	/**
-	 * A holding method to register services.
-	 * 
-	 * @return void
-	 */
-	protected function register_services() {}
-
-	/**
 	 * Get a service.
 	 * 
 	 * @param     string      $name       The name of the service.
-	 * @param     bool        $get_new    If true, the service callback will be executed and returned. This allows the developer to get a new instantiated object, for instance.
+	 * @param     mixed       $args       Args that get passed to the service callback.
 	 * @return    mixed                   The value returned from the service callback.
 	 */
-	public function get_service(string $name, bool $get_new = false) {
+	public function get_service(string $name, ...$args) {
 
 		// Ensure the service has been registered.
 		if (!isset($this->services[$name]))
 			throw new Exception("The service '$name' has not been registered.");
 
-		// If either the service callback has not already been executed or "$get_new" is true, execute the service callback.
-		if (!isset($this->service_callback_ret_vals[$name]) || $get_new)
-			$this->service_callback_ret_vals[$name] = $this->services[$name]($this);
+		// If the service callback has not already been executed, execute it.
+		if (!isset($this->service_callback_ret_vals[$name])) {
+			array_unshift($args, $this);
+			$this->service_callback_ret_vals[$name] = call_user_func_array($this->services[$name], $args);
+		}
 
 		// Return the service callback return value.
 		return $this->service_callback_ret_vals[$name];
+	}
+
+	/**
+	 * Get a fresh instance of the service.
+	 * 
+	 * @param     string      $name       The name of the service.
+	 * @param     mixed       $args       Args that get passed to the service callback.
+	 * @return    mixed                   The value returned from the service callback.
+	 */
+	public function fresh_service(string $name, ...$args) {
+
+		// Unset the callback return value for this service.
+		unset($this->service_callback_ret_vals[$name]);
+
+		// Add the service name to the args array and return the service callback return value.
+		array_unshift($args, $name);
+		return call_user_func_array([$this, 'get_service'], $args);
+	}
+
+	/**
+	 * Get the names of all services.
+	 * 
+	 * @return  array
+	 */
+	public function get_services(): array {
+		return array_keys($this->services);
+	}
+
+	/**
+	 * Remove a service by name.
+	 * 
+	 * @param     string   $name   The name of the service.
+	 * @return    void
+	 */
+	public function remove_service(string $name) {
+		unset($this->services[$name]);
+		unset($this->service_callback_ret_vals[$name]);
+	}
+
+	/**
+	 * Clear all services.
+	 * 
+	 * @return  void
+	 */
+	public function clear_services() {
+		$this->services = [];
+		$this->service_callback_ret_vals = [];
+	}
+
+	/**
+	 * Whether or not the app has the service.
+	 * 
+	 * @param    string  $name   The name of the service.
+	 * @return   bool
+	 */
+	public function has_service(string $name): bool {
+		return isset($this->services[$name]);
 	}
 
 	public function run_hook(string $name, ...$args): array {
