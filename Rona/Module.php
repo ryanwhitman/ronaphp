@@ -31,13 +31,6 @@ class Module {
 	 */
 	protected $resources = [];
 
-	/**
-	 * An associative array that holds the return value of resource callbacks. Key = resource name; Value = the return value of the resource callback.
-	 * 
-	 * @var array
-	 */
-	protected $resource_callback_ret_vals = [];
-
 	public function __construct(App $app, string $name = NULL) {
 
 		// If a module name was passed in thru the construct, set it.
@@ -122,31 +115,9 @@ class Module {
 		if (!isset($this->resources[$name]))
 			throw new Exception("The resource '$name' has not been registered.");
 
-		// If the resource callback has not already been executed, execute it.
-		if (!isset($this->resource_callback_ret_vals[$name])) {
-			array_unshift($args, $this);
-			$this->resource_callback_ret_vals[$name] = call_user_func_array($this->resources[$name], $args);
-		}
-
-		// Return the resource callback return value.
-		return $this->resource_callback_ret_vals[$name];
-	}
-
-	/**
-	 * Get a fresh instance of the resource.
-	 * 
-	 * @param     string      $name       The name of the resource.
-	 * @param     mixed       $args       Args that get passed to the resource callback.
-	 * @return    mixed                   The value returned from the resource callback.
-	 */
-	public function fresh_resource(string $name, ...$args) {
-
-		// Unset the callback return value for this resource.
-		unset($this->resource_callback_ret_vals[$name]);
-
-		// Add the resource name to the args array and return the resource callback return value.
-		array_unshift($args, $name);
-		return call_user_func_array([$this, 'get_resource'], $args);
+		// Add the module instance to the args and execute and return the resource.
+		array_unshift($args, $this);
+		return call_user_func_array($this->resources[$name], $args);
 	}
 
 	/**
@@ -166,7 +137,6 @@ class Module {
 	 */
 	public function remove_resource(string $name) {
 		unset($this->resources[$name]);
-		unset($this->resource_callback_ret_vals[$name]);
 	}
 
 	/**
@@ -176,11 +146,21 @@ class Module {
 	 */
 	public function clear_resources() {
 		$this->resources = [];
-		$this->resource_callback_ret_vals = [];
 	}
 
 	/**
-	 * Whether or not the app has the resource.
+	 * Register a resource, regardless of whether or not it has already been registered.
+	 * 
+	 * @param     string      $name        The name of the resource.
+	 * @param     callable    $callback    The callback to execute.
+	 * @return    void
+	 */
+	public function replace_resource(string $name, callable $callback) {
+		$this->resources[$name] = $callback;
+	}
+
+	/**
+	 * Whether or not the module has the resource.
 	 * 
 	 * @param    string  $name   The name of the resource.
 	 * @return   bool
