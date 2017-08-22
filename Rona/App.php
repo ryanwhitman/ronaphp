@@ -17,18 +17,18 @@ class App {
 	protected $config;
 
 	/**
-	 * An array that holds the services.
+	 * An array that holds the resources.
 	 * 
 	 * @var array
 	 */
-	protected $services = [];
+	protected $resources = [];
 
 	/**
-	 * An associative array that holds the return value of service callbacks. Key = service name; Value = the return value of the service callback.
+	 * An associative array that holds the return value of resource callbacks. Key = resource name; Value = the return value of the resource callback.
 	 * 
 	 * @var array
 	 */
-	protected $service_callback_ret_vals = [];
+	protected $resource_callback_ret_vals = [];
 
 	protected $modules = [];
 
@@ -61,8 +61,8 @@ class App {
 		// Register the apps's configuration.
 		$this->register_config();
 
-		// Register the app's services.
-		$this->register_services();
+		// Register the app's resources.
+		$this->register_resources();
 
 		// Register the app's modules.
 		$this->register_modules();
@@ -131,107 +131,107 @@ class App {
 	}
 
 	/**
-	 * A holding method to register services.
+	 * A holding method to register resources.
 	 * 
 	 * @return void
 	 */
-	protected function register_services() {}
+	protected function register_resources() {}
 
 	/**
-	 * Register a service.
+	 * Register a resource.
 	 * 
-	 * @param     string      $name        The name of the service.
+	 * @param     string      $name        The name of the resource.
 	 * @param     callable    $callback    The callback to execute.
 	 * @return    void
 	 */
-	public function register_service(string $name, callable $callback) {
+	public function register_resource(string $name, callable $callback) {
 
-		// Ensure service name hasn't already been registered.
-		if (isset($this->services[$name]))
-			throw new Exception("The service '$name' has already been registered.");
+		// Ensure resource name hasn't already been registered.
+		if (isset($this->resources[$name]))
+			throw new Exception("The resource '$name' has already been registered.");
 
-		// Set the service.
-		$this->services[$name] = $callback;
+		// Set the resource.
+		$this->resources[$name] = $callback;
 	}
 
 	/**
-	 * Get a service.
+	 * Get a resource.
 	 * 
-	 * @param     string      $name       The name of the service.
-	 * @param     mixed       $args       Args that get passed to the service callback.
-	 * @return    mixed                   The value returned from the service callback.
+	 * @param     string      $name       The name of the resource.
+	 * @param     mixed       $args       Args that get passed to the resource callback.
+	 * @return    mixed                   The value returned from the resource callback.
 	 */
-	public function get_service(string $name, ...$args) {
+	public function get_resource(string $name, ...$args) {
 
-		// Ensure the service has been registered.
-		if (!isset($this->services[$name]))
-			throw new Exception("The service '$name' has not been registered.");
+		// Ensure the resource has been registered.
+		if (!isset($this->resources[$name]))
+			throw new Exception("The resource '$name' has not been registered.");
 
-		// If the service callback has not already been executed, execute it.
-		if (!isset($this->service_callback_ret_vals[$name])) {
+		// If the resource callback has not already been executed, execute it.
+		if (!isset($this->resource_callback_ret_vals[$name])) {
 			array_unshift($args, $this);
-			$this->service_callback_ret_vals[$name] = call_user_func_array($this->services[$name], $args);
+			$this->resource_callback_ret_vals[$name] = call_user_func_array($this->resources[$name], $args);
 		}
 
-		// Return the service callback return value.
-		return $this->service_callback_ret_vals[$name];
+		// Return the resource callback return value.
+		return $this->resource_callback_ret_vals[$name];
 	}
 
 	/**
-	 * Get a fresh instance of the service.
+	 * Get a fresh instance of the resource.
 	 * 
-	 * @param     string      $name       The name of the service.
-	 * @param     mixed       $args       Args that get passed to the service callback.
-	 * @return    mixed                   The value returned from the service callback.
+	 * @param     string      $name       The name of the resource.
+	 * @param     mixed       $args       Args that get passed to the resource callback.
+	 * @return    mixed                   The value returned from the resource callback.
 	 */
-	public function fresh_service(string $name, ...$args) {
+	public function fresh_resource(string $name, ...$args) {
 
-		// Unset the callback return value for this service.
-		unset($this->service_callback_ret_vals[$name]);
+		// Unset the callback return value for this resource.
+		unset($this->resource_callback_ret_vals[$name]);
 
-		// Add the service name to the args array and return the service callback return value.
+		// Add the resource name to the args array and return the resource callback return value.
 		array_unshift($args, $name);
-		return call_user_func_array([$this, 'get_service'], $args);
+		return call_user_func_array([$this, 'get_resource'], $args);
 	}
 
 	/**
-	 * Get the names of all services.
+	 * Get the names of all resources.
 	 * 
 	 * @return  array
 	 */
-	public function get_services(): array {
-		return array_keys($this->services);
+	public function get_resources(): array {
+		return array_keys($this->resources);
 	}
 
 	/**
-	 * Remove a service by name.
+	 * Remove a resource by name.
 	 * 
-	 * @param     string   $name   The name of the service.
+	 * @param     string   $name   The name of the resource.
 	 * @return    void
 	 */
-	public function remove_service(string $name) {
-		unset($this->services[$name]);
-		unset($this->service_callback_ret_vals[$name]);
+	public function remove_resource(string $name) {
+		unset($this->resources[$name]);
+		unset($this->resource_callback_ret_vals[$name]);
 	}
 
 	/**
-	 * Clear all services.
+	 * Clear all resources.
 	 * 
 	 * @return  void
 	 */
-	public function clear_services() {
-		$this->services = [];
-		$this->service_callback_ret_vals = [];
+	public function clear_resources() {
+		$this->resources = [];
+		$this->resource_callback_ret_vals = [];
 	}
 
 	/**
-	 * Whether or not the app has the service.
+	 * Whether or not the app has the resource.
 	 * 
-	 * @param    string  $name   The name of the service.
+	 * @param    string  $name   The name of the resource.
 	 * @return   bool
 	 */
-	public function has_service(string $name): bool {
-		return isset($this->services[$name]);
+	public function has_resource(string $name): bool {
+		return isset($this->resources[$name]);
 	}
 
 	public function run_hook(string $name, ...$args): array {
