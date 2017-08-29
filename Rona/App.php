@@ -133,18 +133,27 @@ class App {
 	/**
 	 * Register a resource.
 	 * 
-	 * @param     string      $name        The name of the resource.
-	 * @param     callable    $callback    The callback to execute.
+	 * @param     string             $name                      The name of the resource.
+	 * @param     string|callable    $class_name_or_callback    Either a string which represents a class name or a callable callback. If a string is provided, the class will be instantiated with the passed-in args (the app will be the first arg) at time of execution (when "get_resource" is run).
 	 * @return    void
 	 */
-	public function register_resource(string $name, callable $callback) {
+	public function register_resource(string $name, $class_name_or_callback) {
 
 		// Ensure resource name hasn't already been registered.
 		if (isset($this->resources[$name]))
-			throw new Exception("The resource '$name' has already been registered.");
+			throw new Exception("The resource '$name' has already been registered in the app.");
 
 		// Set the resource.
-		$this->resources[$name] = $callback;
+		if (is_string($class_name_or_callback)) {
+			$this->resources[$name] = function($app, ...$args) use ($class_name_or_callback) {
+				$class = new \ReflectionClass($class_name_or_callback);
+				array_unshift($args, $app);
+				return $class->newInstanceArgs($args);
+			};
+		} else if (is_callable($class_name_or_callback))
+			$this->resources[$name] = $class_name_or_callback;
+		else
+			throw new Exception("The resource '$name' in the app needs either a class name (string) or callback (callable).");
 	}
 
 	/**
