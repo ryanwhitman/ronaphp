@@ -89,7 +89,7 @@ class View {
 		return $this->component('prepend', $placeholder, $items, 'stylesheet');
 	}
 
-	public function stylesheet(string $placeholder, $items): self {
+	public function set_stylesheet(string $placeholder, $items): self {
 		return $this->component('set', $placeholder, $items, 'stylesheet');
 	}
 
@@ -109,7 +109,7 @@ class View {
 		return $this->component('prepend', $placeholder, $items, 'javascript');
 	}
 
-	public function javascript(string $placeholder, $items): self {
+	public function set_javascript(string $placeholder, $items): self {
 		return $this->component('set', $placeholder, $items, 'javascript');
 	}
 
@@ -129,7 +129,7 @@ class View {
 		return $this->component('prepend', $placeholder, $items, 'file');
 	}
 
-	public function file(string $placeholder, $items): self {
+	public function set_file(string $placeholder, $items): self {
 		return $this->component('set', $placeholder, $items, 'file');
 	}
 
@@ -149,7 +149,7 @@ class View {
 		return $this->component('prepend', $placeholder, $items, 'content');
 	}
 
-	public function content(string $placeholder, $items): self {
+	public function set_content(string $placeholder, $items): self {
 		return $this->component('set', $placeholder, $items, 'content');
 	}
 

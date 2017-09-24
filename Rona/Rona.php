@@ -12,26 +12,19 @@ namespace Rona;
 
 use Exception;
 
-class App {
+class Rona {
 
 	protected $config;
 
-	/**
-	 * An array that holds the resources.
-	 * 
-	 * @var array
-	 */
-	protected $resources = [];
-
 	protected $modules = [];
 
-	public $http_request;
+	protected $http_request;
 
-	public $route;
+	protected $route;
 
 	public $scope;
 
-	public $http_response;
+	protected $http_response;
 
 	protected $methods_executed = [
 		'find_route'			=> false,
@@ -45,24 +38,21 @@ class App {
 		// Register the Rona classes using spl_autoload_register.
 		$this->spl_autoload_register();
 
-		// Create a config object for the app.
+		// Create a config object.
 		$this->config = new \Rona\Config\Config;
 
-		// Register the app's stock configuration.
+		// Register the stock configuration.
 		$this->register_stock_config();
 
-		// Register the apps's configuration.
+		// Register the alternative configuration.
 		$this->register_config();
 
-		// Register the app's resources.
-		$this->register_resources();
-
-		// Register the app's modules.
+		// Register the modules.
 		$this->register_modules();
 
 		// Create the HTTP Request, Route, Scope, and HTTP Response objects.
 		$this->http_request = new \Rona\HTTP_Request($this);
-		$this->route = new \Rona\Routing\Route($this);
+		$this->route = new \Rona\Routing\Route();
 		$this->scope = new \Rona\Scope;
 		$this->http_response = new \Rona\HTTP_Response\Response($this);
 	}
@@ -85,6 +75,21 @@ class App {
 		$this->config()->set('template_placeholder_replace_text', '%PH%');
 		$this->config()->set('template_placeholder', '{% ' . $this->config('template_placeholder_replace_text') . ' %}');
 		$this->config()->set('hook_prefix', 'hook_');
+		$this->config()->set('view_assets')
+			->_('template', function(\Rona\Module $module, string $template) {
+				return $template;
+			})
+			->_('stylesheet', function(\Rona\Module $module, string $item) {
+				return "<link href=\"$item\" rel=\"stylesheet\">
+				";
+			})
+			->_('javascript', function(\Rona\Module $module, string $item) {
+				return "<script src=\"$item\"></script>
+				";
+			})
+			->_('file', function(\Rona\Module $module, string $item) {
+				return $item;
+			});
 	}
 
 	protected function register_config() {}
@@ -105,143 +110,22 @@ class App {
 		$module = new $classname($this, $name);
 
 		// Ensure the module name is unique.
-		if ($this->module($module->name()))
-			throw new Exception("Module names must be unique. {$module->name()} is already in use.");
+		if ($this->get_module($module->get_name()))
+			throw new Exception("Module names must be unique. {$module->get_name()} is already in use.");
 
-		// Store the module in the app.
-		$this->modules[$module->name()] = $module;
+		// Store the module.
+		$this->modules[$module->get_name()] = $module;
 
 		// Execute the module's module_registered method.
 		$module->module_registered();
 	}
 
-	public function modules(): array {
+	public function get_modules(): array {
 		return $this->modules;
 	}
 
-	public function module(string $name) {
-		return $this->modules()[$name] ?? false;
-	}
-
-	/**
-	 * A holding method to register resources.
-	 * 
-	 * @return void
-	 */
-	protected function register_resources() {}
-
-	/**
-	 * Register a resource.
-	 * 
-	 * @param     string             $name                      The name of the resource.
-	 * @param     string|callable    $class_name_or_callback    Either a string which represents a class name or a callable callback. If a string is provided, the class will be instantiated with the passed-in args (the app will be the first arg) at time of execution (when "get_resource" is run).
-	 * @return    void
-	 */
-	public function register_resource(string $name, $class_name_or_callback) {
-
-		// Ensure resource name hasn't already been registered.
-		if (isset($this->resources[$name]))
-			throw new Exception("The resource '$name' has already been registered in the app.");
-
-		// Set the resource.
-		if (is_string($class_name_or_callback)) {
-			$this->resources[$name] = function($app, ...$args) use ($class_name_or_callback) {
-				$class = new \ReflectionClass($class_name_or_callback);
-				array_unshift($args, $app);
-				return $class->newInstanceArgs($args);
-			};
-		} else if (is_callable($class_name_or_callback))
-			$this->resources[$name] = $class_name_or_callback;
-		else
-			throw new Exception("The resource '$name' in the app needs either a class name (string) or callback (callable).");
-	}
-
-	/**
-	 * Get a resource.
-	 * 
-	 * @param     string      $name       The name of the resource.
-	 * @param     mixed       $args       Args that get passed to the resource callback.
-	 * @return    mixed                   The value returned from the resource callback.
-	 */
-	public function get_resource(string $name, ...$args) {
-
-		// Ensure the resource has been registered.
-		if (!isset($this->resources[$name]))
-			throw new Exception("The resource '$name' has not been registered.");
-
-		// Add the app instance to the args and execute and return the resource.
-		array_unshift($args, $this);
-		return call_user_func_array($this->resources[$name], $args);
-	}
-
-	/**
-	 * Get the names of all resources.
-	 * 
-	 * @return  array
-	 */
-	public function get_resources(): array {
-		return array_keys($this->resources);
-	}
-
-	/**
-	 * Remove a resource by name.
-	 * 
-	 * @param     string   $name   The name of the resource.
-	 * @return    void
-	 */
-	public function remove_resource(string $name) {
-		unset($this->resources[$name]);
-	}
-
-	/**
-	 * Clear all resources.
-	 * 
-	 * @return  void
-	 */
-	public function clear_resources() {
-		$this->resources = [];
-	}
-
-	/**
-	 * Register a resource, regardless of whether or not it has already been registered.
-	 * 
-	 * @param     string      $name        The name of the resource.
-	 * @param     callable    $callback    The callback to execute.
-	 * @return    void
-	 */
-	public function replace_resource(string $name, callable $callback) {
-		$this->resources[$name] = $callback;
-	}
-
-	/**
-	 * Whether or not the app has the resource.
-	 * 
-	 * @param    string  $name   The name of the resource.
-	 * @return   bool
-	 */
-	public function has_resource(string $name): bool {
-		return isset($this->resources[$name]);
-	}
-
-	public function run_hook(string $name, ...$args): array {
-
-		// Create an empty array to hold the responses.
-		$res = [];
-
-		// Loop thru each module.
-		foreach ($this->modules() as $module) {
-
-			// If this module contains the hook, execute it and store the response.
-			if (method_exists($module, $this->config('hook_prefix') . $name))
-				$res[$module] = call_user_func_array([$module, $this->config('hook_prefix') . $name], $args);
-		}
-
-		// If the app contains the hook, execute it and store the response.
-		if (method_exists($this, $this->config('hook_prefix') . $name))
-			$res[$this] = call_user_func_array([$this, $this->config('hook_prefix') . $name], $args);
-
-		// Response
-		return $res;
+	public function get_module(string $name) {
+		return $this->get_modules()[$name] ?? false;
 	}
 
 	public function find_route() {
@@ -258,7 +142,7 @@ class App {
 			$non_abstract_module = NULL;
 			$no_route = false;
 			$no_route_module = NULL;
-			foreach ($this->modules() as $module) {
+			foreach ($this->get_modules() as $module) {
 
 				// Register this module's routes.
 				$module->register_routes();
@@ -350,6 +234,24 @@ class App {
 		}	
 	}
 
+	public function run_hook(string $name, ...$args): array {
+
+		// Create an empty array to hold the module responses.
+		$res = [];
+
+		// Loop thru each module.
+		foreach ($this->get_modules() as $module) {
+
+			// If this module contains the hook, execute it and store the response.
+			$method_name = $this->config('hook_prefix') . $name;
+			if (method_exists($module, $method_name))
+				$res[$module] = call_user_func_array([$module, $method_name], $args);
+		}
+
+		// Response
+		return $res;
+	}
+
 	public function run() {
 
 		if (!$this->methods_executed['run']) {
@@ -361,23 +263,5 @@ class App {
 
 			$this->output();
 		}
-	}
-
-	public function hook_view_template($module, $template) {
-		return $template;
-	}
-
-	public function hook_view_stylesheet($module, $item) {
-		return "<link href=\"$item\" rel=\"stylesheet\">
-		";
-	}
-
-	public function hook_view_javascript($module, $item) {
-		return "<script src=\"$item\"></script>
-		";
-	}
-
-	public function hook_view_file($module, $item) {
-		return $item;
 	}
 }

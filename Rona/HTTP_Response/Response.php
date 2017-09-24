@@ -28,7 +28,7 @@ class Response {
 
 	protected $body;
 
-	public function __construct(\Rona\App $app) {
+	public function __construct(\Rona\Rona $app) {
 		$this->app = $app;
 	}
 
@@ -79,7 +79,7 @@ class Response {
 
 				ob_start();
 					(function() {
-						$this->route_module->include($this->view->template['module']->run_hook('view_template', false, $this->view->template['module'], Helper::func_or($this->view->template['template'])));
+						$this->route_module->include($this->app->config('view_assets.template')($this->view->template['module'], Helper::func_or($this->view->template['template'])));
 					})();
 				$body = ob_get_clean();
 
@@ -98,19 +98,19 @@ class Response {
 
 									// Stylesheet
 									case 'stylesheet':
-										echo $components['module']->run_hook('view_stylesheet', false, $components['module'], Helper::func_or($item));
+										echo $this->app->config('view_assets.stylesheet')($components['module'], Helper::func_or($item));
 										break;
 
 									// Javascript
 									case 'javascript':
-										echo $components['module']->run_hook('view_javascript', false, $components['module'], Helper::func_or($item));
+										echo $this->app->config('view_assets.javascript')($components['module'], Helper::func_or($item));
 										break;
 
 									// File
 									case 'file':
-										(function($module, $item) {
-											$this->route_module->include($module->run_hook('view_file', false, $module, Helper::func_or($item)));
-										})($components['module'], $item);
+										(function() use ($components, $item) {
+											$this->route_module->include($this->app->config('view_assets.file')($components['module'], Helper::func_or($item)));
+										})();
 										break;
 
 									// Content

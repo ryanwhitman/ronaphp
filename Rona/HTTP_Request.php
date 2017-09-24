@@ -40,7 +40,7 @@ class HTTP_Request {
 
 	protected $input;
 
-	public function __construct(\Rona\App $app) {
+	public function __construct(\Rona\Rona $app) {
 
 		// If the getallheaders function doesn't exist natively, create it.
 		if (!function_exists('getallheaders')) {

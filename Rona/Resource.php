@@ -16,13 +16,6 @@ namespace Rona;
 abstract class Resource {
 
 	/**
-	 * The app.
-	 * 
-	 * @var \Rona\App
-	 */
-	protected $app;
-
-	/**
 	 * The module.
 	 * 
 	 * @var \Rona\Module
@@ -32,23 +25,51 @@ abstract class Resource {
 	/**
 	 * The constructor.
 	 * 
-	 * @param   object     $app_or_module      An instance of either a Rona app or Rona module.
-	 * @param   mixed      $args               Any number of args that will get passed to the secondary construct method.
+	 * @param   object     $module      An instance of a module.
+	 * @param   mixed      $args        Any number of args that will get passed to the secondary construct method.
 	 */
-	public function __construct($app_or_module, ...$args) {
+	public function __construct(Module $module, ...$args) {
 
-		// Set the app/module.
-		if (is_a($app_or_module, '\Rona\App')) {
-			$this->app = $app_or_module;
-			unset($this->module);
-		} else if (is_a($app_or_module, '\Rona\Module')) {
-			$this->module = $app_or_module;
-			unset($this->app);
-		} else
-			throw new \Execption('The 1st argument passed into a resource must be an instance of either a Rona app or Rona module.');
+		// Set the module.
+		$this->module = $module;
 
 		// If it exists, execute the secondary construct method.
 		if (method_exists($this, 'construct'))
 			call_user_func_array([$this, 'construct'], $args);
+	}
+
+	/**
+	 * Use the magic call method to allow some of the module's methods to be called from within the resource.
+	 * 
+	 * @param   string    $name        The name of the method being called.
+	 * @param   array     $arguments   An enumerated array containing the parameters passed to the $name'ed method.
+	 * @return  mixed                  The return value of the executed method.
+	 *
+	 * @throws  Exception              An exception is thrown when the method is unable to be called.
+	 */
+	public function __call(string $name, array $arguments) {
+
+		// If it is able to be called, execute the module method.
+		if (
+			in_array($name, [
+				'get_name',
+				'get_app',
+				'config',
+				'get_modules',
+				'get_module',
+				'get_resource',
+				'get_resources',
+				'remove_resource',
+				'clear_resources',
+				'replace_resource',
+				'has_resource'
+			]) &&
+			method_exists($this->module, $name)
+		) {
+			return call_user_func_array([$this->module, $name], $arguments);
+		}
+
+		// Since the method wasn't able to be called, throw an exception.
+		throw new \Exception("The method '$name' does not exist in the " . __CLASS__ . ' class.');
 	}
 }

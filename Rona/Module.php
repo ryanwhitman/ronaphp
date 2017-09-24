@@ -11,7 +11,7 @@
 namespace Rona;
 
 use Exception;
-use Rona\App;
+use Rona\Rona;
 use Rona\Routing\Store;
 use Rona\Config\Config;
 use Rona\Response;
@@ -31,15 +31,15 @@ class Module {
 	 */
 	protected $resources = [];
 
-	public function __construct(App $app, string $name = NULL) {
+	public function __construct(Rona $app, string $name = NULL) {
 
 		// If a module name was passed in thru the construct, set it.
 		if (!is_null($name))
 			$this->name = $name;
 
 		// Prepare the module name and ensure it exists.
-		$this->name = strtolower(trim($this->name()));
-		if (!$this->name())
+		$this->name = strtolower(trim($this->get_name()));
+		if (!$this->get_name())
 			throw new Exception('A module must have a name.');
 
 		// Set the Rona instance.
@@ -56,17 +56,17 @@ class Module {
 
 		// Create route store objects for the module.
 		$this->route_store = [
-			'abstract'			=> new Store($this->app()->config('http_methods')),
-			'non_abstract'		=> new Store($this->app()->config('http_methods')),
-			'no_route'			=> new Store($this->app()->config('http_methods'))
+			'abstract'			=> new Store($this->get_app()->config('http_methods')),
+			'non_abstract'		=> new Store($this->get_app()->config('http_methods')),
+			'no_route'			=> new Store($this->get_app()->config('http_methods'))
 		];
 	}
 
-	public function name() {
+	public function get_name() {
 		return $this->name;
 	}
 
-	public function app(): App {
+	public function get_app(): Rona {
 		return $this->app;
 	}
 
@@ -75,6 +75,14 @@ class Module {
 	}
 
 	protected function register_config() {}
+
+	public function get_modules(): array {
+		return $this->get_app()->get_modules();
+	}
+
+	public function get_module(string $name) {
+		return $this->get_modules()[$name] ?? false;
+	}
 
 	public function module_registered() {}
 
@@ -96,7 +104,7 @@ class Module {
 
 		// Ensure resource name hasn't already been registered.
 		if (isset($this->resources[$name]))
-			throw new Exception("The resource '$name' has already been registered in the module {$this->name()}.");
+			throw new Exception("The resource '$name' has already been registered in the module {$this->get_name()}.");
 
 		// Set the resource.
 		if (is_string($class_name_or_callback)) {
@@ -108,7 +116,7 @@ class Module {
 		} else if (is_callable($class_name_or_callback))
 			$this->resources[$name] = $class_name_or_callback;
 		else
-			throw new Exception("The resource '$name' in the module {$this->name()} needs either a class name (string) or callback (callable).");
+			throw new Exception("The resource '$name' in the module {$this->get_name()} needs either a class name (string) or callback (callable).");
 	}
 
 	/**
@@ -192,26 +200,8 @@ class Module {
 
 	public function register_routes() {}
 
-	public function run_hook(string $name, bool $persist = true, ...$args) {
-
-		$res = [];
-
-		$hook_run = false;
-		if (method_exists($this, $this->app()->config('hook_prefix') . $name)) {
-			$res[$this->name()] = call_user_func_array([$this, $this->app()->config('hook_prefix') . $name], $args);
-			$hook_run = true;
-		}
-
-		if (!$hook_run || $persist) {
-			if (method_exists($this->app(), $this->app()->config('hook_prefix') . $name))
-				$res['app'] = call_user_func_array([$this->app(), $this->app()->config('hook_prefix') . $name], $args);
-		}
-
-		return $persist ? $res : current($res);
-	}
-
 	public function include(string $file) {
-		$scope = $this->app()->scope;
+		$scope = $this->get_app()->scope;
 		include $file;
 	}
 }

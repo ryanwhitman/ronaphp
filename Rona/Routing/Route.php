@@ -20,8 +20,6 @@ class Route {
 
 	public $is_no_route = false;
 
-	protected $app;
-
 	protected $active_module;
 
 	protected $controllers = [
@@ -32,11 +30,7 @@ class Route {
 
 	public $data = [];
 
-	public function __construct(\Rona\App $app) {
-		$this->app = $app;
-	}
-
-	public function set_active_module(Module $active_module = NULL) {
+	public function set_active_module(Module $active_module) {
 		$this->active_module = $active_module;
 	}
 
@@ -59,7 +53,7 @@ class Route {
 					$c['module'] = $controller[0];
 					$c['callback'] = $controller;
 				} else if (is_string($controller[0])) {
-					$module = $this->app->module($controller[0]);
+					$module = $this->active_module->get_module($controller[0]);
 					if ($module && method_exists($module, $controller[1])) {
 						$c['module'] = $module;
 						$c['callback'] = [$module, $controller[1]];
@@ -69,7 +63,7 @@ class Route {
 		}
 
 		if (empty($c))
-			throw new Exception('The controller ' . json_encode($controller) . ' identified in the module "' . $this->active_module->name() . '" is not valid.');
+			throw new Exception('The controller ' . json_encode($controller) . ' identified in the module "' . $this->active_module->get_name() . '" is not valid.');
 
 		switch ($placement) {
 
