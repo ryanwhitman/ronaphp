@@ -63,7 +63,7 @@ class Route {
 		}
 
 		if (empty($c))
-			throw new Exception('The controller ' . json_encode($controller) . ' identified in the module "' . $this->active_module->get_name() . '" is not valid.');
+			throw new Exception('The controller ' . json_encode($controller) . ' identified in the module "' . $this->active_module->get_id() . '" is not valid.');
 
 		switch ($placement) {
 

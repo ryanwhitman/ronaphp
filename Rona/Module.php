@@ -18,7 +18,7 @@ use Rona\Response;
 
 class Module {
 
-	protected $name;
+	protected $id;
 
 	protected $app;
 
@@ -31,16 +31,16 @@ class Module {
 	 */
 	protected $resources = [];
 
-	public function __construct(Rona $app, string $name = NULL) {
+	public function __construct(Rona $app, string $id = NULL) {
 
-		// If a module name was passed in thru the construct, set it.
-		if (!is_null($name))
-			$this->name = $name;
+		// If a module ID was passed in thru the construct, set it.
+		if (!is_null($id))
+			$this->id = $id;
 
-		// Prepare the module name and ensure it exists.
-		$this->name = strtolower(trim($this->get_name()));
-		if (!$this->get_name())
-			throw new Exception('A module must have a name.');
+		// Prepare the module ID and ensure it exists.
+		$this->id = strtolower(trim($this->get_id()));
+		if (!$this->get_id())
+			throw new Exception('A module must have an ID.');
 
 		// Set the Rona instance.
 		$this->app = $app;
@@ -62,8 +62,8 @@ class Module {
 		];
 	}
 
-	public function get_name() {
-		return $this->name;
+	public function get_id() {
+		return $this->id;
 	}
 
 	public function get_app(): Rona {
@@ -74,14 +74,35 @@ class Module {
 		return is_null($item) ? $this->config : $this->config->get($item);
 	}
 
+	/**
+	 * A shortcut for calling the app's config method.
+	 * 
+	 * @param   mixed    $args        @see \Rona\Rona::config()
+	 * @return  mixed                 The return value of the app's config method.
+	 */
+	public function app_config(...$args) {
+		return call_user_func_array([$this->get_app(), 'config'], $args);
+	}
+
+	/**
+	 * A shortcut for calling a specific module's config method.
+	 * 
+	 * @param   string   $module_id   The module ID.
+	 * @param   mixed    $args        @see \Rona\Module::config()
+	 * @return  mixed                 The return value of the module's config method.
+	 */
+	public function module_config(string $module_id, ...$args) {
+		return call_user_func_array([$this->get_module($module_id), 'config'], $args);
+	}
+
 	protected function register_config() {}
 
 	public function get_modules(): array {
 		return $this->get_app()->get_modules();
 	}
 
-	public function get_module(string $name) {
-		return $this->get_modules()[$name] ?? false;
+	public function get_module(string $id) {
+		return $this->get_modules()[$id] ?? false;
 	}
 
 	public function module_registered() {}
@@ -104,7 +125,7 @@ class Module {
 
 		// Ensure resource name hasn't already been registered.
 		if (isset($this->resources[$name]))
-			throw new Exception("The resource '$name' has already been registered in the module {$this->get_name()}.");
+			throw new Exception("The resource '$name' has already been registered in the module {$this->get_id()}.");
 
 		// Set the resource.
 		if (is_string($class_name_or_callback)) {
@@ -116,7 +137,7 @@ class Module {
 		} else if (is_callable($class_name_or_callback))
 			$this->resources[$name] = $class_name_or_callback;
 		else
-			throw new Exception("The resource '$name' in the module {$this->get_name()} needs either a class name (string) or callback (callable).");
+			throw new Exception("The resource '$name' in the module {$this->get_id()} needs either a class name (string) or callback (callable).");
 	}
 
 	/**
@@ -135,6 +156,17 @@ class Module {
 		// Add the module instance to the args and execute and return the resource.
 		array_unshift($args, $this);
 		return call_user_func_array($this->resources[$name], $args);
+	}
+
+	/**
+	 * A shortcut for calling a specific module's get_resource method.
+	 * 
+	 * @param   string   $module_id   The module ID.
+	 * @param   mixed    $args        @see \Rona\Module::get_resource()
+	 * @return  mixed                 The return value of the module's get_resource method.
+	 */
+	public function get_module_resource(string $module_id, ...$args) {
+		return call_user_func_array([$this->get_module($module_id), 'get_resource'], $args);
 	}
 
 	/**

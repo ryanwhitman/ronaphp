@@ -100,21 +100,21 @@ class Rona {
 
 	protected function register_modules() {}
 
-	public function register_module(string $classname, string $name = NULL) {
+	public function register_module(string $classname, string $id = NULL) {
 
 		// Ensure the qualified class name is a subclass of the Rona module class.
 		if (!is_subclass_of($classname, '\Rona\Module'))
 			throw new Exception("$classname is not a subclass of '\Rona\Module'.");
 
 		// Instantiate the module.
-		$module = new $classname($this, $name);
+		$module = new $classname($this, $id);
 
-		// Ensure the module name is unique.
-		if ($this->get_module($module->get_name()))
-			throw new Exception("Module names must be unique. {$module->get_name()} is already in use.");
+		// Ensure the module ID is unique.
+		if ($this->get_module($module->get_id()))
+			throw new Exception("Module names must be unique. {$module->get_id()} is already in use.");
 
 		// Store the module.
-		$this->modules[$module->get_name()] = $module;
+		$this->modules[$module->get_id()] = $module;
 
 		// Execute the module's module_registered method.
 		$module->module_registered();
@@ -124,8 +124,8 @@ class Rona {
 		return $this->modules;
 	}
 
-	public function get_module(string $name) {
-		return $this->get_modules()[$name] ?? false;
+	public function get_module(string $id) {
+		return $this->get_modules()[$id] ?? false;
 	}
 
 	public function find_route() {
