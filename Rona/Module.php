@@ -76,9 +76,8 @@ class Module {
 
 	/**
 	 * A shortcut for calling the app's config method.
-	 * 
-	 * @param   mixed    $args        @see \Rona\Rona::config()
-	 * @return  mixed                 The return value of the app's config method.
+	 *
+	 * @see \Rona\Rona::config()
 	 */
 	public function app_config(...$args) {
 		return call_user_func_array([$this->get_app(), 'config'], $args);
@@ -86,10 +85,10 @@ class Module {
 
 	/**
 	 * A shortcut for calling a specific module's config method.
+	 *
+	 * @see \Rona\Module::config()
 	 * 
 	 * @param   string   $module_id   The module ID.
-	 * @param   mixed    $args        @see \Rona\Module::config()
-	 * @return  mixed                 The return value of the module's config method.
 	 */
 	public function module_config(string $module_id, ...$args) {
 		return call_user_func_array([$this->get_module($module_id), 'config'], $args);
@@ -97,12 +96,22 @@ class Module {
 
 	protected function register_config() {}
 
-	public function get_modules(): array {
-		return $this->get_app()->get_modules();
+	/**
+	 * A shortcut for calling the app's get_modules method.
+	 *
+	 * @see \Rona\Rona::get_modules()
+	 */
+	public function get_modules(...$args) {
+		return call_user_func_array([$this->get_app(), 'get_modules'], $args);
 	}
 
-	public function get_module(string $id) {
-		return $this->get_modules()[$id] ?? false;
+	/**
+	 * A shortcut for calling the app's get_module method.
+	 *
+	 * @see \Rona\Rona::get_module()
+	 */
+	public function get_module(...$args) {
+		return call_user_func_array([$this->get_app(), 'get_module'], $args);
 	}
 
 	public function module_registered() {}
@@ -160,10 +169,10 @@ class Module {
 
 	/**
 	 * A shortcut for calling a specific module's get_resource method.
+	 *
+	 * @see \Rona\Module::get_resource()
 	 * 
 	 * @param   string   $module_id   The module ID.
-	 * @param   mixed    $args        @see \Rona\Module::get_resource()
-	 * @return  mixed                 The return value of the module's get_resource method.
 	 */
 	public function get_module_resource(string $module_id, ...$args) {
 		return call_user_func_array([$this->get_module($module_id), 'get_resource'], $args);

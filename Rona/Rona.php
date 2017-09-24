@@ -128,6 +128,24 @@ class Rona {
 		return $this->get_modules()[$id] ?? false;
 	}
 
+	public function run_hook(string $name, ...$args): array {
+
+		// Create an empty array to hold the module responses.
+		$res = [];
+
+		// Loop thru each module.
+		foreach ($this->get_modules() as $module) {
+
+			// If this module contains the hook, execute it and store the response.
+			$method_name = $this->config('hook_prefix') . $name;
+			if (method_exists($module, $method_name))
+				$res[$module] = call_user_func_array([$module, $method_name], $args);
+		}
+
+		// Response
+		return $res;
+	}
+
 	public function find_route() {
 
 		if (!$this->methods_executed['find_route']) {
@@ -232,24 +250,6 @@ class Rona {
 			// Run a hook.
 			$this->run_hook('http_response_sent');
 		}	
-	}
-
-	public function run_hook(string $name, ...$args): array {
-
-		// Create an empty array to hold the module responses.
-		$res = [];
-
-		// Loop thru each module.
-		foreach ($this->get_modules() as $module) {
-
-			// If this module contains the hook, execute it and store the response.
-			$method_name = $this->config('hook_prefix') . $name;
-			if (method_exists($module, $method_name))
-				$res[$module] = call_user_func_array([$module, $method_name], $args);
-		}
-
-		// Response
-		return $res;
 	}
 
 	public function run() {
