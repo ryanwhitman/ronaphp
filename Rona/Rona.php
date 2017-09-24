@@ -111,7 +111,7 @@ class Rona {
 
 		// Ensure the module ID is unique.
 		if ($this->get_module($module->get_id()))
-			throw new Exception("Module names must be unique. {$module->get_id()} is already in use.");
+			throw new Exception("Module IDs must be unique. {$module->get_id()} is already in use.");
 
 		// Store the module.
 		$this->modules[$module->get_id()] = $module;
