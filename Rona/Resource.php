@@ -52,12 +52,15 @@ abstract class Resource {
 		// If it is able to be called, execute the module method.
 		if (
 			in_array($name, [
-				'get_name',
+				'get_id',
 				'get_app',
 				'config',
+				'app_config',
+				'module_config',
 				'get_modules',
 				'get_module',
 				'get_resource',
+				'get_module_resource',
 				'get_resources',
 				'remove_resource',
 				'clear_resources',
