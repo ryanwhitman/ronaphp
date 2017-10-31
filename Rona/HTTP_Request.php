@@ -38,9 +38,9 @@ class HTTP_Request {
 
 	protected $uploaded_files = [];
 
-	protected $input;
+	protected $input = [];
 
-	public function __construct(\Rona\Rona $app) {
+	public function __construct(\Rona\Rona $app, \Rona\Scope $scope) {
 
 		// If the getallheaders function doesn't exist natively, create it.
 		if (!function_exists('getallheaders')) {
@@ -101,6 +101,8 @@ class HTTP_Request {
 
 		// Get input.
 		$this->input = $this->get_method() == 'GET' ? $this->get_query_string_arr() : array_merge($this->get_body(), $this->get_uploaded_files());
+
+		$scope->set_form_data($this->input);
 	}
 
 	public function set_path_vars(array $path_vars) {

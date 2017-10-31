@@ -51,9 +51,9 @@ class Rona {
 		$this->register_modules();
 
 		// Create the HTTP Request, Route, Scope, and HTTP Response objects.
-		$this->http_request = new \Rona\HTTP_Request($this);
-		$this->route = new \Rona\Routing\Route();
 		$this->scope = new \Rona\Scope;
+		$this->http_request = new \Rona\HTTP_Request($this, $this->scope);
+		$this->route = new \Rona\Routing\Route();
 		$this->http_response = new \Rona\HTTP_Response\Response($this);
 	}
 
