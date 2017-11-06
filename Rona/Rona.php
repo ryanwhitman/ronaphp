@@ -10,8 +10,6 @@
 
 namespace Rona;
 
-use Exception;
-
 class Rona {
 
 	protected $config;
@@ -100,21 +98,21 @@ class Rona {
 
 	protected function register_modules() {}
 
-	public function register_module(string $classname, string $id = NULL) {
-
-		// Ensure the qualified class name is a subclass of the Rona module class.
-		if (!is_subclass_of($classname, '\Rona\Module'))
-			throw new Exception("$classname is not a subclass of '\Rona\Module'.");
-
-		// Instantiate the module.
-		$module = new $classname($this, $id);
+	public function register_module(string $id, string $class_name) {
 
 		// Ensure the module ID is unique.
-		if ($this->get_module($module->get_id()))
-			throw new Exception("Module IDs must be unique. {$module->get_id()} is already in use.");
+		if ($this->get_module($id))
+			throw new \Exception("Module IDs must be unique, but '$id' is already in use.");
+
+		// Ensure the qualified class name is a subclass of the \Rona\Module class.
+		if (!is_subclass_of($class_name, '\Rona\Module'))
+			throw new \Exception("Modules must be a subclass of '\Rona\Module', but '$class_name' is not.");
+
+		// Instantiate the module.
+		$module = new $class_name($id, $this);
 
 		// Store the module.
-		$this->modules[$module->get_id()] = $module;
+		$this->modules[$id] = $module;
 
 		// Execute the module's module_registered method.
 		$module->module_registered();

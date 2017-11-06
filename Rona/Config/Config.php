@@ -10,7 +10,6 @@
 
 namespace Rona\Config;
 
-use Exception;
 use Rona\Helper;
 
 class Config {
@@ -69,6 +68,6 @@ class Config {
 		else if ($variables !== self::RONA_UNDEFINED)
 			return $variables;
 		else
-			throw new Exception("The configuration '$path' does not exist.");
+			throw new \Exception("The configuration '$path' does not exist.");
 	}
 }

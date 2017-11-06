@@ -10,8 +10,6 @@
 
 namespace Rona\Routing;
 
-use Exception;
-use Closure;
 use Rona\Module;
 
 class Route {
@@ -38,7 +36,7 @@ class Route {
 
 		$c = [];
 
-		if ($controller instanceof Closure) {
+		if ($controller instanceof \Closure) {
 			$c['module'] = $this->active_module;
 			$c['callback'] = $controller;
 		} else if (is_string($controller) && method_exists($this->active_module, $controller)) {
@@ -63,7 +61,7 @@ class Route {
 		}
 
 		if (empty($c))
-			throw new Exception('The controller ' . json_encode($controller) . ' identified in the module "' . $this->active_module->get_id() . '" is not valid.');
+			throw new \Exception('The controller ' . json_encode($controller) . ' identified in the module "' . $this->active_module->get_id() . '" is not valid.');
 
 		switch ($placement) {
 

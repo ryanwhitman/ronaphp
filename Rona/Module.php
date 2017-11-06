@@ -10,7 +10,6 @@
 
 namespace Rona;
 
-use Exception;
 use Rona\Rona;
 use Rona\Routing\Store;
 use Rona\Config\Config;
@@ -31,16 +30,38 @@ class Module {
 	 */
 	protected $resources = [];
 
-	public function __construct(Rona $app, string $id = NULL) {
+	/**
+	 * An array that holds the param filter groups.
+	 * 
+	 * @var array
+	 */
+	protected $param_filter_groups = [];
 
-		// If a module ID was passed in thru the construct, set it.
-		if (!is_null($id))
-			$this->id = $id;
+	/**
+	 * An array that holds the instantiated param filter groups.
+	 * 
+	 * @var array
+	 */
+	protected $param_filter_group_objects = [];
 
-		// Prepare the module ID and ensure it exists.
-		$this->id = strtolower(trim($this->get_id()));
-		if (!$this->get_id())
-			throw new Exception('A module must have an ID.');
+	/**
+	 * An array that holds the procedure groups.
+	 * 
+	 * @var array
+	 */
+	protected $procedure_groups = [];
+
+	/**
+	 * An array that holds the instantiated procedure groups.
+	 * 
+	 * @var array
+	 */
+	protected $procedure_group_objects = [];
+
+	public function __construct(string $id, Rona $app) {
+
+		// Set this module's ID.
+		$this->id = $id;
 
 		// Set the Rona instance.
 		$this->app = $app;
@@ -53,6 +74,12 @@ class Module {
 
 		// Register the module's resources.
 		$this->register_resources();
+
+		// Register the module's param filter groups.
+		$this->register_param_filter_groups();
+
+		// Register the module's procedure groups.
+		$this->register_procedure_groups();
 
 		// Create route store objects for the module.
 		$this->route_store = [
@@ -134,7 +161,7 @@ class Module {
 
 		// Ensure resource name hasn't already been registered.
 		if (isset($this->resources[$name]))
-			throw new Exception("The resource '$name' has already been registered in the module {$this->get_id()}.");
+			throw new \Exception("The resource '$name' has already been registered in the module {$this->get_id()}.");
 
 		// Set the resource.
 		if (is_string($class_name_or_callback)) {
@@ -146,7 +173,7 @@ class Module {
 		} else if (is_callable($class_name_or_callback))
 			$this->resources[$name] = $class_name_or_callback;
 		else
-			throw new Exception("The resource '$name' in the module {$this->get_id()} needs either a class name (string) or callback (callable).");
+			throw new \Exception("The resource '$name' in the module {$this->get_id()} needs either a class name (string) or callback (callable).");
 	}
 
 	/**
@@ -160,7 +187,7 @@ class Module {
 
 		// Ensure the resource has been registered.
 		if (!isset($this->resources[$name]))
-			throw new Exception("The resource '$name' has not been registered.");
+			throw new \Exception("The resource '$name' has not been registered.");
 
 		// Add the module instance to the args and execute and return the resource.
 		array_unshift($args, $this);
@@ -225,6 +252,117 @@ class Module {
 	 */
 	public function has_resource(string $name): bool {
 		return isset($this->resources[$name]);
+	}
+
+	/**
+	 * A holding method to register param filter groups.
+	 * 
+	 * @return void
+	 */
+	protected function register_param_filter_groups() {}
+
+	/**
+	 * Register a param filter group.
+	 * 
+	 * @param   string    $group_name  The group name.
+	 * @param   string    $class_name  The name of the class that contains the group. This will be instantiated later on.
+	 * @return  void
+	 */
+	public function register_param_filter_group(string $group_name, string $class_name) {
+
+		// Ensure the param filter group name is unique.
+		if (isset($this->param_filter_groups[$group_name]))
+			throw new \Exception("Param filter group names must be unique, but '$group_name' is already in use in the {$this->get_id()} module.");
+
+		// Ensure the qualified class name is a subclass of the \Rona\Param_Filter_Group class.
+		if (!is_subclass_of($class_name, '\Rona\Param_Filter_Group'))
+			throw new \Exception("Param filter groups must be a subclass of '\Rona\Param_Filter_Group', but '$class_name' is not.");
+
+		// Store this param filter group.
+		$this->param_filter_groups[$group_name] = $class_name;
+	}
+
+	/**
+	 * Get a param filter.
+	 * 
+	 * @param   string   $full_name   The full name of the filter, including group name. The group name and filter name should be separated with a period.
+	 * @return  array|false           An array if the filter is found, false otherwise.
+	 */
+	public function get_param_filter(string $full_name) {
+
+		// Convert the full name into an array and grab the parts.
+		$filter_name_parts = explode('.', $full_name);
+		$group_name = $filter_name_parts[0];
+		$filter_name = $filter_name_parts[1];
+
+		if (isset($this->param_filter_groups[$group_name])) {
+
+			if (!isset($this->param_filter_group_objects[$group_name]))
+				$this->param_filter_group_objects[$group_name] = new $this->param_filter_groups[$group_name]($group_name, $this);
+
+			return $this->param_filter_group_objects[$group_name]->get_filter($filter_name);
+		}
+
+		return false;
+	}
+
+	/**
+	 * A holding method to register procedure groups.
+	 * 
+	 * @return void
+	 */
+	protected function register_procedure_groups() {}
+
+	/**
+	 * Register a procedure group.
+	 * 
+	 * @param   string    $group_name  The group name.
+	 * @param   string    $class_name  The name of the class that contains the group. This will be instantiated later on.
+	 * @return  void
+	 */
+	public function register_procedure_group(string $group_name, string $class_name) {
+
+		// Ensure the procedure group name is unique.
+		if (isset($this->procedure_groups[$group_name]))
+			throw new \Exception("Procedure group names must be unique, but '$group_name' is already in use in the {$this->get_id()} module.");
+
+		// Ensure the qualified class name is a subclass of the \Rona\Procedure_Group class.
+		if (!is_subclass_of($class_name, '\Rona\Procedure_Group'))
+			throw new \Exception("Procedure Groups must be a subclass of '\Rona\Procedure_Group', but '$class_name' is not.");
+
+		// Store this procedure group.
+		$this->procedure_groups[$group_name] = $class_name;
+	}
+
+	/**
+	 * Execute a procedure.
+	 * 
+	 * @param    string             $full_procedure_name    The full name of the procedure, including group name. The group name and procedure name should be separated with a period.
+	 * @param    array              $input                  The input data to pass to the procedure.
+	 * @return   Response object                            The response object from the param exam / procedure.
+	 */
+	public function run_procedure(string $full_procedure_name, array $input = []): Response {
+
+		$full_procedure_name = explode('.', $full_procedure_name);
+
+		$group_name = $full_procedure_name[0];
+		$procedure_name = $full_procedure_name[1];
+
+		if (!isset($this->procedure_group_objects[$group_name]))
+			$this->procedure_group_objects[$group_name] = new $this->procedure_groups[$group_name]($group_name, $this);
+
+		return $this->procedure_group_objects[$group_name]->run_procedure($procedure_name, $input);
+	}
+
+	/**
+	 * A shortcut for calling a specific module's run_procedure method.
+	 *
+	 * @see \Rona\Module::run_procedure()
+	 * 
+	 * @param   string   $module_id   The module ID.
+	 */
+	public function run_module_procedure(string $module_id, ...$args) {
+		return call_user_func_array([$this->get_module($module_id), 'run_procedure'], $args);
 	}
 
 	protected function register_abstract_route() {
