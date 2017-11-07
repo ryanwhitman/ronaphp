@@ -12,10 +12,21 @@ namespace Rona;
 
 class Param_Filter_Group extends Module_Extension {
 
+	protected $name;
+
+	protected $module;
+
 	protected $filters = [];
 
-	public function __construct() {
+	public function __construct(string $name, \Rona\Module $module) {
 
+		// Set the name.
+		$this->name = $name;
+
+		// Set the module.
+		$this->module = $module;
+
+		// Register the filters.
 		$this->register_filters();
 	}
 
