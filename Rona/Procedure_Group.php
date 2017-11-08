@@ -44,7 +44,7 @@ class Procedure_Group extends Module_Extension {
 		];
 	}
 
-	public function run_procedure(string $procedure_name, array $input = []): Response {
+	public function run_procedure(string $procedure_name, array $raw_input = []): Response {
 
 		// Ensure procedure has been registered.
 		if (!isset($this->procedures[$procedure_name]))
@@ -54,16 +54,16 @@ class Procedure_Group extends Module_Extension {
 		$param_exam = new \Rona\Param_Exam($this->module);
 
 		// Run the procedure's Param Exam callback.
-		$this->procedures[$procedure_name]['param_exam_callback']($param_exam);
+		$this->procedures[$procedure_name]['param_exam_callback']($param_exam, $raw_input);
 		
 		// Examine the params. If a success is not returned, do not proceed with executing procedure.
-		$res = $param_exam->examine($input);
+		$res = $param_exam->examine($raw_input);
 		if (!$res->success)
 			return $res;
-		$input_processed = $res->data;
+		$processed_input = $res->data;
 
 		// Execute the procedure.
-		$res = $this->procedures[$procedure_name]['execute_callback']($input_processed);
+		$res = $this->procedures[$procedure_name]['execute_callback']($processed_input);
 
 		// Ensure the response is a \Rona\Response object.
 		if (!is_a($res, '\Rona\Response'))
