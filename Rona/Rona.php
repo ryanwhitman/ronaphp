@@ -72,7 +72,6 @@ class Rona {
 		$this->config()->set('http_methods', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
 		$this->config()->set('template_placeholder_replace_text', '%PH%');
 		$this->config()->set('template_placeholder', '{% ' . $this->config('template_placeholder_replace_text') . ' %}');
-		$this->config()->set('hook_prefix', 'hook_');
 		$this->config()->set('view_assets')
 			->_('template', function(\Rona\Module $module, string $template) {
 				return $template;
@@ -126,19 +125,24 @@ class Rona {
 		return $this->get_modules()[$id] ?? false;
 	}
 
+	/**
+	 * Run a hook on all modules.
+	 * 
+	 * @param    string    $name    The name of the hook.
+	 * @param    mixed     $args    Optional args to pass to the hook callback.
+	 * @return   array              An associative array in which the key represents the module ID and the value represents the return value of the hook.
+	 */
 	public function run_hook(string $name, ...$args): array {
 
 		// Create an empty array to hold the module responses.
 		$res = [];
 
-		// Loop thru each module.
-		foreach ($this->get_modules() as $module) {
+		// Add the hook name to the args array.
+		array_unshift($args, $name);
 
-			// If this module contains the hook, execute it and store the response.
-			$method_name = $this->config('hook_prefix') . $name;
-			if (method_exists($module, $method_name))
-				$res[$module] = call_user_func_array([$module, $method_name], $args);
-		}
+		// Loop thru each module and run the hook. Store the hook response in an array.
+		foreach ($this->get_modules() as $module)
+			$res[$module->get_id()] = call_user_func_array([$module, 'run_hook'], $args);
 
 		// Response
 		return $res;

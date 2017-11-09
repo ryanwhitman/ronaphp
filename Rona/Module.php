@@ -58,6 +58,13 @@ class Module {
 	 */
 	protected $procedure_group_objects = [];
 
+	/**
+	 * An array to hold hooks.
+	 * 
+	 * @var array
+	 */
+	protected $hooks = [];
+
 	public function __construct(string $id, Rona $app) {
 
 		// Set this module's ID.
@@ -80,6 +87,9 @@ class Module {
 
 		// Register the module's procedure groups.
 		$this->register_procedure_groups();
+
+		// Register the module's hooks.
+		$this->register_hooks();
 
 		// Create route store objects for the module.
 		$this->route_store = [
@@ -363,6 +373,47 @@ class Module {
 	 */
 	public function run_module_procedure(string $module_id, ...$args) {
 		return call_user_func_array([$this->get_module($module_id), 'run_procedure'], $args);
+	}
+
+	/**
+	 * A holding method to register hooks.
+	 * 
+	 * @return void
+	 */
+	protected function register_hooks() {}
+
+	/**
+	 * Register a hook.
+	 * 
+	 * @param    string     $name        The hook name.
+	 * @param    \Closure   $callback    The hook callback.
+	 * @return   void
+	 */
+	public function register_hook(string $name, \Closure $callback) {
+
+		// Ensure the hook hasn't already been registered.
+		if (isset($this->hooks[$name]))
+			throw new \Exception("The hook '$hook' in module '{$this->get_id()}' has already been registered.");
+
+		// Store the hook.
+		$this->hooks[$name] = $callback;
+	}
+
+	/**
+	 * Run a hook.
+	 * 
+	 * @param    string   $name   The hook name.
+	 * @param    mixed    $args   Optional args to pass to the hook callback.
+	 * @return   mixed            If the hook exists, the return value of the hook callback, NULL otherwise.
+	 */
+	public function run_hook(string $name, ...$args) {
+
+		// If this module contains the hook, execute it and return the response.
+		if (isset($this->hooks[$name]))
+			return call_user_func_array($this->hooks[$name], $args);
+
+		// The hook doesn't exist, so just return NULL.
+		return;
 	}
 
 	protected function register_abstract_route() {
