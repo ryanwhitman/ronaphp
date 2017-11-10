@@ -79,7 +79,7 @@ class Response {
 
 				ob_start();
 					(function() {
-						$this->route_module->include($this->app->config('view_assets.template')($this->view->template['module'], Helper::func_or($this->view->template['template'])));
+						$this->route_module->include_template_file($this->app->config('view_assets.template')($this->view->template['module'], Helper::func_or($this->view->template['template'])));
 					})();
 				$body = ob_get_clean();
 
@@ -109,7 +109,7 @@ class Response {
 									// File
 									case 'file':
 										(function() use ($components, $item) {
-											$this->route_module->include($this->app->config('view_assets.file')($components['module'], Helper::func_or($item)));
+											$this->route_module->include_template_file($this->app->config('view_assets.file')($components['module'], Helper::func_or($item)));
 										})();
 										break;
 

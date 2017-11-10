@@ -24,13 +24,6 @@ class Rona {
 
 	protected $http_response;
 
-	protected $methods_executed = [
-		'find_route'			=> false,
-		'execute_controllers'	=> false,
-		'output'				=> false,
-		'run'					=> false
-	];
-
 	public function __construct() {
 
 		// Register the Rona classes using spl_autoload_register.
@@ -150,120 +143,97 @@ class Rona {
 
 	public function find_route() {
 
-		if (!$this->methods_executed['find_route']) {
-			$this->methods_executed['find_route'] = true;
+		// Create a route matching object.
+		$route_matcher = new \Rona\Routing\Matcher;
+	
+		// Loop thru each module and get the matching routes.
+		$route_queues = [];
+		$non_abstract = false;
+		$non_abstract_module = NULL;
+		$no_route = false;
+		$no_route_module = NULL;
+		foreach ($this->get_modules() as $module) {
+			foreach (['abstract', 'non_abstract', 'no_route'] as $type) {
 
-			// Create a route matching object.
-			$route_matcher = new \Rona\Routing\Matcher;
-		
-			// Loop thru each module and get the matching routes.
-			$route_queues = [];
-			$non_abstract = false;
-			$non_abstract_module = NULL;
-			$no_route = false;
-			$no_route_module = NULL;
-			foreach ($this->get_modules() as $module) {
-
-				// Register this module's routes.
-				$module->register_routes();
-
-				foreach (['abstract', 'non_abstract', 'no_route'] as $type) {
-
-					// Get the matching routes.
-					$matches = $route_matcher->get_matches($module->route_store[$type]->get_routes(), $this->http_request->get_method(), $this->http_request->get_path());
-					if (!empty($matches)) {
-						if ($type == 'abstract') {
-							foreach ($matches as $match)
-								$route_queues[] = ['module' => $module, 'route_queue' => $match['route_queue']];
-						} else {
-							${$type} = array_pop($matches);
-							${$type . '_module'} = $module;
-						}
+				// Get the matching routes.
+				$matches = $route_matcher->get_matches($module->route_store[$type]->get_routes(), $this->http_request->get_method(), $this->http_request->get_path());
+				if (!empty($matches)) {
+					if ($type == 'abstract') {
+						foreach ($matches as $match)
+							$route_queues[] = ['module' => $module, 'route_queue' => $match['route_queue']];
+					} else {
+						${$type} = array_pop($matches);
+						${$type . '_module'} = $module;
 					}
 				}
 			}
+		}
 
-			// Determine which route to use.
-			if ($non_abstract || $no_route) {
-				$this->route->route_found = true;
-				if ($non_abstract) {
-					$route_to_use = $non_abstract;
-					$route_module_to_use = $non_abstract_module;
-				} else {
-					$this->route->is_no_route = true;
-					$route_queues = [];
-					$route_to_use = $no_route;
-					$route_module_to_use = $no_route_module;
-				}
-			} else
-				return false;			
-
-			$this->http_request->set_path_vars($route_to_use['path_vars']);
-			
-			// Add the non-abstract route to the end of the route queues array.
-			$route_queues[] = ['module' => $route_module_to_use, 'route_queue' => $route_to_use['route_queue']];
-
-			// Set the route module in the HTTP response object.
-			$this->http_response->set_route_module($route_module_to_use);
-
-			// Loop thru each route queue and execute.
-			foreach ($route_queues as $route_queue) {
-				$this->route->set_active_module($route_queue['module']);
-				$route_queue['route_queue']->process($this->route);
+		// Determine which route to use.
+		if ($non_abstract || $no_route) {
+			$this->route->route_found = true;
+			if ($non_abstract) {
+				$route_to_use = $non_abstract;
+				$route_module_to_use = $non_abstract_module;
+			} else {
+				$this->route->is_no_route = true;
+				$route_queues = [];
+				$route_to_use = $no_route;
+				$route_module_to_use = $no_route_module;
 			}
+		} else
+			return false;			
+
+		$this->http_request->set_path_vars($route_to_use['path_vars']);
+		
+		// Add the non-abstract route to the end of the route queues array.
+		$route_queues[] = ['module' => $route_module_to_use, 'route_queue' => $route_to_use['route_queue']];
+
+		// Set the route module in the HTTP response object.
+		$this->http_response->set_route_module($route_module_to_use);
+
+		// Loop thru each route queue and execute.
+		foreach ($route_queues as $route_queue) {
+			$this->route->set_active_module($route_queue['module']);
+			$route_queue['route_queue']->process($this->route);
 		}
 	}
 
 	public function execute_controllers() {
 
-		if (!$this->methods_executed['execute_controllers']) {
-			$this->methods_executed['execute_controllers'] = true;
+		// Run the controllers.
+		while (1) {
+			$controllers = $this->route->get_controllers();
+			if (empty($controllers))
+				break;
+			$the_controller = $controllers[0];
+			unset($controllers[0]);
+			$this->route->remove_controllers();
+			foreach ($controllers as $controller)
+				$this->route->append_controller($controller);
 
-			// Run the controllers.
-			while (1) {
-				$controllers = $this->route->get_controllers();
-				if (empty($controllers))
-					break;
-				$the_controller = $controllers[0];
-				unset($controllers[0]);
-				$this->route->remove_controllers();
-				foreach ($controllers as $controller)
-					$this->route->append_controller($controller);
+			$this->route->set_active_module($the_controller['module']);
+			$this->http_response->set_active_module($the_controller['module']);
 
-				$this->route->set_active_module($the_controller['module']);
-				$this->http_response->set_active_module($the_controller['module']);
-
-				$res = call_user_func($the_controller['callback'], $this->http_request, $this->route, $this->scope, $this->http_response);
-				if ($res === false)
-					break;
-				else if (is_object($res) && is_a($res, '\Rona\HTTP_Response\Response'))
-					$this->http_response = $res;
-			}
+			$res = call_user_func($the_controller['callback'], $this->http_request, $this->route, $this->scope, $this->http_response);
+			if ($res === false)
+				break;
+			else if (is_object($res) && is_a($res, '\Rona\HTTP_Response\Response'))
+				$this->http_response = $res;
 		}
 	}
 
 	public function output() {
 
-		if (!$this->methods_executed['output']) {
-			$this->methods_executed['output'] = true;
+		$this->http_response->output();
 
-			$this->http_response->output();
-
-			// Run a hook.
-			$this->run_hook('http_response_sent');
-		}	
+		// Run a hook.
+		$this->run_hook('http_response_sent');
 	}
 
 	public function run() {
-
-		if (!$this->methods_executed['run']) {
-			$this->methods_executed['run'] = true;
-
-			$this->find_route();
-
-			$this->execute_controllers();
-
-			$this->output();
-		}
+		$this->find_route();
+		$this->execute_controllers();
+		$this->output();
 	}
 }

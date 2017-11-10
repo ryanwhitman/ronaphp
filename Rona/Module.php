@@ -17,10 +17,25 @@ use Rona\Response;
 
 class Module {
 
+	/**
+	 * The module ID.
+	 * 
+	 * @var string
+	 */
 	protected $id;
 
+	/**
+	 * The Rona instance this module belongs to.
+	 * 
+	 * @var \Rona
+	 */
 	protected $app;
 
+	/**
+	 * A config instance.
+	 * 
+	 * @var \Rona\Config\Config
+	 */
 	protected $config;
 
 	/**
@@ -65,6 +80,12 @@ class Module {
 	 */
 	protected $hooks = [];
 
+	/**
+	 * The class constructor.
+	 * 
+	 * @param    string    $id     The module ID.
+	 * @param    \Rona     $app    A Rona instance.
+	 */
 	public function __construct(string $id, Rona $app) {
 
 		// Set this module's ID.
@@ -76,27 +97,30 @@ class Module {
 		// Create a config object for the module.
 		$this->config = new Config;
 
-		// Register the module's config.
+		// Register this module's config.
 		$this->register_config();
 
-		// Register the module's resources.
+		// Register this module's resources.
 		$this->register_resources();
 
-		// Register the module's param filter groups.
+		// Register this module's param filter groups.
 		$this->register_param_filter_groups();
 
-		// Register the module's procedure groups.
+		// Register this module's procedure groups.
 		$this->register_procedure_groups();
 
-		// Register the module's hooks.
+		// Register this module's hooks.
 		$this->register_hooks();
 
-		// Create route store objects for the module.
+		// Create route store objects for this module.
 		$this->route_store = [
 			'abstract'			=> new Store($this->app_config('http_methods')),
 			'non_abstract'		=> new Store($this->app_config('http_methods')),
 			'no_route'			=> new Store($this->app_config('http_methods'))
 		];
+
+		// Register this modules routes.
+		$this->register_routes();
 	}
 
 	public function get_id() {
@@ -416,21 +440,47 @@ class Module {
 		return;
 	}
 
-	protected function register_abstract_route() {
+	/**
+	 * A holding method for registering routes.
+	 * 
+	 * @return void
+	 */
+	protected function register_routes() {}
+
+	/**
+	 * Register an abstract route.
+	 * 
+	 * @return  \Rona\Routing\Store    A route store instance.
+	 */
+	public function register_abstract_route(): Store {
 		return $this->route_store['abstract'];
 	}
 
-	protected function register_route() {
+	/**
+	 * Register a non-abstract route.
+	 * 
+	 * @return  \Rona\Routing\Store    A route store instance.
+	 */
+	public function register_route(): Store {
 		return $this->route_store['non_abstract'];
 	}
 
-	protected function register_no_route() {
+	/**
+	 * Register a no-route.
+	 * 
+	 * @return  \Rona\Routing\Store    A route store instance.
+	 */
+	public function register_no_route(): Store {
 		return $this->route_store['no_route'];
 	}
 
-	public function register_routes() {}
-
-	public function include(string $file) {
+	/**
+	 * Include a template file within the module class and set the scope object. This allows template/view files to have direct access to the module use "$this".
+	 * 
+	 * @param    string   $file  The file path to include.
+	 * @return   void
+	 */
+	public function include_template_file(string $file) {
 		$scope = $this->get_app()->scope;
 		include $file;
 	}
