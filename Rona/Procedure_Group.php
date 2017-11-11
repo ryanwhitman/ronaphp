@@ -44,7 +44,7 @@ class Procedure_Group extends Module_Extension {
 		];
 	}
 
-	public function run_procedure(string $procedure_name, array $raw_input, callable $response_callback): Response {
+	public function run_procedure(string $procedure_name, array $raw_input): Response {
 
 		// Ensure the procedure has been registered.
 		if (!isset($this->procedures[$procedure_name]))
@@ -58,25 +58,18 @@ class Procedure_Group extends Module_Extension {
 		
 		// Examine the params and, if the examination is successful, proceed with executing the procedure.
 		$res = $param_exam->examine($raw_input);
-		if ($res->success) {
+		if (!$res->success)
+			return $res;
 
-			// The processed input is found in the response data property.
-			$processed_input = $res->data;
+		// The processed input is found in the response data property.
+		$processed_input = $res->data;
 
-			// Execute the procedure.
-			$res = $this->procedures[$procedure_name]['execute_callback']($processed_input);
+		// Execute the procedure.
+		$res = $this->procedures[$procedure_name]['execute_callback']($processed_input);
 
-			// Ensure the procedure response is a \Rona\Response object.
-			if (!is_a($res, '\Rona\Response'))
-				throw new \Exception("The procedure '$procedure_name' did not return an instance of \Rona\Response.");
-		}
-
-		// Run the response thru the response callback to generate a new response object.
-		$res = $response_callback($res);
-
-		// Ensure the response is a \Rona\Response object.
+		// Ensure the procedure response is a \Rona\Response object.
 		if (!is_a($res, '\Rona\Response'))
-			throw new \Exception("The response callback for the procedure '$procedure_name' did not return an instance of \Rona\Response.");
+			throw new \Exception("The procedure '$procedure_name' did not return an instance of \Rona\Response.");
 
 		// Response
 		return $res;
