@@ -44,9 +44,9 @@ class Procedure_Group extends Module_Extension {
 		];
 	}
 
-	public function run_procedure(string $procedure_name, array $raw_input = []): Response {
+	public function run_procedure(string $procedure_name, array $raw_input, callable $response_callback): Response {
 
-		// Ensure procedure has been registered.
+		// Ensure the procedure has been registered.
 		if (!isset($this->procedures[$procedure_name]))
 			throw new \Exception("A procedure named '$procedure_name' has not been registered.");
 
@@ -56,18 +56,27 @@ class Procedure_Group extends Module_Extension {
 		// Run the procedure's Param Exam callback.
 		$this->procedures[$procedure_name]['param_exam_callback']($param_exam, $raw_input);
 		
-		// Examine the params. If a success is not returned, do not proceed with executing procedure.
+		// Examine the params and, if the examination is successful, proceed with executing the procedure.
 		$res = $param_exam->examine($raw_input);
-		if (!$res->success)
-			return $res;
-		$processed_input = $res->data;
+		if ($res->success) {
 
-		// Execute the procedure.
-		$res = $this->procedures[$procedure_name]['execute_callback']($processed_input);
+			// The processed input is found in the response data property.
+			$processed_input = $res->data;
+
+			// Execute the procedure.
+			$res = $this->procedures[$procedure_name]['execute_callback']($processed_input);
+
+			// Ensure the procedure response is a \Rona\Response object.
+			if (!is_a($res, '\Rona\Response'))
+				throw new \Exception("The procedure '$procedure_name' did not return an instance of \Rona\Response.");
+		}
+
+		// Run the response thru the response callback to generate a new response object.
+		$res = $response_callback($res);
 
 		// Ensure the response is a \Rona\Response object.
 		if (!is_a($res, '\Rona\Response'))
-			throw new \Exception("The procedure '$procedure_name' did not return a valid response object.");
+			throw new \Exception("The response callback for the procedure '$procedure_name' did not return an instance of \Rona\Response.");
 
 		// Response
 		return $res;

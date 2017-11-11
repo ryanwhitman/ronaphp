@@ -23,68 +23,38 @@ class Param_Exam {
 		$this->module = $module;
 	}
 	
-	public function param(string $param, bool $is_reqd, array $props = []): self {
-
-		// Validate and default the help_text property.
-		if (array_key_exists('help_text', $props)) {
-			if (!is_string($props['help_text']))
-				throw new \Exception("The 'help_text' property for params must be a string.");
-		} else
-			$props['help_text'] = '';
-
-		// Validate and default the fail_message property.
-		if (array_key_exists('fail_message', $props)) {
-			if (!is_string($props['fail_message']) && !$props['fail_message'] instanceof \Closure)
-				throw new \Exception("The 'fail_message' property for params must be either a string or anonymous function.");
-		} else
-			$props['fail_message'] = '';
-
-		// Validate and default the filters property.
-		if (array_key_exists('filters', $props)) {
-			if (!is_array($props['filters']))
-				throw new \Exception("The 'filters' property for params must be an array.");
-		} else
-			$props['filters'] = [];
-
-		// Validate and default the options property.
-		if (array_key_exists('options', $props)) {
-			if (!is_array($props['options']))
-				throw new \Exception("The 'options' property for params must be an array.");
-		} else
-			$props['options'] = [];
+	public function param(string $param, bool $is_reqd, array $filters = [], array $options = []) {
 
 		// Store the param and its properties.
 		$this->params[$param] = [
 			'is_reqd'		=> $is_reqd,
-			'fail_message'	=> $props['fail_message'],
-			'filters'		=> $props['filters'],
-			'options'		=> $props['options']
+			'filters'		=> $filters,
+			'options'		=> $options
 		];
-
-		// Return this object.
-		return $this;
 	}
 	
-	public function reqd_param(string $param, array $props = []): self {
+	public function reqd_param(string $param, array $filters = [], array $options = []) {
 
-		return $this->param($param, true, $props);
+		// Run the param method.
+		return $this->param($param, true, $filters, $options);
 	}
 	
-	public function opt_param(string $param, array $props = []): self {
+	public function opt_param(string $param, array $filters = [], array $options = []) {
 
-		return $this->param($param, false, $props);
+		// Run the param method.
+		return $this->param($param, false, $filters, $options);
 	}
 
-	public function examine($unfiltered_data) {
+	public function examine($raw_data) {
 
 		// Establish arrays
-		$input_processed = $error_msgs = [];
+		$processed_data = $fail_data = [];
 
 		// Run through each param
 		foreach ($this->params as $param => $props) {
 
 			// Establish the initial value
-			$val = Helper::array_get($unfiltered_data, $param);
+			$val = Helper::array_get($raw_data, $param);
 
 			// Find the default value, if applicable
 			if (Helper::is_nullOrEmptyString($val) && !Helper::is_nullOrEmptyString(Helper::array_get($props, 'options.default')))
@@ -93,36 +63,37 @@ class Param_Exam {
 			// If dependencies were defined, then run filters only if those conditions are met
 			foreach ($props['options']['dependencies'] ?? [] as $dependent_param => $dependent_val) {
 
-				if (!Helper::array_get($input_processed, $dependent_param) === $dependent_val)
+				if (!Helper::array_get($processed_data, $dependent_param) === $dependent_val)
 					continue 2;
 			}
 
 			// If dependent_param was declared, then proceed only if that param exists and is not null
 			$dependent_param = Helper::array_get($props, 'options.dependent_param');
-			if (isset($dependent_param) && !isset($input_processed[$dependent_param]))
+			if (isset($dependent_param) && !isset($processed_data[$dependent_param]))
 				continue;
 
 			// If dependent_true was declared, then proceed only if that param exists, is not null, and evaluates to true
 			$dependent_true = Helper::array_get($props, 'options.dependent_true');
-			if (isset($dependent_true) && (!isset($input_processed[$dependent_true]) || !$input_processed[$dependent_true]))
+			if (isset($dependent_true) && (!isset($processed_data[$dependent_true]) || !$processed_data[$dependent_true]))
 				continue;
 
 			// If dependent_false was declared, then proceed only if that param exists, is not null, and evaluates to false
 			$dependent_false = Helper::array_get($props, 'options.dependent_false');
-			if (isset($dependent_false) && (!isset($input_processed[$dependent_false]) || $input_processed[$dependent_false]))
+			if (isset($dependent_false) && (!isset($processed_data[$dependent_false]) || $processed_data[$dependent_false]))
 				continue;
 
-			// If the param is required and the value is either null or an empty string, record the error message and move to the next param.
+			// If the param is required and the value is either null or an empty string, record the fail data and move to the next param.
 			if ($props['is_reqd'] && Helper::is_nullOrEmptyString($val)) {
-				$error_msgs[] = (string) Helper::func_or($props['fail_message'], [
-					'fail_tag'		=> 'null_or_empty_string',
-					'param'			=> $param,
-					'props'			=> $props
-				]);
+				$fail_data[$param] = [
+					'fail_tag'		=> 'non_existent',
+					'is_reqd'		=> $props['is_reqd'],
+					'filters'		=> $props['filters'],
+					'options'		=> $props['options']
+				];
 				continue;
 			}
 
-			// If the param is null, then we just want to skip it since it passed the 'required check' above
+			// If the param is null, skip it since it passed the 'required check' above.
 			if (is_null($val))
 				continue;
 
@@ -228,37 +199,39 @@ class Param_Exam {
 					if ($res->success)
 						$val = $res->data;
 
-					// Since this value created an error in the filter, we'll record the error message and skip any additional filters for this param.
+					// Since this value created a failure in the filter, record the fail data and skip any additional filters for this param.
 					else {
 						$fail_tag = $res->data['fail_tag'] ?? '';
 						unset($res->data['fail_tag']);
-						$error_msgs[] = (string) Helper::func_or($props['fail_message'], [
+
+						$fail_data[$param] = [
 							'fail_tag'			=> $fail_tag,
-							'param'				=> $param,
+							'is_reqd'			=> $props['is_reqd'],
+							'filters'			=> $props['filters'],
+							'options'			=> $props['options'],
 							'filter_options'	=> $filter_options,
 							'filter_res_data'	=> $res->data
-						]);
-
+						];
 						continue 2;
 					}
 				}
 			}
 
-			// Save the value into the $input_processed array
+			// Save the value into the $processed_data array
 			$to_param = Helper::array_get($props['options'], 'to_param');
 			$param = !Helper::is_nullOrEmptyString($to_param) ? $to_param : $param;
 
 			$path = Helper::array_get($props['options'], 'to_array') . '.' . $param;
 			$path = trim($path, '. ');
 
-			Helper::array_set($input_processed, $path, $val);
+			Helper::array_set($processed_data, $path, $val);
 		}
-			
-		// If there are any error messages, return them
-		if (!empty($error_msgs))
-			return new Response(false, $error_msgs);
+		
+		// If there are fail data, return them.
+		if (!empty($fail_data))
+			return new Response(false, NULL, ['param_exam_failure' => $fail_data]);
 
 		// Otherwise, return processed input
-		return new Response(true, '', $input_processed);
+		return new Response(true, '', $processed_data);
 	}
 }

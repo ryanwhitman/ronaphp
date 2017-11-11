@@ -371,11 +371,12 @@ class Module {
 	/**
 	 * Execute a procedure.
 	 * 
-	 * @param    string             $full_procedure_name    The full name of the procedure, including group name. The group name and procedure name should be separated with a period.
-	 * @param    array              $input                  The input data to pass to the procedure.
-	 * @return   Response object                            The response object from the param exam / procedure.
+	 * @param    string             $full_procedure_name     The full name of the procedure, including group name. The group name and procedure name should be separated with a period.
+	 * @param    array              $raw_input               The raw input data to pass to the procedure.
+	 * @param    callable           $response_callback       The response callback that processes the param exam / procedure response.
+	 * @return   Response object
 	 */
-	public function run_procedure(string $full_procedure_name, array $input = []): Response {
+	public function run_procedure(string $full_procedure_name, array $raw_input, callable $response_callback): Response {
 
 		$full_procedure_name = explode('.', $full_procedure_name);
 
@@ -385,7 +386,7 @@ class Module {
 		if (!isset($this->procedure_group_objects[$group_name]))
 			$this->procedure_group_objects[$group_name] = new $this->procedure_groups[$group_name]($group_name, $this);
 
-		return $this->procedure_group_objects[$group_name]->run_procedure($procedure_name, $input);
+		return $this->procedure_group_objects[$group_name]->run_procedure($procedure_name, $raw_input, $response_callback);
 	}
 
 	/**

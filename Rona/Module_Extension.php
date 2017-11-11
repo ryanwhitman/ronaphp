@@ -42,12 +42,6 @@ abstract class Module_Extension {
 				'get_module',
 				'get_resource',
 				'get_module_resource',
-				'get_resources',
-				'remove_resource',
-				'clear_resources',
-				'replace_resource',
-				'has_resource',
-				'run_procedure',
 				'run_module_procedure'
 			]) &&
 			method_exists($this->module, $name)
