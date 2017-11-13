@@ -85,7 +85,7 @@ class Param_Exam {
 			// If the param is required and the value is either null or an empty string, record the fail data and move to the next param.
 			if ($props['is_reqd'] && Helper::is_nullOrEmptyString($val)) {
 				$fail_data[$param] = [
-					'fail_tag'		=> 'non_existent',
+					'tag'			=> 'non_existent',
 					'is_reqd'		=> $props['is_reqd'],
 					'filters'		=> $props['filters'],
 					'options'		=> $props['options']
@@ -201,11 +201,11 @@ class Param_Exam {
 
 					// Since this value created a failure in the filter, record the fail data and skip any additional filters for this param.
 					else {
-						$fail_tag = $res->data['fail_tag'] ?? '';
-						unset($res->data['fail_tag']);
+						$tag = $res->data['tag'] ?? '';
+						unset($res->data['tag']);
 
 						$fail_data[$param] = [
-							'fail_tag'			=> $fail_tag,
+							'tag'				=> $tag,
 							'is_reqd'			=> $props['is_reqd'],
 							'filters'			=> $props['filters'],
 							'options'			=> $props['options'],
