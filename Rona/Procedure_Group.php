@@ -44,7 +44,7 @@ class Procedure_Group extends Module_Extension {
 		];
 	}
 
-	public function run_procedure(string $procedure_name, array $raw_input): Response {
+	public function run_procedure(string $procedure_name, array $raw_input): Response_Tag {
 
 		// Ensure the procedure has been registered.
 		if (!isset($this->procedures[$procedure_name]))
@@ -67,9 +67,9 @@ class Procedure_Group extends Module_Extension {
 		// Execute the procedure.
 		$res = $this->procedures[$procedure_name]['execute_callback']($processed_input);
 
-		// Ensure the procedure response is a \Rona\Response object.
-		if (!is_a($res, '\Rona\Response'))
-			throw new \Exception("The procedure '$procedure_name' did not return an instance of \Rona\Response.");
+		// Ensure the procedure response is a \Rona\Response_Tag object.
+		if (!is_a($res, '\Rona\Response_Tag'))
+			throw new \Exception("The procedure '$procedure_name' did not return an instance of \Rona\Response_Tag.");
 
 		// Response
 		return $res;

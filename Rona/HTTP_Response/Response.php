@@ -68,7 +68,7 @@ class Response {
 	}
 
 	public function output() {
-		http_response_code($this->code);
+		http_response_code($this->get_code());
 		if ($this->is_json) {
 			header('Content-Type: application/json;charset=utf-8');
 			echo json_encode($this->get_body());

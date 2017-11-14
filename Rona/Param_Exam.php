@@ -191,9 +191,9 @@ class Param_Exam {
 					// Run the filter
 					$res = $f['callback']($val, $filter_options);
 
-					// Ensure the response is a \Rona\Response object.
-					if (!is_a($res, '\Rona\Response'))
-						throw new \Exception("Param filters must return a valid response object.");
+					// Ensure the response is a \Rona\Response_Tag object.
+					if (!is_a($res, '\Rona\Response_Tag'))
+						throw new \Exception("Param filters must return an instance of \Rona\Response_Tag.");
 
 					// If the response was successful, $val should be set to the response data.
 					if ($res->success)
@@ -201,11 +201,8 @@ class Param_Exam {
 
 					// Since this value created a failure in the filter, record the fail data and skip any additional filters for this param.
 					else {
-						$tag = $res->data['tag'] ?? '';
-						unset($res->data['tag']);
-
 						$fail_data[$param] = [
-							'tag'				=> $tag,
+							'tag'				=> $res->tag,
 							'is_reqd'			=> $props['is_reqd'],
 							'filters'			=> $props['filters'],
 							'options'			=> $props['options'],
@@ -232,6 +229,6 @@ class Param_Exam {
 			return new Response(false, NULL, ['param_exam_failure' => $fail_data]);
 
 		// Otherwise, return processed input
-		return new Response(true, '', $processed_data);
+		return new Response(true, NULL, $processed_data);
 	}
 }

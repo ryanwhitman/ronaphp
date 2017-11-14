@@ -13,7 +13,7 @@ namespace Rona;
 use Rona\Rona;
 use Rona\Routing\Store;
 use Rona\Config\Config;
-use Rona\Response;
+use Rona\Response_Tag;
 
 class Module {
 
@@ -373,9 +373,9 @@ class Module {
 	 * 
 	 * @param    string             $full_procedure_name     The full name of the procedure, including group name. The group name and procedure name should be separated with a period.
 	 * @param    array              $raw_input               The raw input data to pass to the procedure.
-	 * @return   Response object
+	 * @return   Response_Tag object
 	 */
-	public function run_procedure(string $full_procedure_name, array $raw_input): Response {
+	public function run_procedure(string $full_procedure_name, array $raw_input): Response_Tag {
 
 		$full_procedure_name = explode('.', $full_procedure_name);
 
