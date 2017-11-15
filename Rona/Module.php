@@ -10,10 +10,8 @@
 
 namespace Rona;
 
-use Rona\Rona;
 use Rona\Routing\Store;
 use Rona\Config\Config;
-use Rona\Response_Tag;
 
 class Module {
 
@@ -334,7 +332,7 @@ class Module {
 			if (!isset($this->param_filter_group_objects[$group_name]))
 				$this->param_filter_group_objects[$group_name] = new $this->param_filter_groups[$group_name]($group_name, $this);
 
-			return $this->param_filter_group_objects[$group_name]->get_filter($filter_name);
+			return $this->param_filter_group_objects[$group_name]->get($filter_name);
 		}
 
 		return false;
@@ -372,20 +370,24 @@ class Module {
 	 * Execute a procedure.
 	 * 
 	 * @param    string             $full_procedure_name     The full name of the procedure, including group name. The group name and procedure name should be separated with a period.
-	 * @param    array              $raw_input               The raw input data to pass to the procedure.
-	 * @return   Response_Tag object
+	 * @param    array              $input                   The input data to pass to the procedure.
+	 * @param    string             $mode                    The exact procedure method to run.
+	 * @return   Response
 	 */
-	public function run_procedure(string $full_procedure_name, array $raw_input): Response_Tag {
-
+	public function run_procedure(string $full_procedure_name, array $input = [], string $mode = 'run'): Response {
 		$full_procedure_name = explode('.', $full_procedure_name);
-
 		$group_name = $full_procedure_name[0];
 		$procedure_name = $full_procedure_name[1];
-
 		if (!isset($this->procedure_group_objects[$group_name]))
 			$this->procedure_group_objects[$group_name] = new $this->procedure_groups[$group_name]($group_name, $this);
 
-		return $this->procedure_group_objects[$group_name]->run_procedure($procedure_name, $raw_input);
+		switch ($mode) {
+			case 'process_input': return $this->procedure_group_objects[$group_name]->process_input($procedure_name, $input);
+			case 'execute': return $this->procedure_group_objects[$group_name]->execute($procedure_name, $input);
+			case 'run': return $this->procedure_group_objects[$group_name]->run($procedure_name, $input);
+		}
+
+		throw new \Exception('The mode must be one of the following: process_input, execute, run');
 	}
 
 	/**

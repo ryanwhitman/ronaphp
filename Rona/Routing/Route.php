@@ -26,6 +26,10 @@ class Route {
 		'last'		=> []
 	];
 
+	protected $authorization_callbacks = [];
+
+	protected $procedure;
+
 	public $data = [];
 
 	public function set_active_module(Module $active_module) {
@@ -99,7 +103,7 @@ class Route {
 		return $this->ctrl('prepend', $controller);
 	}
 
-	public function controller($controller): self {
+	public function set_controller($controller): self {
 		return $this->ctrl('set', $controller);
 	}
 
@@ -121,5 +125,53 @@ class Route {
 
 	public function get_controllers() {
 		return array_merge($this->controllers['first'], $this->controllers['middle'], $this->controllers['last']);
+	}
+
+	public function authorization(\Closure $callback): self {
+		$this->authorization_callbacks[] = $callback;
+		return $this;
+	}
+
+	public function get_authorization_callbacks(): array {
+		return $this->authorization_callbacks;
+	}
+
+	public function procedure($procedure, \Closure $response_handler): self {
+
+		$p = [];
+
+		if (is_string($procedure)) {
+			$p['module'] = $this->active_module;
+			$p['full_procedure_name'] = $procedure;
+		} else if (
+			is_array($procedure) &&
+			count($procedure == 2) &&
+			isset($procedure[0]) &&
+			isset($procedure[1]) &&
+			is_string($procedure[1])
+		) {
+			if ($procedure[0] instanceof Module) {
+				$p['module'] = $procedure[0];
+				$p['full_procedure_name'] = $procedure[1];
+			} else if (is_string($procedure[0])) {
+				$module = $this->active_module->get_module($procedure[0]);
+				if ($module) {
+					$p['module'] = $module;
+					$p['full_procedure_name'] = $procedure[1];
+				}
+			}
+		}
+
+		if (empty($p))
+			throw new \Exception('The procedure ' . json_encode($procedure) . ' identified in the module "' . $this->active_module->get_id() . '" is not valid.');
+
+		$p['response_handler'] = $response_handler;
+
+		$this->procedure = $p;
+		return $this;
+	}
+
+	public function get_procedure() {
+		return $this->procedure;
 	}
 }

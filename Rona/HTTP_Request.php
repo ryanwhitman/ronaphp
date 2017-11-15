@@ -38,7 +38,7 @@ class HTTP_Request {
 
 	protected $uploaded_files = [];
 
-	protected $input = [];
+	public $input = [];
 
 	public function __construct(\Rona\Rona $app, \Rona\Scope $scope) {
 

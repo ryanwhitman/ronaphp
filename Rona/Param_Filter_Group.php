@@ -32,14 +32,22 @@ class Param_Filter_Group extends Module_Extension {
 
 	protected function register_filters() {}
 
-	public function register_filter(string $name, array $default_options, \Closure $callback) {
+	public function register(string $name, array $default_options, \Closure $callback) {
 		$this->filters[$name] = [
 			'default_options'	=> $default_options,
 			'callback'			=> $callback
 		];
 	}
 
-	public function get_filter(string $name) {
+	public function get(string $name) {
 		return $this->filters[$name] ?? false;
+	}
+
+	public function success($data): Response {
+		return new Response(true, NULL, $data);
+	}
+
+	public function failure(string $reason, $data = NULL): Response {
+		return new Response(false, $reason, $data);
 	}
 }

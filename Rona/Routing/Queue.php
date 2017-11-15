@@ -43,9 +43,9 @@ class Queue {
 		});
 	}
 
-	public function controller($controller): self {
+	public function set_controller($controller): self {
 		return $this->queue([$controller], function($controller) {
-			$this->route->controller($controller);
+			$this->route->set_controller($controller);
 		});
 	}
 
@@ -64,6 +64,18 @@ class Queue {
 	public function remove_controllers(): self {
 		return $this->queue([], function() {
 			$this->route->remove_controllers();
+		});
+	}
+
+	public function authorization($callback): self {
+		return $this->queue([$callback], function($callback) {
+			$this->route->authorization($callback);
+		});
+	}
+
+	public function procedure($procedure, \Closure $response_handler): self {
+		return $this->queue([$procedure, $response_handler], function($procedure, $response_handler) {
+			$this->route->procedure($procedure, $response_handler);
 		});
 	}
 

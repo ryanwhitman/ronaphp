@@ -32,7 +32,7 @@ class Procedure_Group extends Module_Extension {
 
 	protected function register_procedures() {}
 
-	public function register_procedure(string $procedure_name, \Closure $param_exam_callback, \Closure $execute_callback) {
+	public function register(string $procedure_name, \Closure $param_exam_callback, \Closure $execute_callback) {
 
 		// Ensure procedure wasn't already registered.
 		if (isset($this->procedures[$procedure_name]))
@@ -44,34 +44,91 @@ class Procedure_Group extends Module_Extension {
 		];
 	}
 
-	public function run_procedure(string $procedure_name, array $raw_input): Response_Tag {
+	/**
+	 * Get a procedure.
+	 * 
+	 * @param  string         $procedure_name   The procedure name.
+	 * @return array                            The procedure.
+	 */
+	public function get(string $procedure_name): array {
 
 		// Ensure the procedure has been registered.
 		if (!isset($this->procedures[$procedure_name]))
 			throw new \Exception("A procedure named '$procedure_name' has not been registered.");
 
+		// Return the procedure.
+		return $this->procedures[$procedure_name];
+	}
+
+	/**
+	 * Process a procedure's input with param exam.
+	 * 
+	 * @param  string         $procedure_name   The procedure name.
+	 * @param  array          $raw_input        The raw input that is to be processed.
+	 * @return Response
+	 */
+	public function process_input(string $procedure_name, array $raw_input = []): Response {
+
+		// Get the procedure.
+		$procedure = $this->get($procedure_name);
+
 		// Create a new Param Exam object.
 		$param_exam = new \Rona\Param_Exam($this->module);
 
 		// Run the procedure's Param Exam callback.
-		$this->procedures[$procedure_name]['param_exam_callback']($param_exam, $raw_input);
+		$procedure['param_exam_callback']($param_exam, $raw_input);
 		
-		// Examine the params and, if the examination is successful, proceed with executing the procedure.
-		$res = $param_exam->examine($raw_input);
-		if (!$res->success)
-			return $res;
+		// Examine the params and return the response.
+		return $param_exam->examine($raw_input);
+	}
 
-		// The processed input is found in the response data property.
-		$processed_input = $res->data;
+	/**
+	 * Execute a procedure's callback, with the processed input passed in instead of being run thru param exam.
+	 * 
+	 * @param  string         $procedure_name   The procedure name.
+	 * @param  array          $processed_input  Input that has already been run thru param exam.
+	 * @return Response
+	 */
+	public function execute(string $procedure_name, array $processed_input = []): Response {
+
+		// Get the procedure.
+		$procedure = $this->get($procedure_name);
 
 		// Execute the procedure.
-		$res = $this->procedures[$procedure_name]['execute_callback']($processed_input);
+		$res = $procedure['execute_callback']($processed_input);
 
-		// Ensure the procedure response is a \Rona\Response_Tag object.
-		if (!is_a($res, '\Rona\Response_Tag'))
-			throw new \Exception("The procedure '$procedure_name' did not return an instance of \Rona\Response_Tag.");
+		// Ensure the procedure response is a \Rona\Response object.
+		if (!is_a($res, '\Rona\Response'))
+			throw new \Exception("The procedure '$procedure_name' did not return an instance of \Rona\Response.");
 
 		// Response
 		return $res;
+	}
+
+	/**
+	 * Fully run a procedure: Process its input and execute it.
+	 * 
+	 * @param  string         $procedure_name   The procedure name.
+	 * @param  array          $raw_input        The raw input that is to be processed and injected into the procedure.
+	 * @return mixed
+	 */
+	public function run(string $procedure_name, array $raw_input = []): Response {
+
+		// Process the input.
+		$res = $this->process_input($procedure_name, $raw_input);
+		if (!$res->success)
+			return $res;
+		$processed_input = $res->data;
+		
+		// Execute the procedure and return the response.
+		return $this->execute($procedure_name, $processed_input);
+	}
+
+	public function success($data = NULL) {
+		return new Response(true, NULL, $data);
+	}
+
+	public function failure($data = NULL) {
+		return new Response(false, NULL, $data);
 	}
 }

@@ -177,6 +177,7 @@ class Rona {
 				$route_module_to_use = $non_abstract_module;
 			} else {
 				$this->route->is_no_route = true;
+				$this->http_response->set_code(404);
 				$route_queues = [];
 				$route_to_use = $no_route;
 				$route_module_to_use = $no_route_module;
@@ -199,7 +200,7 @@ class Rona {
 		}
 	}
 
-	public function execute_controllers() {
+	public function execute_route() {
 
 		// Run the controllers.
 		while (1) {
@@ -221,19 +222,66 @@ class Rona {
 			else if (is_object($res) && is_a($res, '\Rona\HTTP_Response\Response'))
 				$this->http_response = $res;
 		}
+
+		// If a procedure exists, process this route as a JSON API route.
+		$procedure = $this->route->get_procedure();
+		if ($procedure) {
+			$this->http_response->set_as_json;
+			$procedure_response_type = false;
+
+			$res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $this->http_request->get_input(), 'process_input');
+			if (!$res->success) {
+				$procedure_response_type = 'invalid_input';
+				$this->http_response->set_code(400);
+			} else {
+				$processed_input = $res->data;
+
+				// Execute the authorization callback.
+				$is_authorized = true;
+				foreach ($this->route->get_authorization_callbacks() as $callback) {
+					$res = $callback($processed_input, $this->scope);
+
+					// Ensure the authorization callback response is a \Rona\Response object.
+					if (!is_a($res, '\Rona\Response'))
+						throw new \Exception("Authorization callbacks must return an instance of \Rona\Response.");
+
+					if (!$res->success) {
+						$is_authorized = false;
+						$this->http_response->set_code(403);
+						break;
+					}
+				}
+
+				// If the client is authorized, execute the procedure it.
+				if ($is_authorized) {
+					$res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $processed_input, 'execute');
+					if (!$res->success) {
+						$procedure_response_type = 'failed_execution';
+						$this->http_response->set_code(400);
+					} else
+						$procedure_response_type = 'success';
+				}
+			}
+
+			// Run the response thru the response handler to get a new response object.
+			if ($procedure_response_type)
+				$res = $procedure['response_handler']($procedure_response_type, $res->data);
+
+			// Ensure the procedure response handler is a \Rona\Response object.
+			if (!is_a($res, '\Rona\Response'))
+				throw new \Exception("Procedure response handlers must return an instance of \Rona\Response.");
+
+			$this->http_response->set_body($res);
+		}
 	}
 
-	public function output() {
-
+	public function output_route() {
 		$this->http_response->output();
-
-		// Run a hook.
-		$this->run_hook('http_response_sent');
 	}
 
 	public function run() {
 		$this->find_route();
-		$this->execute_controllers();
-		$this->output();
+		$this->execute_route();
+		$this->output_route();
 	}
 }
