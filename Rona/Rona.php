@@ -16,36 +16,22 @@ class Rona {
 
 	protected $modules = [];
 
-	protected $http_request;
-
-	protected $route;
-
-	public $scope;
-
-	protected $http_response;
-
 	public function __construct() {
 
 		// Register the Rona classes using spl_autoload_register.
 		$this->spl_autoload_register();
 
 		// Create a config object.
-		$this->config = new \Rona\Config\Config;
+		$this->config = new Config\Config;
 
 		// Register the stock configuration.
 		$this->register_stock_config();
 
-		// Register the alternative configuration.
+		// Register the configuration.
 		$this->register_config();
 
 		// Register the modules.
 		$this->register_modules();
-
-		// Create the HTTP Request, Route, Scope, and HTTP Response objects.
-		$this->scope = new \Rona\Scope;
-		$this->http_request = new \Rona\HTTP_Request($this, $this->scope);
-		$this->route = new \Rona\Routing\Route();
-		$this->http_response = new \Rona\HTTP_Response\Response($this);
 	}
 
 	protected function spl_autoload_register(): bool {
@@ -141,10 +127,10 @@ class Rona {
 		return $res;
 	}
 
-	public function find_route() {
+	public function find_route(HTTP_Request $http_request, Routing\Route $route, HTTP_Response\Response $http_response) {
 
 		// Create a route matching object.
-		$route_matcher = new \Rona\Routing\Matcher;
+		$route_matcher = new Routing\Matcher;
 	
 		// Loop thru each module and get the matching routes.
 		$route_queues = [];
@@ -156,7 +142,7 @@ class Rona {
 			foreach (['abstract', 'non_abstract', 'no_route'] as $type) {
 
 				// Get the matching routes.
-				$matches = $route_matcher->get_matches($module->route_store[$type]->get_routes(), $this->http_request->get_method(), $this->http_request->get_path());
+				$matches = $route_matcher->get_matches($module->route_store[$type]->get_routes(), $http_request->get_method(), $http_request->get_path());
 				if (!empty($matches)) {
 					if ($type == 'abstract') {
 						foreach ($matches as $match)
@@ -171,13 +157,13 @@ class Rona {
 
 		// Determine which route to use.
 		if ($non_abstract || $no_route) {
-			$this->route->route_found = true;
+			$route->route_found = true;
 			if ($non_abstract) {
 				$route_to_use = $non_abstract;
 				$route_module_to_use = $non_abstract_module;
 			} else {
-				$this->route->is_no_route = true;
-				$this->http_response->set_code(404);
+				$route->is_no_route = true;
+				$http_response->set_code(404);
 				$route_queues = [];
 				$route_to_use = $no_route;
 				$route_module_to_use = $no_route_module;
@@ -185,103 +171,135 @@ class Rona {
 		} else
 			return false;			
 
-		$this->http_request->set_path_vars($route_to_use['path_vars']);
+		$http_request->set_path_vars($route_to_use['path_vars']);
 		
 		// Add the non-abstract route to the end of the route queues array.
 		$route_queues[] = ['module' => $route_module_to_use, 'route_queue' => $route_to_use['route_queue']];
 
 		// Set the route module in the HTTP response object.
-		$this->http_response->set_route_module($route_module_to_use);
+		$http_response->set_route_module($route_module_to_use);
 
 		// Loop thru each route queue and execute.
 		foreach ($route_queues as $route_queue) {
-			$this->route->set_active_module($route_queue['module']);
-			$route_queue['route_queue']->process($this->route);
+			$route->set_active_module($route_queue['module']);
+			$route_queue['route_queue']->process($route);
 		}
 	}
 
-	public function execute_route() {
+	public function execute_route(HTTP_Request $http_request, Routing\Route $route, Scope $scope, HTTP_Response\Response $http_response) {
 
 		// Run the controllers.
 		while (1) {
-			$controllers = $this->route->get_controllers();
+			$controllers = $route->get_controllers();
 			if (empty($controllers))
 				break;
 			$the_controller = $controllers[0];
 			unset($controllers[0]);
-			$this->route->remove_controllers();
+			$route->remove_controllers();
 			foreach ($controllers as $controller)
-				$this->route->append_controller($controller);
+				$route->append_controller($controller);
 
-			$this->route->set_active_module($the_controller['module']);
-			$this->http_response->set_active_module($the_controller['module']);
+			$route->set_active_module($the_controller['module']);
+			$http_response->set_active_module($the_controller['module']);
 
-			$res = call_user_func($the_controller['callback'], $this->http_request, $this->route, $this->scope, $this->http_response);
+			$res = call_user_func($the_controller['callback'], $http_request, $route, $scope, $http_response);
 			if ($res === false)
 				break;
-			else if (is_object($res) && is_a($res, '\Rona\HTTP_Response\Response'))
-				$this->http_response = $res;
+			else if (is_a($res, '\Rona\HTTP_Response\Response'))
+				$http_response = $res;
 		}
 
-		// If a procedure exists, process this route as a JSON API route.
-		$procedure = $this->route->get_procedure();
-		if ($procedure) {
-			$this->http_response->set_as_json;
-			$procedure_response_type = false;
+		// Authentication
+		$passed_authentication = true;
+		$authentication = $route->get_authentication();
+		if ($authentication && $authentication() === false) {
+			$passed_authentication = false;
+			if (is_null($http_response->get_code()))
+				$http_response->set_code(401);
+		}
+		if ($passed_authentication) {
 
-			$res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $this->http_request->get_input(), 'process_input');
-			if (!$res->success) {
-				$procedure_response_type = 'invalid_input';
-				$this->http_response->set_code(400);
-			} else {
-				$processed_input = $res->data;
+			// Process input
+			$processed_input = [];
+			$passed_input_validation = true;
+			$procedure = $route->get_procedure();
+			if ($procedure) {
+				$process_input_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $http_request->get_input(), 'process_input');
+				if (!$process_input_res->success) {
+					$passed_input_validation = false;
+					$failed_input_handler = Helper::maybe_closure($procedure['failed_input_handler'], $process_input_res->data);
+					$msgs = [];
+					if (is_string($failed_input_handler))
+						$msgs[] = $failed_input_handler;
+					else if (is_array($failed_input_handler)) {
+						foreach ($process_input_res->data as $param => $data) {
+							if (isset($failed_input_handler[$param])) {
+								$failed_input_handler[$param] = Helper::maybe_closure($failed_input_handler[$param], $data);
+								if (is_string($failed_input_handler[$param]))
+									$msgs[] = $failed_input_handler[$param];
+								else if (is_array($failed_input_handler[$param]) && isset($failed_input_handler[$param][$data['tag']])) {
+									$failed_input_handler[$param][$data['tag']] = Helper::maybe_closure($failed_input_handler[$param][$data['tag']], $data);
+									if (is_string($failed_input_handler[$param][$data['tag']]))
+										$msgs[] = $failed_input_handler[$param][$data['tag']];
+								}
+							}
+						}						
+					}
+					if (!empty($msgs))
+						$http_response->api()->set_messages($msgs);
+					if (is_null($http_response->get_code()))
+						$http_response->set_code(400);
+				} else
+					$processed_input = $process_input_res->data;
+			}
+			if ($passed_input_validation) {
 
-				// Execute the authorization callback.
-				$is_authorized = true;
-				foreach ($this->route->get_authorization_callbacks() as $callback) {
-					$res = $callback($processed_input, $this->scope);
+				// Authorization
+				$passed_authorization = true;
+				$authorization = $route->get_authorization();
+				if ($authorization && $authorization($processed_input) === false) {
+					$passed_authorization = false;
+					if (is_null($http_response->get_code()))
+						$http_response->set_code(403);
+				}
+				if ($passed_authorization) {
 
-					// Ensure the authorization callback response is a \Rona\Response object.
-					if (!is_a($res, '\Rona\Response'))
-						throw new \Exception("Authorization callbacks must return an instance of \Rona\Response.");
-
-					if (!$res->success) {
-						$is_authorized = false;
-						$this->http_response->set_code(403);
-						break;
+					// Procedure execution
+					if ($procedure) {
+						$procedure_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $processed_input, 'execute');
+						$procedure_handler = Helper::maybe_closure($procedure['procedure_handler'], $procedure_res);
+						$msg = '';
+						if (is_string($procedure_handler))
+							$msg = $procedure_handler;
+						else if (is_array($procedure_handler) && isset($procedure_handler[$procedure_res->tag])) {
+							$procedure_handler[$procedure_res->tag] = Helper::maybe_closure($procedure_handler[$procedure_res->tag], $procedure_res);
+							if (is_string($procedure_handler[$procedure_res->tag]))
+								$msg = $procedure_handler[$procedure_res->tag];
+						}
+						if ($msg)
+							$http_response->api()->set_messages($msg);
+						if (is_null($http_response->get_code()))
+							$http_response->set_code($procedure_res->success ? ($http_request->get_method() == 'POST' ? 201 : 200) : 400);
 					}
 				}
-
-				// If the client is authorized, execute the procedure it.
-				if ($is_authorized) {
-					$res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $processed_input, 'execute');
-					if (!$res->success) {
-						$procedure_response_type = 'failed_execution';
-						$this->http_response->set_code(400);
-					} else
-						$procedure_response_type = 'success';
-				}
 			}
-
-			// Run the response thru the response handler to get a new response object.
-			if ($procedure_response_type)
-				$res = $procedure['response_handler']($procedure_response_type, $res->data);
-
-			// Ensure the procedure response handler is a \Rona\Response object.
-			if (!is_a($res, '\Rona\Response'))
-				throw new \Exception("Procedure response handlers must return an instance of \Rona\Response.");
-
-			$this->http_response->set_body($res);
 		}
 	}
 
-	public function output_route() {
-		$this->http_response->output();
+	public function output_route(HTTP_Response\Response $http_response) {
+		$http_response->output();
 	}
 
 	public function run() {
-		$this->find_route();
-		$this->execute_route();
-		$this->output_route();
+
+		// Create the HTTP Request, Route, Scope, and HTTP Response objects.
+		$scope = new Scope;
+		$http_request = new HTTP_Request($this, $scope);
+		$route = new Routing\Route();
+		$http_response = new HTTP_Response\Response($this, $scope);
+
+		$this->find_route($http_request, $route, $http_response);
+		$this->execute_route($http_request, $route, $scope, $http_response);
+		$this->output_route($http_response);
 	}
 }

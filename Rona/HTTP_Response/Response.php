@@ -16,20 +16,25 @@ class Response {
 
 	protected $app;
 
+	protected $scope;
+
 	public $route_module;
 
 	protected $active_module;
 
 	protected $is_json = false;
 
-	protected $code = 200;
+	protected $code;
+
+	protected $api;
 
 	protected $view;
 
 	protected $body;
 
-	public function __construct(\Rona\Rona $app) {
+	public function __construct(\Rona\Rona $app, \Rona\Scope $scope) {
 		$this->app = $app;
+		$this->scope = $scope;
 	}
 
 	public function set_route_module(\Rona\Module $route_module) {
@@ -44,7 +49,7 @@ class Response {
 		$this->code = $code;
 	}
 
-	public function get_code(): int {
+	public function get_code() {
 		return $this->code;
 	}
 
@@ -60,6 +65,12 @@ class Response {
 		return $this->body;
 	}
 
+	public function api(): API {
+		if (is_null($this->api))
+			$this->api = new API;
+		return $this->api;
+	}
+
 	public function view(): View {
 		if (is_null($this->view))
 			$this->view = new View;
@@ -68,18 +79,31 @@ class Response {
 	}
 
 	public function output() {
-		http_response_code($this->get_code());
-		if ($this->is_json) {
+
+		// Set the HTTP Response code.
+		$code = $this->get_code();
+		if (is_int($code))
+			http_response_code($code);
+
+		// When the content type is to be JSON:
+		if ($this->is_json || is_object($this->api)) {
 			header('Content-Type: application/json;charset=utf-8');
-			echo json_encode($this->get_body());
-		} else {
+
+			if (is_object($this->api))
+				$this->set_body($this->api);
+
+			$this->set_body(json_encode($this->get_body()));
+		}
+
+		// When the content type is to be text/HTML:
+		else {
 			header('Content-Type: text/html;charset=utf-8');
 
 			if (is_object($this->view) && $this->view->template) {
 
 				ob_start();
 					(function() {
-						$this->route_module->include_template_file($this->app->config('view_assets.template')($this->view->template['module'], Helper::func_or($this->view->template['template'])));
+						$this->route_module->include_template_file($this->scope, $this->app->config('view_assets.template')($this->view->template['module'], Helper::maybe_closure($this->view->template['template'])));
 					})();
 				$body = ob_get_clean();
 
@@ -98,24 +122,24 @@ class Response {
 
 									// Stylesheet
 									case 'stylesheet':
-										echo $this->app->config('view_assets.stylesheet')($components['module'], Helper::func_or($item));
+										echo $this->app->config('view_assets.stylesheet')($components['module'], Helper::maybe_closure($item));
 										break;
 
 									// Javascript
 									case 'javascript':
-										echo $this->app->config('view_assets.javascript')($components['module'], Helper::func_or($item));
+										echo $this->app->config('view_assets.javascript')($components['module'], Helper::maybe_closure($item));
 										break;
 
 									// File
 									case 'file':
 										(function() use ($components, $item) {
-											$this->route_module->include_template_file($this->app->config('view_assets.file')($components['module'], Helper::func_or($item)));
+											$this->route_module->include_template_file($this->scope, $this->app->config('view_assets.file')($components['module'], Helper::maybe_closure($item)));
 										})();
 										break;
 
 									// Content
 									case 'content':
-										echo Helper::func_or($item);
+										echo Helper::maybe_closure($item);
 										break;
 								}
 							}
@@ -134,8 +158,9 @@ class Response {
 				// Set the body.				
 				$this->set_body($body);
 			}
-
-			echo $this->get_body();
 		}
+
+		// Output the body.
+		echo $this->get_body();
 	}
 }

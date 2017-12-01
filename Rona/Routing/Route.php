@@ -26,7 +26,9 @@ class Route {
 		'last'		=> []
 	];
 
-	protected $authorization_callbacks = [];
+	protected $authentication;
+	
+	protected $authorization;
 
 	protected $procedure;
 
@@ -127,16 +129,25 @@ class Route {
 		return array_merge($this->controllers['first'], $this->controllers['middle'], $this->controllers['last']);
 	}
 
-	public function authorization(\Closure $callback): self {
-		$this->authorization_callbacks[] = $callback;
+	public function authentication(\Closure $callback = NULL): self {
+		$this->authentication = $callback;
 		return $this;
 	}
 
-	public function get_authorization_callbacks(): array {
-		return $this->authorization_callbacks;
+	public function get_authentication() {
+		return $this->authentication;
 	}
 
-	public function procedure($procedure, \Closure $response_handler): self {
+	public function authorization(\Closure $callback = NULL): self {
+		$this->authorization = $callback;
+		return $this;
+	}
+
+	public function get_authorization() {
+		return $this->authorization;
+	}
+
+	public function procedure($procedure, $failed_input_handler = NULL, $procedure_handler = NULL): self {
 
 		$p = [];
 
@@ -165,7 +176,8 @@ class Route {
 		if (empty($p))
 			throw new \Exception('The procedure ' . json_encode($procedure) . ' identified in the module "' . $this->active_module->get_id() . '" is not valid.');
 
-		$p['response_handler'] = $response_handler;
+		$p['failed_input_handler'] = $failed_input_handler;
+		$p['procedure_handler'] = $procedure_handler;
 
 		$this->procedure = $p;
 		return $this;

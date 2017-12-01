@@ -44,7 +44,7 @@ class Param_Exam {
 		return $this->param($param, false, $filters, $options);
 	}
 
-	public function examine(array $raw_data = []): Response {
+	public function examine(array $raw_data = []): Param_Exam_Response {
 
 		// Establish arrays
 		$processed_data = $fail_data = [];
@@ -83,10 +83,9 @@ class Param_Exam {
 
 			// If the param is required and the value is either null or an empty string, record the fail data and move to the next param.
 			if ($props['is_reqd'] && Helper::is_nullOrEmptyString($val)) {
-				$fail_data[] = [
-					'param'			=> $param,
+				$fail_data[$param] = [
 					'val'			=> $val,
-					'reason'		=> 'non_existent',
+					'tag'			=> 'non_existent',
 					'is_reqd'		=> $props['is_reqd'],
 					'filters'		=> $props['filters'],
 					'options'		=> $props['options']
@@ -192,9 +191,9 @@ class Param_Exam {
 					// Run the filter
 					$res = $f['callback']($val, $filter_options);
 
-					// Ensure the response is a \Rona\Response object.
-					if (!is_a($res, '\Rona\Response'))
-						throw new \Exception("Param filters must return an instance of \Rona\Response.");
+					// Ensure the response is the correct type.
+					if (!is_a($res, '\Rona\Param_Filter_Response'))
+						throw new \Exception("The param filter did not return an instance of \Rona\Param_Filter_Response.");
 
 					// If the response was successful, $val should be set to the response data.
 					if ($res->success)
@@ -202,10 +201,9 @@ class Param_Exam {
 
 					// Since this value created a failure in the filter, record the fail data and skip any additional filters for this param.
 					else {
-						$fail_data[] = [
-							'param'				=> $param,
+						$fail_data[$param] = [
 							'val'				=> $val,
-							'reason'			=> $res->messages[0],
+							'tag'				=> $res->tag,
 							'is_reqd'			=> $props['is_reqd'],
 							'filters'			=> $props['filters'],
 							'options'			=> $props['options'],
@@ -229,9 +227,9 @@ class Param_Exam {
 		
 		// If there are fail data, return them.
 		if (!empty($fail_data))
-			return new Response(false, NULL, $fail_data);
+			return new Param_Exam_Response(false, $fail_data);
 
 		// Otherwise, return processed input
-		return new Response(true, NULL, $processed_data);
+		return new Param_Exam_Response(true, $processed_data);
 	}
 }

@@ -67,7 +67,7 @@ class Procedure_Group extends Module_Extension {
 	 * @param  array          $raw_input        The raw input that is to be processed.
 	 * @return Response
 	 */
-	public function process_input(string $procedure_name, array $raw_input = []): Response {
+	public function process_input(string $procedure_name, array $raw_input = []): Param_Exam_Response {
 
 		// Get the procedure.
 		$procedure = $this->get($procedure_name);
@@ -89,7 +89,7 @@ class Procedure_Group extends Module_Extension {
 	 * @param  array          $processed_input  Input that has already been run thru param exam.
 	 * @return Response
 	 */
-	public function execute(string $procedure_name, array $processed_input = []): Response {
+	public function execute(string $procedure_name, array $processed_input = []): Procedure_Response {
 
 		// Get the procedure.
 		$procedure = $this->get($procedure_name);
@@ -97,9 +97,9 @@ class Procedure_Group extends Module_Extension {
 		// Execute the procedure.
 		$res = $procedure['execute_callback']($processed_input);
 
-		// Ensure the procedure response is a \Rona\Response object.
-		if (!is_a($res, '\Rona\Response'))
-			throw new \Exception("The procedure '$procedure_name' did not return an instance of \Rona\Response.");
+		// Ensure the response is the correct type.
+		if (!is_a($res, '\Rona\Procedure_Response'))
+			throw new \Exception("The procedure did not return an instance of \Rona\Procedure_Response.");
 
 		// Response
 		return $res;
@@ -112,7 +112,7 @@ class Procedure_Group extends Module_Extension {
 	 * @param  array          $raw_input        The raw input that is to be processed and injected into the procedure.
 	 * @return mixed
 	 */
-	public function run(string $procedure_name, array $raw_input = []): Response {
+	public function run(string $procedure_name, array $raw_input = []) {
 
 		// Process the input.
 		$res = $this->process_input($procedure_name, $raw_input);
@@ -124,11 +124,11 @@ class Procedure_Group extends Module_Extension {
 		return $this->execute($procedure_name, $processed_input);
 	}
 
-	public function success($data = NULL) {
-		return new Response(true, NULL, $data);
+	public function success(string $tag, $data = NULL): Procedure_Response {
+		return new Procedure_Response(true, $tag, $data);
 	}
 
-	public function failure($data = NULL) {
-		return new Response(false, NULL, $data);
+	public function failure(string $tag, $data = NULL): Procedure_Response {
+		return new Procedure_Response(false, $tag, $data);
 	}
 }

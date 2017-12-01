@@ -43,11 +43,11 @@ class Param_Filter_Group extends Module_Extension {
 		return $this->filters[$name] ?? false;
 	}
 
-	public function success($data): Response {
-		return new Response(true, NULL, $data);
+	public function valid($transformed_value): Param_Filter_Response {
+		return new Param_Filter_Response(true, NULL, $transformed_value);
 	}
 
-	public function failure(string $reason, $data = NULL): Response {
-		return new Response(false, $reason, $data);
+	public function invalid(string $tag, $data = NULL): Param_Filter_Response {
+		return new Param_Filter_Response(false, $tag, $data);
 	}
 }

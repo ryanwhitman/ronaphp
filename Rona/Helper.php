@@ -55,9 +55,9 @@ abstract class Helper {
 		$set_array = $val;
 	}
 
-	public static function func_or($func_or, ...$args) {
+	public static function maybe_closure($maybe_closure, ...$args) {
 
-		return is_callable($func_or) ? call_user_func_array($func_or, $args) : $func_or;
+		return $maybe_closure instanceof \Closure ? call_user_func_array($maybe_closure, $args) : $maybe_closure;
 	}
 
 	public static function pluralize($word) {
@@ -104,7 +104,7 @@ abstract class Helper {
 	}
 
 	public static function is_numeric($x) {
-		return preg_match('/^[0-9]+$/', $x);
+		return is_string($x) && preg_match('/^[0-9]+$/', $x);
 	}
 
 	public static function is_alphanumeric($x, $case = 'ci') {
@@ -117,10 +117,6 @@ abstract class Helper {
 			return preg_match('/^[A-Z0-9]+$/', $x);
 
 		return false;
-	}
-
-	public static function is_currency($x) {
-		return is_numeric($x);
 	}
 
 	public static function is_email($email) {
@@ -283,23 +279,19 @@ abstract class Helper {
 		exit;
 	}
 
-	public static function call_func($func, $arg) {
-
-		if (is_callable($func))
-			return $func($arg);
-
-		return call_user_func($func, $arg);
-	}
-
-	public static function startsWith(string $haystack, string $needle): bool {
+	public static function begins_with(string $haystack, string $needle): bool {
 		$length = strlen($needle);
-		return (substr($haystack, 0, $length) === $needle);
+		return substr($haystack, 0, $length) === $needle;
 	}
 
-	public static function endsWith(string $haystack, string $needle): bool {
+	public static function ends_with(string $haystack, string $needle): bool {
 		$length = strlen($needle);
 		if ($length == 0)
 			return true;
-		return (substr($haystack, -$length) === $needle);
+		return substr($haystack, -$length) === $needle;
+	}
+
+	public static function is_failed_input($item): bool {
+		return is_a($item, '\Rona\Param_Exam_Response') && !$item->success;
 	}
 }

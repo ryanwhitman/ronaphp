@@ -374,7 +374,7 @@ class Module {
 	 * @param    string             $mode                    The exact procedure method to run.
 	 * @return   Response
 	 */
-	public function run_procedure(string $full_procedure_name, array $input = [], string $mode = 'run'): Response {
+	public function run_procedure(string $full_procedure_name, array $input = [], string $mode = 'run') {
 		$full_procedure_name = explode('.', $full_procedure_name);
 		$group_name = $full_procedure_name[0];
 		$procedure_name = $full_procedure_name[1];
@@ -478,12 +478,12 @@ class Module {
 
 	/**
 	 * Include a template file within the module class and set the scope object. This allows template/view files to have direct access to the module use "$this".
-	 * 
-	 * @param    string   $file  The file path to include.
+	 *
+	 * @param    Rona\Scope   $scope   The scope object.
+	 * @param    string       $file    The file path to include.
 	 * @return   void
 	 */
-	public function include_template_file(string $file) {
-		$scope = $this->get_app()->scope;
+	public function include_template_file(Scope $scope, string $file) {
 		include $file;
 	}
 }

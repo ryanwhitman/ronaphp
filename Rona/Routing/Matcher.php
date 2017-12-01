@@ -22,9 +22,6 @@ class Matcher {
 		// Strip the base path from the path (needs to be implemented).
 		$path = str_replace('', '', urldecode($path));
 
-		// Convert the path lowercase.
-		$path = strtolower($path);
-
 		// When the path is just a slash, strip it.
 		if ($path == '/')
 			$path = '';
