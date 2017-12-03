@@ -103,8 +103,8 @@ abstract class Helper {
 		return preg_match('/^[a-z][a-z`\',\.\- ]*$/i', $x);
 	}
 
-	public static function is_numeric($x) {
-		return is_string($x) && preg_match('/^[0-9]+$/', $x);
+	public static function contains_only_digits($x) {
+		return is_int($x) ||  (is_string($x) && preg_match('/^[0-9]+$/', $x));
 	}
 
 	public static function is_alphanumeric($x, $case = 'ci') {
@@ -156,7 +156,7 @@ abstract class Helper {
 	public static function get_currency($x) {
 		$currency = preg_replace('/^[\$]/', '', $x);
 		$currency = str_replace(',', '', $currency);
-		if (is_numeric($currency)) {
+		if (contains_only_digits($currency)) {
 			$currency = round($currency, 2);
 			if ($currency >= -999999999 && $currency <= 999999999)
 				return $currency;
