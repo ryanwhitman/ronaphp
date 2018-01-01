@@ -284,6 +284,11 @@ class Rona {
 				}
 			}
 		}
+
+		// Finalize
+		$finalize = $route->get_finalize();
+		if ($finalize)
+			$finalize();
 	}
 
 	public function output_route(HTTP_Response\Response $http_response) {

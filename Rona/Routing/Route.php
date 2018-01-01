@@ -32,6 +32,8 @@ class Route {
 
 	protected $procedure;
 
+	protected $finalize;
+
 	public $data = [];
 
 	public function set_active_module(Module $active_module) {
@@ -48,7 +50,7 @@ class Route {
 		} else if (is_string($controller) && method_exists($this->active_module, $controller)) {
 			$c['module'] = $this->active_module;
 			$c['callback'] = [$this->active_module, $controller];
-		} else if (is_array($controller) && count($controller == 2)) {
+		} else if (is_array($controller) && count($controller) == 2) {
 			if (isset($controller['module']) && $controller['module'] instanceof Module && isset($controller['callback']) && is_callable($controller['callback'])) {
 				$c['module'] = $controller['module'];
 				$c['callback'] = $controller['callback'];
@@ -185,5 +187,14 @@ class Route {
 
 	public function get_procedure() {
 		return $this->procedure;
+	}
+
+	public function finalize(\Closure $callback = NULL): self {
+		$this->finalize = $callback;
+		return $this;
+	}
+
+	public function get_finalize() {
+		return $this->finalize;
 	}
 }
