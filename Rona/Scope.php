@@ -12,14 +12,21 @@ namespace Rona;
 
 class Scope {
 
-	protected $rona_form_data = [];
+	/**
+	 * The HTTP Request object.
+	 * 
+	 * @var \Rona\HTTP_Request
+	 */
+	public $http_request;
 
-	public function get_form_data(string $item = NULL) {
+	public function __construct(HTTP_Request $http_request) {
 
-		return is_null($item) ? $this->rona_form_data : (isset($this->rona_form_data[$item]) ? $this->rona_form_data[$item] : NULL);
+		// Set the HTTP Request object.
+		$this->http_request = $http_request;
 	}
 
-	public function set_form_data(array $data) {
-		$this->rona_form_data = array_replace_recursive($this->rona_form_data, $data);
+	public function get_request_input(string $item = NULL) {
+
+		return is_null($item) ? $this->http_request->get_input() : (isset($this->http_request->get_input()[$item]) ? $this->http_request->get_input()[$item] : NULL);
 	}
 }

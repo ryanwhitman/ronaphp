@@ -298,9 +298,9 @@ class Rona {
 	public function run() {
 
 		// Create the HTTP Request, Route, Scope, and HTTP Response objects.
-		$scope = new Scope;
-		$http_request = new HTTP_Request($this, $scope);
-		$route = new Routing\Route();
+		$http_request = new HTTP_Request($this);
+		$route = new Routing\Route;
+		$scope = new Scope($http_request);
 		$http_response = new HTTP_Response\Response($this, $scope);
 
 		$this->find_route($http_request, $route, $http_response);
