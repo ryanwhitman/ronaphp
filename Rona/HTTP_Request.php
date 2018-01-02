@@ -40,6 +40,8 @@ class HTTP_Request {
 
 	public $input = [];
 
+	protected $original_input;
+
 	public function __construct(\Rona\Rona $app) {
 
 		// If the getallheaders function doesn't exist natively, create it.
@@ -100,7 +102,7 @@ class HTTP_Request {
 			parse_str(file_get_contents('php://input'), $this->body);
 
 		// Get input.
-		$this->input = $this->get_method() == 'GET' ? $this->get_query_string_arr() : array_merge($this->get_body(), $this->get_uploaded_files());
+		$this->original_input = $this->input = $this->get_method() == 'GET' ? $this->get_query_string_arr() : array_merge($this->get_body(), $this->get_uploaded_files());
 	}
 
 	public function set_path_vars(array $path_vars) {
@@ -158,6 +160,10 @@ class HTTP_Request {
 
 	public function get_body() {
 		return $this->body;
+	}
+
+	public function get_original_input() {
+		return $this->original_input;
 	}
 
 	public function get_input() {
