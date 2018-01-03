@@ -38,9 +38,11 @@ class HTTP_Request {
 
 	protected $uploaded_files = [];
 
+	protected $original_input = [];
+
 	public $input = [];
 
-	protected $original_input;
+	protected $processed_input = [];
 
 	public function __construct(\Rona\Rona $app) {
 
@@ -162,11 +164,19 @@ class HTTP_Request {
 		return $this->body;
 	}
 
-	public function get_original_input() {
+	public function get_original_input(): array {
 		return $this->original_input;
 	}
 
-	public function get_input() {
+	public function get_input(): array {
 		return $this->input;
+	}
+
+	public function set_processed_input(array $processed_input) {
+		$this->processed_input = $processed_input;
+	}
+
+	public function get_processed_input(): array {
+		return $this->processed_input;
 	}
 }

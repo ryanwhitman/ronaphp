@@ -220,7 +220,6 @@ class Rona {
 		if ($passed_authentication) {
 
 			// Process input
-			$processed_input = [];
 			$passed_input_validation = true;
 			$procedure = $route->get_procedure();
 			if ($procedure) {
@@ -243,21 +242,21 @@ class Rona {
 										$msgs[] = $failed_input_handler[$param][$data['tag']];
 								}
 							}
-						}						
+						}
 					}
 					if (!empty($msgs))
 						$http_response->api()->set_messages($msgs);
 					if (is_null($http_response->get_code()))
 						$http_response->set_code(400);
 				} else
-					$processed_input = $process_input_res->data;
+					$http_request->set_processed_input($process_input_res->data);
 			}
 			if ($passed_input_validation) {
 
 				// Authorization
 				$passed_authorization = true;
 				$authorization = $route->get_authorization();
-				if ($authorization && $authorization($processed_input) === false) {
+				if ($authorization && $authorization() === false) {
 					$passed_authorization = false;
 					if (is_null($http_response->get_code()))
 						$http_response->set_code(403);
@@ -266,7 +265,7 @@ class Rona {
 
 					// Procedure execution
 					if ($procedure) {
-						$procedure_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $processed_input, 'execute');
+						$procedure_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $http_request->get_processed_input(), 'execute');
 						$procedure_handler = Helper::maybe_closure($procedure['procedure_handler'], $procedure_res);
 						$msg = '';
 						if (is_string($procedure_handler))
