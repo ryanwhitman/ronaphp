@@ -209,7 +209,10 @@ class Rona {
 				$http_response = $res;
 		}
 
-		// Authentication
+		# The route has now been built by the controllers/route callbacks. Now execute the route.
+
+		# Authentication
+		
 		$passed_authentication = true;
 		$authentication = $route->get_authentication();
 		if ($authentication && $authentication() === false) {
@@ -219,28 +222,40 @@ class Rona {
 		}
 		if ($passed_authentication) {
 
-			// Process input
+			# Input
+			
+			// By default, the input validation has passed.
 			$passed_input_validation = true;
-			$procedure = $route->get_procedure();
+
+			// Grab the allowed input.
+			$route_input = Helper::maybe_closure($route->get_input());
+
+			// Modify the requested input to only contain the allowable input.
+			$request_input = $http_request->get_input();
+			$http_request->input = [];
+			if (is_array($route_input)) {
+				foreach ($route_input as $param => $v) {
+					if (isset($request_input[$param]))
+						$http_request->input[$param] = $request_input[$param];
+				}
+			}
+
+			// If a procedure has been defined, process the input.
+			$procedure = Helper::maybe_closure($route->get_procedure());
 			if ($procedure) {
 				$process_input_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $http_request->get_input(), 'process_input');
 				if (!$process_input_res->success) {
 					$passed_input_validation = false;
-					$failed_input_handler = Helper::maybe_closure($procedure['failed_input_handler'], $process_input_res->data);
 					$msgs = [];
-					if (is_string($failed_input_handler))
-						$msgs[] = $failed_input_handler;
-					else if (is_array($failed_input_handler)) {
+					if (is_array($route_input)) {
 						foreach ($process_input_res->data as $param => $data) {
-							if (isset($failed_input_handler[$param])) {
-								$failed_input_handler[$param] = Helper::maybe_closure($failed_input_handler[$param], $data);
-								if (is_string($failed_input_handler[$param]))
-									$msgs[] = $failed_input_handler[$param];
-								else if (is_array($failed_input_handler[$param]) && isset($failed_input_handler[$param][$data['tag']])) {
-									$failed_input_handler[$param][$data['tag']] = Helper::maybe_closure($failed_input_handler[$param][$data['tag']], $data);
-									if (is_string($failed_input_handler[$param][$data['tag']]))
-										$msgs[] = $failed_input_handler[$param][$data['tag']];
-								}
+							$route_input[$param] = Helper::maybe_closure($route_input[$param], $data);
+							if (is_string($route_input[$param]))
+								$msgs[] = $route_input[$param];
+							else if (is_array($route_input[$param]) && isset($route_input[$param][$data['tag']])) {
+								$route_input[$param][$data['tag']] = Helper::maybe_closure($route_input[$param][$data['tag']], $data);
+								if (is_string($route_input[$param][$data['tag']]))
+									$msgs[] = $route_input[$param][$data['tag']];
 							}
 						}
 					}
@@ -253,7 +268,8 @@ class Rona {
 			}
 			if ($passed_input_validation) {
 
-				// Authorization
+				# Authorization
+				
 				$passed_authorization = true;
 				$authorization = $route->get_authorization();
 				if ($authorization && $authorization() === false) {
@@ -263,17 +279,18 @@ class Rona {
 				}
 				if ($passed_authorization) {
 
-					// Procedure execution
+					# Procedure
+					
 					if ($procedure) {
 						$procedure_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $http_request->get_processed_input(), 'execute');
-						$procedure_handler = Helper::maybe_closure($procedure['procedure_handler'], $procedure_res);
+						$procedure_callback = Helper::maybe_closure($route->get_procedure_callback(), $procedure_res);
 						$msg = '';
-						if (is_string($procedure_handler))
-							$msg = $procedure_handler;
-						else if (is_array($procedure_handler) && isset($procedure_handler[$procedure_res->tag])) {
-							$procedure_handler[$procedure_res->tag] = Helper::maybe_closure($procedure_handler[$procedure_res->tag], $procedure_res);
-							if (is_string($procedure_handler[$procedure_res->tag]))
-								$msg = $procedure_handler[$procedure_res->tag];
+						if (is_string($procedure_callback))
+							$msg = $procedure_callback;
+						else if (is_array($procedure_callback) && isset($procedure_callback[$procedure_res->tag])) {
+							$procedure_callback[$procedure_res->tag] = Helper::maybe_closure($procedure_callback[$procedure_res->tag], $procedure_res);
+							if (is_string($procedure_callback[$procedure_res->tag]))
+								$msg = $procedure_callback[$procedure_res->tag];
 						}
 						if ($msg)
 							$http_response->api()->set_messages($msg);
@@ -284,10 +301,11 @@ class Rona {
 			}
 		}
 
-		// Finalize
-		$finalize = $route->get_finalize();
-		if ($finalize)
-			$finalize();
+		# Finalization
+		
+		$finalization = $route->get_finalization();
+		if ($finalization)
+			$finalization();
 	}
 
 	public function output_route(HTTP_Response\Response $http_response) {

@@ -28,11 +28,15 @@ class Route {
 
 	protected $authentication;
 	
+	protected $input;
+	
 	protected $authorization;
 
 	protected $procedure;
 
-	protected $finalize;
+	protected $procedure_callback;
+
+	protected $finalization;
 
 	public $data = [];
 
@@ -131,7 +135,7 @@ class Route {
 		return array_merge($this->controllers['first'], $this->controllers['middle'], $this->controllers['last']);
 	}
 
-	public function authentication(\Closure $callback = NULL): self {
+	public function set_authentication(\Closure $callback = NULL): self {
 		$this->authentication = $callback;
 		return $this;
 	}
@@ -140,7 +144,16 @@ class Route {
 		return $this->authentication;
 	}
 
-	public function authorization(\Closure $callback = NULL): self {
+	public function set_input($input = NULL): self {
+		$this->input = $input;
+		return $this;
+	}
+
+	public function get_input() {
+		return $this->input;
+	}
+
+	public function set_authorization(\Closure $callback = NULL): self {
 		$this->authorization = $callback;
 		return $this;
 	}
@@ -149,7 +162,7 @@ class Route {
 		return $this->authorization;
 	}
 
-	public function procedure($procedure, $failed_input_handler = NULL, $procedure_handler = NULL): self {
+	public function set_procedure($procedure): self {
 
 		$p = [];
 
@@ -178,9 +191,6 @@ class Route {
 		if (empty($p))
 			throw new \Exception('The procedure ' . json_encode($procedure) . ' identified in the module "' . $this->active_module->get_id() . '" is not valid.');
 
-		$p['failed_input_handler'] = $failed_input_handler;
-		$p['procedure_handler'] = $procedure_handler;
-
 		$this->procedure = $p;
 		return $this;
 	}
@@ -189,12 +199,21 @@ class Route {
 		return $this->procedure;
 	}
 
-	public function finalize(\Closure $callback = NULL): self {
-		$this->finalize = $callback;
+	public function set_procedure_callback($procedure_callback = NULL): self {
+		$this->procedure_callback = $procedure_callback;
 		return $this;
 	}
 
-	public function get_finalize() {
-		return $this->finalize;
+	public function get_procedure_callback() {
+		return $this->procedure_callback;
+	}
+
+	public function set_finalization(\Closure $callback = NULL): self {
+		$this->finalization = $callback;
+		return $this;
+	}
+
+	public function get_finalization() {
+		return $this->finalization;
 	}
 }
