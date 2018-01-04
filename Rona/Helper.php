@@ -73,12 +73,12 @@ abstract class Helper {
 		}
 	}
 
-	public static function is_emptyString($str) {
+	public static function is_empty_string($str): bool {
 		return is_string($str) && trim($str) === '';
 	}
 
-	public static function is_nullOrEmptyString($q) {
-		return is_null($q) || static::is_emptyString($q);
+	public static function is_null_or_empty_string($q): bool {
+		return is_null($q) || static::is_empty_string($q);
 	}
 
 	public static function indefinite_article($word, $output_word = true) {
@@ -99,15 +99,15 @@ abstract class Helper {
 		return $str;
 	}
 
-	public static function is_persons_name($x) {
+	public static function is_persons_name($x): bool {
 		return preg_match('/^[a-z][a-z`\',\.\- ]*$/i', $x);
 	}
 
-	public static function contains_only_digits($x) {
-		return is_int($x) ||  (is_string($x) && preg_match('/^[0-9]+$/', $x));
+	public static function contains_only_digits($x): bool {
+		return is_int($x) || (is_string($x) && preg_match('/^[0-9]+$/', $x));
 	}
 
-	public static function is_alphanumeric($x, $case = 'ci') {
+	public static function is_alphanumeric($x, $case = 'ci'): bool {
 
 		if ($case == 'ci')
 			return preg_match('/^[a-z0-9]+$/i', $x);
@@ -132,7 +132,7 @@ abstract class Helper {
 		return true;
 	}
 
-	public static function has_length_range($str, $min, $max = '-1') {
+	public static function has_length_range($str, $min, $max = '-1'): bool {
 		return strlen($str) >= $min && (strlen($str) <= $max || $max == '-1');
 	}
 

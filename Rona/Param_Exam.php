@@ -56,7 +56,7 @@ class Param_Exam {
 			$val = Helper::array_get($raw_data, $param);
 
 			// Find the default value, if applicable
-			if (Helper::is_nullOrEmptyString($val) && !Helper::is_nullOrEmptyString(Helper::array_get($props, 'options.default')))
+			if (Helper::is_null_or_empty_string($val) && !Helper::is_null_or_empty_string(Helper::array_get($props, 'options.default')))
 				$val = $props['options']['default'];
 
 			// If dependencies were defined, then run filters only if those conditions are met
@@ -82,7 +82,7 @@ class Param_Exam {
 				continue;
 
 			// If the param is required and the value is either null or an empty string, record the fail data and move to the next param.
-			if ($props['is_reqd'] && Helper::is_nullOrEmptyString($val)) {
+			if ($props['is_reqd'] && Helper::is_null_or_empty_string($val)) {
 				$fail_data[$param] = [
 					'val'			=> $val,
 					'tag'			=> 'non_existent',
@@ -98,7 +98,7 @@ class Param_Exam {
 				continue;
 
 			// If the param is just an empty string and the "allow empty string" option was set, just trim it and leave it be
-			if (Helper::is_emptyString($val) && Helper::array_get($props, 'options.allow_empty_string'))
+			if (Helper::is_empty_string($val) && Helper::array_get($props, 'options.allow_empty_string'))
 				$val = trim($val);
 
 			// The param has a value of some sort and empty strings are disallowed, so run it through the filters
@@ -217,7 +217,7 @@ class Param_Exam {
 
 			// Save the value into the $processed_data array
 			$to_param = Helper::array_get($props['options'], 'to_param');
-			$param = !Helper::is_nullOrEmptyString($to_param) ? $to_param : $param;
+			$param = !Helper::is_null_or_empty_string($to_param) ? $to_param : $param;
 
 			$path = Helper::array_get($props['options'], 'to_array') . '.' . $param;
 			$path = trim($path, '. ');
