@@ -119,11 +119,11 @@ abstract class Helper {
 		return false;
 	}
 
-	public static function is_email($email) {
-		return filter_var($email, FILTER_VALIDATE_EMAIL);
+	public static function is_email($email): bool {
+		return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 	}
 
-	public static function are_emails($emails) {
+	public static function are_emails($emails): bool {
 		$emails = (array) $emails;
 		foreach ($emails as $email)
 			if (!static::is_email($email))
