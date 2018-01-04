@@ -249,13 +249,15 @@ class Rona {
 					$msgs = [];
 					if (is_array($route_input)) {
 						foreach ($process_input_res->data as $param => $data) {
-							$route_input[$param] = Helper::maybe_closure($route_input[$param], $data);
-							if (is_string($route_input[$param]))
-								$msgs[] = $route_input[$param];
-							else if (is_array($route_input[$param]) && isset($route_input[$param][$data['tag']])) {
-								$route_input[$param][$data['tag']] = Helper::maybe_closure($route_input[$param][$data['tag']], $data);
-								if (is_string($route_input[$param][$data['tag']]))
-									$msgs[] = $route_input[$param][$data['tag']];
+							if (isset($route_input[$param])) {
+								$route_input[$param] = Helper::maybe_closure($route_input[$param], $data);
+								if (is_string($route_input[$param]))
+									$msgs[] = $route_input[$param];
+								else if (is_array($route_input[$param]) && isset($route_input[$param][$data['tag']])) {
+									$route_input[$param][$data['tag']] = Helper::maybe_closure($route_input[$param][$data['tag']], $data);
+									if (is_string($route_input[$param][$data['tag']]))
+										$msgs[] = $route_input[$param][$data['tag']];
+								}
 							}
 						}
 					}
