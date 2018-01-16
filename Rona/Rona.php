@@ -190,23 +190,27 @@ class Rona {
 
 		// Run the controllers.
 		while (1) {
+			
+			// Get the current route controllers. If no more exist, break the infinite loop.
 			$controllers = $route->get_controllers();
 			if (empty($controllers))
 				break;
+
+			// Establish the current controller.
 			$the_controller = $controllers[0];
+
+			// Remove the current controller from the route controllers so that it doesn't get executed again.
 			unset($controllers[0]);
 			$route->remove_controllers();
 			foreach ($controllers as $controller)
 				$route->append_controller($controller);
 
+			// Set the active module.
 			$route->set_active_module($the_controller['module']);
 			$http_response->set_active_module($the_controller['module']);
 
-			$res = call_user_func($the_controller['callback'], $http_request, $route, $scope, $http_response);
-			if ($res === false)
-				break;
-			else if (is_a($res, '\Rona\HTTP_Response\Response'))
-				$http_response = $res;
+			// Execute the current route controller.
+			call_user_func($the_controller['callback'], $http_request, $route, $scope, $http_response);
 		}
 
 		# The route has now been built by the controllers/route callbacks. Now execute the route.
