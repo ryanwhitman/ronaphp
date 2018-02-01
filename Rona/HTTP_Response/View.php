@@ -12,14 +12,14 @@ namespace Rona\HTTP_Response;
 
 class View {
 
-	protected $active_module;
+	protected $current_controller_module;
 
 	public $template = false;
 
 	public $components = [];
 
-	public function set_active_module(\Rona\Module $active_module) {
-		$this->active_module = $active_module;
+	public function set_current_controller_module(\Rona\Module $current_controller_module) {
+		$this->current_controller_module = $current_controller_module;
 	}
 
 	public function template($template): self {
@@ -30,7 +30,7 @@ class View {
 
 		// Otherwise, set the template.
 		else
-			$this->template = ['module' => $this->active_module, 'template' => $template];
+			$this->template = ['module' => $this->current_controller_module, 'template' => $template];
 
 		// Response
 		return $this;
@@ -39,7 +39,7 @@ class View {
 	protected function component(string $placement, string $placeholder, $items, string $type): self {
 
 		$arr = [
-			'module'		=> $this->active_module,
+			'module'		=> $this->current_controller_module,
 			'type'			=> $type,
 			'items'			=> (array) $items
 		];

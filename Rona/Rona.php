@@ -159,29 +159,30 @@ class Rona {
 		if ($non_abstract || $no_route) {
 			$route->route_found = true;
 			if ($non_abstract) {
-				$route_to_use = $non_abstract;
-				$route_module_to_use = $non_abstract_module;
+				$the_route = $non_abstract;
+				$route_module = $non_abstract_module;
 			} else {
 				$route->is_no_route = true;
 				$http_response->set_code(404);
 				$route_queues = [];
-				$route_to_use = $no_route;
-				$route_module_to_use = $no_route_module;
+				$the_route = $no_route;
+				$route_module = $no_route_module;
 			}
 		} else
 			return false;			
 
-		$http_request->set_path_vars($route_to_use['path_vars']);
+		$http_request->set_path_vars($the_route['path_vars']);
 		
 		// Add the non-abstract route to the end of the route queues array.
-		$route_queues[] = ['module' => $route_module_to_use, 'route_queue' => $route_to_use['route_queue']];
+		$route_queues[] = ['module' => $route_module, 'route_queue' => $the_route['route_queue']];
 
-		// Set the route module in the HTTP response object.
-		$http_response->set_route_module($route_module_to_use);
+		// Set the route module.
+		$route->set_module($route_module);
+		$http_response->set_route_module($route_module);
 
 		// Loop thru each route queue and execute.
 		foreach ($route_queues as $route_queue) {
-			$route->set_active_module($route_queue['module']);
+			$route->set_current_controller_module($route_queue['module']);
 			$route_queue['route_queue']->process($route);
 		}
 	}
@@ -205,9 +206,9 @@ class Rona {
 			foreach ($controllers as $controller)
 				$route->append_controller($controller);
 
-			// Set the active module.
-			$route->set_active_module($the_controller['module']);
-			$http_response->set_active_module($the_controller['module']);
+			// Set the controller module.
+			$route->set_current_controller_module($the_controller['module']);
+			$http_response->set_current_controller_module($the_controller['module']);
 
 			// Execute the current route controller.
 			call_user_func($the_controller['callback'], $http_request, $route, $scope, $http_response);

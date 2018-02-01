@@ -18,9 +18,9 @@ class Response {
 
 	protected $scope;
 
-	public $route_module;
+	protected $route_module;
 
-	protected $active_module;
+	protected $current_controller_module;
 
 	protected $is_json = false;
 
@@ -41,8 +41,8 @@ class Response {
 		$this->route_module = $route_module;
 	}
 
-	public function set_active_module(\Rona\Module $active_module) {
-		$this->active_module = $active_module;
+	public function set_current_controller_module(\Rona\Module $current_controller_module) {
+		$this->current_controller_module = $current_controller_module;
 	}
 
 	public function set_code(int $code) {
@@ -74,7 +74,7 @@ class Response {
 	public function view(): View {
 		if (is_null($this->view))
 			$this->view = new View;
-		$this->view->set_active_module($this->active_module);
+		$this->view->set_current_controller_module($this->current_controller_module);
 		return $this->view;
 	}
 
