@@ -105,6 +105,39 @@ class Rona {
 	}
 
 	/**
+	 * A shortcut for calling a specific module's config method.
+	 *
+	 * @see \Rona\Module::config()
+	 * 
+	 * @param   string   $module_id   The module ID.
+	 */
+	public function module_config(string $module_id, ...$args) {
+		return call_user_func_array([$this->get_module($module_id), 'config'], $args);
+	}
+
+	/**
+	 * A shortcut for calling a specific module's get_resource method.
+	 *
+	 * @see \Rona\Module::get_resource()
+	 * 
+	 * @param   string   $module_id   The module ID.
+	 */
+	public function get_module_resource(string $module_id, ...$args) {
+		return call_user_func_array([$this->get_module($module_id), 'get_resource'], $args);
+	}
+
+	/**
+	 * A shortcut for calling a specific module's run_procedure method.
+	 *
+	 * @see \Rona\Module::run_procedure()
+	 * 
+	 * @param   string   $module_id   The module ID.
+	 */
+	public function run_module_procedure(string $module_id, ...$args) {
+		return call_user_func_array([$this->get_module($module_id), 'run_procedure'], $args);
+	}
+
+	/**
 	 * Run a hook on all modules.
 	 * 
 	 * @param    string    $name    The name of the hook.
