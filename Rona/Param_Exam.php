@@ -1,7 +1,7 @@
 <?php
 /**
  * @package RonaPHP
- * @copyright Copyright (c) 2017 Ryan Whitman (https://ryanwhitman.com)
+ * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT   MIT
  * @version 1.0.0 - beta
  * @link https://github.com/RyanWhitman/ronaphp/tree/v1
@@ -12,83 +12,191 @@ namespace Rona;
 
 class Param_Exam {
 
+	/**
+	 * The module this instance is running under.
+	 * 
+	 * @var \Rona\Module
+	 */
 	protected $module;
 
-	protected $params = [];
+	/**
+	 * The exams.
+	 * 
+	 * @var array
+	 */
+	protected $exams = [];
 
+	/**
+	 * The constructor.
+	 * 
+	 * @param   \Rona\Module   $module   The module this instance of Param_Exam is being run under.
+	 */
 	public function __construct(\Rona\Module $module) {
 
 		// Set the module.
 		$this->module = $module;
 	}
-	
-	public function param(string $param, bool $is_reqd, array $filters = [], array $options = []) {
 
-		// Store the param and its properties.
-		$this->params[$param] = [
+	/**
+	 * Add a parameter to the exams array.
+	 * 
+	 * @param    bool                  $is_prepend    Prepend / append param to the exams array.
+	 * @param    \Closure|string       $param         The param name.
+	 * @param    \Closure|bool         $is_reqd       Is this param required?
+	 * @param    \Closure|array        $filters       The filters to apply.
+	 * @param    \Closure|array        $options       Options for this param.
+	 */
+	protected function param_add(bool $is_prepend, $param, $is_reqd, $filters = [], $options = []) {
+
+		// Form the param array.
+		$arr = [
+			'param'			=> $param,
 			'is_reqd'		=> $is_reqd,
 			'filters'		=> $filters,
 			'options'		=> $options
 		];
-	}
-	
-	public function reqd_param(string $param, array $filters = [], array $options = []) {
 
-		// Run the param method.
-		return $this->param($param, true, $filters, $options);
-	}
-	
-	public function opt_param(string $param, array $filters = [], array $options = []) {
-
-		// Run the param method.
-		return $this->param($param, false, $filters, $options);
+		// Add this param to the exams array.
+		if ($is_prepend)
+			array_unshift($this->exams, $arr);
+		else
+			$this->exams[] = $arr;
 	}
 
+	/**
+	 * Prepend a param.
+	 *
+	 * @see param_add()
+	 */
+	public function param_prepend($param, $is_reqd, $filters = [], $options = []) {
+		return $this->param_add(true, $param, $is_reqd, $filters, $options);
+	}
+
+	/**
+	 * Append a param.
+	 *
+	 * @see param_add()
+	 */
+	public function param_append($param, $is_reqd, $filters = [], $options = []) {
+		return $this->param_add(false, $param, $is_reqd, $filters, $options);
+	}
+
+	/**
+	 * Append a required param.
+	 *
+	 * @see param_append()
+	 */
+	public function reqd_param($param, $filters = [], $options = []) {
+		return $this->param_append($param, true, $filters, $options);
+	}
+
+	/**
+	 * Append an optional param.
+	 *
+	 * @see param_append()
+	 */
+	public function opt_param($param, $filters = [], $options = []) {
+		return $this->param_append($param, false, $filters, $options);
+	}
+
+	/**
+	 * Append a callback function to the exams array.
+	 * 
+	 * @param  \Closure    $callback
+	 */
+	public function callback(\Closure $callback) {
+		$this->exams[] = $callback;
+	}
+
+	/**
+	 * Examine data.
+	 * 
+	 * @param  array  $raw_data  The data to examine.
+	 */
 	public function examine(array $raw_data = []): Param_Exam_Response {
 
-		// Establish arrays
-		$processed_data = $fail_data = [];
+		// Create an array to hold the successful data.
+		$successful_data = [];
 
-		// Run through each param
-		foreach ($this->params as $param => $props) {
+		// Create an array to hold the failed data.
+		$failed_data = [];
 
-			// Establish the initial value
-			$val = Helper::array_get($raw_data, $param);
+		// Run thru the exams. Using an infinite loop allows exams to be dynamically added with the callback methods.
+		while (1) {
+
+			// If no more exams exist, break the infinite loop.
+			if (empty($this->exams))
+				break;
+
+			// Establish the current exam.
+			$exam = $this->exams[0];
+
+			// Remove the current exam from the exams array so that it doesn't get processed again.
+			unset($this->exams[0]);
+
+			// Re-index the exams array so that the index starts at 0.
+			$this->exams = array_values($this->exams);
+
+			// The exam may just be a closure.
+			if ($exam instanceof \Closure) {
+				$exam(empty($failed_data), $raw_data, $successful_data, $failed_data);
+				continue;
+			}
+
+			// The exam arguments can be passed in as a closure.
+			foreach ($exam as $arg => $val)
+				$exam[$arg] = Helper::maybe_closure($val, empty($failed_data), $raw_data, $successful_data, $failed_data);
+
+			// Ensure the exam arguments are of the correct type. Some args can be defaulted.
+			if (!is_string($exam['param']))
+				throw new \Exception('The param argument defined in Param_Exam must be a string.');
+			if (!is_bool($exam['is_reqd']))
+				throw new \Exception('The is_reqd argument defined in Param_Exam must be a boolean.');
+			if (is_null($exam['filters']))
+				$exam['filters'] = [];
+			if (!is_array($exam['filters']))
+				throw new \Exception('The filters argument defined in Param_Exam must be an array.');
+			if (is_null($exam['options']))
+				$exam['options'] = [];
+			if (!is_array($exam['options']))
+				throw new \Exception('The options argument defined in Param_Exam must be an array.');
+
+			// Establish the initial value.
+			$val = Helper::array_get($raw_data, $exam['param']);
 
 			// Find the default value, if applicable
-			if (Helper::is_null_or_empty_string($val) && !Helper::is_null_or_empty_string(Helper::array_get($props, 'options.default')))
-				$val = $props['options']['default'];
+			if (Helper::is_null_or_empty_string($val) && !Helper::is_null_or_empty_string(Helper::array_get($exam, 'options.default')))
+				$val = $exam['options']['default'];
 
 			// If dependencies were defined, then run filters only if those conditions are met
-			foreach ($props['options']['dependencies'] ?? [] as $dependent_param => $dependent_val) {
-
-				if (!Helper::array_get($processed_data, $dependent_param) === $dependent_val)
+			foreach ($exam['options']['dependencies'] ?? [] as $dependent_param => $dependent_val) {
+				if (!Helper::array_get($successful_data, $dependent_param) === $dependent_val)
 					continue 2;
 			}
 
 			// If dependent_param was declared, then proceed only if that param exists and is not null
-			$dependent_param = Helper::array_get($props, 'options.dependent_param');
-			if (isset($dependent_param) && !isset($processed_data[$dependent_param]))
+			$dependent_param = Helper::array_get($exam, 'options.dependent_param');
+			if (isset($dependent_param) && !isset($successful_data[$dependent_param]))
 				continue;
 
 			// If dependent_true was declared, then proceed only if that param exists, is not null, and evaluates to true
-			$dependent_true = Helper::array_get($props, 'options.dependent_true');
-			if (isset($dependent_true) && (!isset($processed_data[$dependent_true]) || !$processed_data[$dependent_true]))
+			$dependent_true = Helper::array_get($exam, 'options.dependent_true');
+			if (isset($dependent_true) && (!isset($successful_data[$dependent_true]) || !$successful_data[$dependent_true]))
 				continue;
 
 			// If dependent_false was declared, then proceed only if that param exists, is not null, and evaluates to false
-			$dependent_false = Helper::array_get($props, 'options.dependent_false');
-			if (isset($dependent_false) && (!isset($processed_data[$dependent_false]) || $processed_data[$dependent_false]))
+			$dependent_false = Helper::array_get($exam, 'options.dependent_false');
+			if (isset($dependent_false) && (!isset($successful_data[$dependent_false]) || $successful_data[$dependent_false]))
 				continue;
 
 			// If the param is required and the value is either null or an empty string, record the fail data and move to the next param.
-			if ($props['is_reqd'] && Helper::is_null_or_empty_string($val)) {
-				$fail_data[$param] = [
+			if ($exam['is_reqd'] && Helper::is_null_or_empty_string($val)) {
+				$failed_data[$exam['param']] = [
 					'val'			=> $val,
 					'tag'			=> 'non_existent',
-					'is_reqd'		=> $props['is_reqd'],
-					'filters'		=> $props['filters'],
-					'options'		=> $props['options']
+					'is_reqd'		=> $exam['is_reqd'],
+					'filters'		=> $exam['filters'],
+					'options'		=> $exam['options']
 				];
 				continue;
 			}
@@ -98,7 +206,7 @@ class Param_Exam {
 				continue;
 
 			// If the param is just an empty string and the "allow empty string" option was set, just trim it and leave it be
-			if (Helper::is_empty_string($val) && Helper::array_get($props, 'options.allow_empty_string'))
+			if (Helper::is_empty_string($val) && Helper::array_get($exam, 'options.allow_empty_string'))
 				$val = trim($val);
 
 			// The param has a value of some sort and empty strings are disallowed, so run it through the filters
@@ -112,7 +220,7 @@ class Param_Exam {
 				- [filter_group1.filter_name1, [[module1, filter_group2.filter_name2], [option1 => option1_setting]]]
 				 */
 
-				foreach ($props['filters'] as $filter) {
+				foreach ($exam['filters'] as $filter) {
 
 					// Create an empty array to hold the filter that is found.
 					$f = [];
@@ -201,12 +309,12 @@ class Param_Exam {
 
 					// Since this value created a failure in the filter, record the fail data and skip any additional filters for this param.
 					else {
-						$fail_data[$param] = [
+						$failed_data[$exam['param']] = [
 							'val'				=> $val,
 							'tag'				=> $res->tag,
-							'is_reqd'			=> $props['is_reqd'],
-							'filters'			=> $props['filters'],
-							'options'			=> $props['options'],
+							'is_reqd'			=> $exam['is_reqd'],
+							'filters'			=> $exam['filters'],
+							'options'			=> $exam['options'],
 							'filter_options'	=> $filter_options,
 							'filter_res_data'	=> $res->data
 						];
@@ -215,21 +323,22 @@ class Param_Exam {
 				}
 			}
 
-			// Save the value into the $processed_data array
-			$to_param = Helper::array_get($props['options'], 'to_param');
-			$param = !Helper::is_null_or_empty_string($to_param) ? $to_param : $param;
-
-			$path = Helper::array_get($props['options'], 'to_array') . '.' . $param;
-			$path = trim($path, '. ');
-
-			Helper::array_set($processed_data, $path, $val);
+			// Save the value into the successful_data array
+			Helper::array_set(
+				$successful_data,
+				trim(
+					($exam['options']['to_array'] ?? '') . '.' . (!Helper::is_null_or_empty_string($exam['options']['to_param'] ?? '') ? $exam['options']['to_param'] : $exam['param']),
+					'. '
+				),
+				$val
+			);
 		}
 		
 		// If there are fail data, return them.
-		if (!empty($fail_data))
-			return new Param_Exam_Response(false, $fail_data);
+		if (!empty($failed_data))
+			return new Param_Exam_Response(false, $failed_data);
 
-		// Otherwise, return processed input
-		return new Param_Exam_Response(true, $processed_data);
+		// Otherwise, return successful data.
+		return new Param_Exam_Response(true, $successful_data);
 	}
 }
