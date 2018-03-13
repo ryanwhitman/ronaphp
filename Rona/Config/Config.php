@@ -92,7 +92,7 @@ class Config {
 	 * @return   bool
 	 */
 	public function isset(string $path): bool {
-		return $this->locate($path) != self::UNDEFINED;
+		return $this->locate($path) !== self::UNDEFINED;
 	}
 
 	/**
@@ -105,7 +105,7 @@ class Config {
 	 */
 	public function get(string $path) {
 		$res = $this->locate($path);
-		if ($res == self::UNDEFINED)
+		if ($res === self::UNDEFINED)
 			throw new \Exception("The configuration '$path' does not exist.");
 		return $res;
 	}

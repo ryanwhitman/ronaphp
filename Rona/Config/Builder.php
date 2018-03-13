@@ -24,9 +24,9 @@ class Builder {
 		$this->is_const = $is_const;
 	}
 
-	public function _(string $path, $val = Config::RONA_UNDEFINED): self {
+	public function _(string $path, $val = Config::UNDEFINED): self {
 
-		if ($val === Config::RONA_UNDEFINED)
+		if ($val === Config::UNDEFINED)
 			return new static($this->config_inst, $this->starting_path . '.' . $path, $this->is_const);
 
 		$this->config_inst->m($this->starting_path . '.' . $path, $val, $this->is_const);
