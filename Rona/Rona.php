@@ -52,18 +52,16 @@ class Rona {
 		$this->config()->set('template_placeholder_replace_text', '%PH%');
 		$this->config()->set('template_placeholder', '{% ' . $this->config('template_placeholder_replace_text') . ' %}');
 		$this->config()->set('view_assets')
-			->_('template', function(\Rona\Module $module, string $template) {
+			->_('template', function(\Rona\Module $module, string $template, array $data) {
 				return $template;
 			})
-			->_('stylesheet', function(\Rona\Module $module, string $item) {
-				return "<link href=\"$item\" rel=\"stylesheet\">
-				";
+			->_('stylesheet', function(\Rona\Module $module, string $item, array $data) {
+				return $item;
 			})
-			->_('javascript', function(\Rona\Module $module, string $item) {
-				return "<script src=\"$item\"></script>
-				";
+			->_('javascript', function(\Rona\Module $module, string $item, array $data) {
+				return $item;
 			})
-			->_('file', function(\Rona\Module $module, string $item) {
+			->_('file', function(\Rona\Module $module, string $item, array $data) {
 				return $item;
 			});
 	}

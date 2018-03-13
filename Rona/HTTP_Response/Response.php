@@ -103,7 +103,7 @@ class Response {
 
 				ob_start();
 					(function() {
-						$this->route_module->include_template_file($this->scope, $this->app->config('view_assets.template')($this->view->template['module'], Helper::maybe_closure($this->view->template['template'])));
+						$this->route_module->include_template_file($this->scope, $this->view->template['module']->config('view_assets.template', true)($this->view->template['module'], Helper::maybe_closure($this->view->template['template']), Helper::maybe_closure($this->view->template['data'])));
 					})();
 				$body = ob_get_clean();
 
@@ -122,18 +122,22 @@ class Response {
 
 									// Stylesheet
 									case 'stylesheet':
-										echo $this->app->config('view_assets.stylesheet')($components['module'], Helper::maybe_closure($item));
+										?>
+										<link href="<?php echo $components['module']->config('view_assets.stylesheet', true)($components['module'], Helper::maybe_closure($item), Helper::maybe_closure($components['data'])) ?>" rel="stylesheet">
+										<?php
 										break;
 
 									// Javascript
 									case 'javascript':
-										echo $this->app->config('view_assets.javascript')($components['module'], Helper::maybe_closure($item));
+										?>
+										<script src="<?php echo $components['module']->config('view_assets.javascript', true)($components['module'], Helper::maybe_closure($item), Helper::maybe_closure($components['data'])) ?>"></script>
+										<?php
 										break;
 
 									// File
 									case 'file':
 										(function() use ($components, $item) {
-											$this->route_module->include_template_file($this->scope, $this->app->config('view_assets.file')($components['module'], Helper::maybe_closure($item)));
+											$this->route_module->include_template_file($this->scope, $components['module']->config('view_assets.file', true)($components['module'], Helper::maybe_closure($item), Helper::maybe_closure($components['data'])));
 										})();
 										break;
 

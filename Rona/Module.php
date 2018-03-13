@@ -129,8 +129,12 @@ class Module {
 		return $this->app;
 	}
 
-	public function config(string $item = NULL) {
-		return is_null($item) ? $this->config : $this->config->get($item);
+	public function config(string $item = NULL, bool $traverse_up = false) {
+		if (is_null($item))
+			return $this->config;
+		if (!$traverse_up || $this->config->isset($item))
+			return $this->config->get($item);
+		return $this->app_config($item);
 	}
 
 	/**
