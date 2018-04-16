@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona\HTTP_Response;
@@ -20,7 +20,7 @@ class API {
 		$this->set_messages($messages);
 		$this->set_data($data);
 	}
-	
+
 	public function set_messages($messages = []): self {
 		$this->messages = (array) $messages;
 		return $this;

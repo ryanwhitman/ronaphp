@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona;
@@ -17,70 +17,70 @@ class Module {
 
 	/**
 	 * The module ID.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $id;
 
 	/**
 	 * The Rona instance this module belongs to.
-	 * 
+	 *
 	 * @var \Rona
 	 */
 	protected $app;
 
 	/**
 	 * A config instance.
-	 * 
+	 *
 	 * @var \Rona\Config\Config
 	 */
 	protected $config;
 
 	/**
 	 * An array that holds the resources.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $resources = [];
 
 	/**
 	 * An array that holds the param filter groups.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $param_filter_groups = [];
 
 	/**
 	 * An array that holds the instantiated param filter groups.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $param_filter_group_objects = [];
 
 	/**
 	 * An array that holds the procedure groups.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $procedure_groups = [];
 
 	/**
 	 * An array that holds the instantiated procedure groups.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $procedure_group_objects = [];
 
 	/**
 	 * An array to hold hooks.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $hooks = [];
 
 	/**
 	 * The class constructor.
-	 * 
+	 *
 	 * @param    string    $id     The module ID.
 	 * @param    \Rona     $app    A Rona instance.
 	 */
@@ -150,7 +150,7 @@ class Module {
 	 * A shortcut for calling a specific module's config method.
 	 *
 	 * @see \Rona\Module::config()
-	 * 
+	 *
 	 * @param   string   $module_id   The module ID.
 	 */
 	public function module_config(string $module_id, ...$args) {
@@ -181,14 +181,14 @@ class Module {
 
 	/**
 	 * A holding method to register resources.
-	 * 
+	 *
 	 * @return void
 	 */
 	protected function register_resources() {}
 
 	/**
 	 * Register a resource.
-	 * 
+	 *
 	 * @param     string             $name                      The name of the resource.
 	 * @param     string|callable    $class_name_or_callback    Either a string which represents a class name or a callable callback. If a string is provided, the class will be instantiated with the passed-in args (the module will be the first arg) at time of execution (when "get_resource" is run).
 	 * @return    void
@@ -214,7 +214,7 @@ class Module {
 
 	/**
 	 * Get a resource.
-	 * 
+	 *
 	 * @param     string      $name       The name of the resource.
 	 * @param     mixed       $args       Args that get passed to the resource callback.
 	 * @return    mixed                   The value returned from the resource callback.
@@ -234,7 +234,7 @@ class Module {
 	 * A shortcut for calling a specific module's get_resource method.
 	 *
 	 * @see \Rona\Module::get_resource()
-	 * 
+	 *
 	 * @param   string   $module_id   The module ID.
 	 */
 	public function get_module_resource(string $module_id, ...$args) {
@@ -243,7 +243,7 @@ class Module {
 
 	/**
 	 * Get the names of all resources.
-	 * 
+	 *
 	 * @return  array
 	 */
 	public function get_resources(): array {
@@ -252,7 +252,7 @@ class Module {
 
 	/**
 	 * Remove a resource by name.
-	 * 
+	 *
 	 * @param     string   $name   The name of the resource.
 	 * @return    void
 	 */
@@ -262,7 +262,7 @@ class Module {
 
 	/**
 	 * Clear all resources.
-	 * 
+	 *
 	 * @return  void
 	 */
 	public function clear_resources() {
@@ -271,7 +271,7 @@ class Module {
 
 	/**
 	 * Register a resource, regardless of whether or not it has already been registered.
-	 * 
+	 *
 	 * @param     string      $name        The name of the resource.
 	 * @param     callable    $callback    The callback to execute.
 	 * @return    void
@@ -282,7 +282,7 @@ class Module {
 
 	/**
 	 * Whether or not the module has the resource.
-	 * 
+	 *
 	 * @param    string  $name   The name of the resource.
 	 * @return   bool
 	 */
@@ -292,14 +292,14 @@ class Module {
 
 	/**
 	 * A holding method to register param filter groups.
-	 * 
+	 *
 	 * @return void
 	 */
 	protected function register_param_filter_groups() {}
 
 	/**
 	 * Register a param filter group.
-	 * 
+	 *
 	 * @param   string    $group_name  The group name.
 	 * @param   string    $class_name  The name of the class that contains the group. This will be instantiated later on.
 	 * @return  void
@@ -320,7 +320,7 @@ class Module {
 
 	/**
 	 * Get a param filter.
-	 * 
+	 *
 	 * @param   string   $full_name   The full name of the filter, including group name. The group name and filter name should be separated with a period.
 	 * @return  array|false           An array if the filter is found, false otherwise.
 	 */
@@ -344,14 +344,14 @@ class Module {
 
 	/**
 	 * A holding method to register procedure groups.
-	 * 
+	 *
 	 * @return void
 	 */
 	protected function register_procedure_groups() {}
 
 	/**
 	 * Register a procedure group.
-	 * 
+	 *
 	 * @param   string    $group_name  The group name.
 	 * @param   string    $class_name  The name of the class that contains the group. This will be instantiated later on.
 	 * @return  void
@@ -372,7 +372,7 @@ class Module {
 
 	/**
 	 * Execute a procedure.
-	 * 
+	 *
 	 * @param    string             $full_procedure_name     The full name of the procedure, including group name. The group name and procedure name should be separated with a period.
 	 * @param    array              $input                   The input data to pass to the procedure.
 	 * @param    string             $mode                    The exact procedure method to run.
@@ -398,7 +398,7 @@ class Module {
 	 * A shortcut for calling a specific module's run_procedure method.
 	 *
 	 * @see \Rona\Module::run_procedure()
-	 * 
+	 *
 	 * @param   string   $module_id   The module ID.
 	 */
 	public function run_module_procedure(string $module_id, ...$args) {
@@ -407,14 +407,14 @@ class Module {
 
 	/**
 	 * A holding method to register hooks.
-	 * 
+	 *
 	 * @return void
 	 */
 	protected function register_hooks() {}
 
 	/**
 	 * Register a hook.
-	 * 
+	 *
 	 * @param    string     $name        The hook name.
 	 * @param    \Closure   $callback    The hook callback.
 	 * @return   void
@@ -431,7 +431,7 @@ class Module {
 
 	/**
 	 * Run a hook.
-	 * 
+	 *
 	 * @param    string   $name   The hook name.
 	 * @param    mixed    $args   Optional args to pass to the hook callback.
 	 * @return   mixed            If the hook exists, the return value of the hook callback, NULL otherwise.
@@ -448,14 +448,14 @@ class Module {
 
 	/**
 	 * A holding method for registering routes.
-	 * 
+	 *
 	 * @return void
 	 */
 	protected function register_routes() {}
 
 	/**
 	 * Register an abstract route.
-	 * 
+	 *
 	 * @return  \Rona\Routing\Store    A route store instance.
 	 */
 	public function register_abstract_route(): Store {
@@ -464,7 +464,7 @@ class Module {
 
 	/**
 	 * Register a non-abstract route.
-	 * 
+	 *
 	 * @return  \Rona\Routing\Store    A route store instance.
 	 */
 	public function register_route(): Store {
@@ -473,7 +473,7 @@ class Module {
 
 	/**
 	 * Register a no-route.
-	 * 
+	 *
 	 * @return  \Rona\Routing\Store    A route store instance.
 	 */
 	public function register_no_route(): Store {

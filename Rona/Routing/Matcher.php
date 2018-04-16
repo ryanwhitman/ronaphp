@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona\Routing;
@@ -32,7 +32,7 @@ class Matcher {
 			// Reset the path_vars_matched property.
 			$this->path_vars_matched = [];
 
-			// Create a regular expression to match the path.			
+			// Create a regular expression to match the path.
 			$regex = preg_replace_callback('/{([\da-z_]*[\da-z]+[\da-z_]*)(\([\S ]+?\))?}/i', function($matches) {
 				$this->path_vars_matched[] = $matches[1];
 				return isset($matches[2]) ? $matches[2] : '([^\/]+)';
@@ -61,5 +61,5 @@ class Matcher {
 		}
 
 		return $matched_routes;
-	}	
+	}
 }

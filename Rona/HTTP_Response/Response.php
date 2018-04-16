@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona\HTTP_Response;
@@ -155,11 +155,11 @@ class Response {
 
 					$body = str_replace(str_replace($this->app->config('template_placeholder_replace_text'), $placeholder, $this->app->config('template_placeholder')), $contents, $body);
 				}
-				
+
 				// Remove any remaining placeholders.
 				$body = preg_replace('/' . str_replace($this->app->config('template_placeholder_replace_text'), '.*', $this->app->config('template_placeholder')) . '/i', '', $body);
-				
-				// Set the body.				
+
+				// Set the body.
 				$this->set_body($body);
 			}
 		}

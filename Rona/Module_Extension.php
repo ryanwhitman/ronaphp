@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona;
@@ -14,14 +14,14 @@ abstract class Module_Extension {
 
 	/**
 	 * The module.
-	 * 
+	 *
 	 * @var \Rona\Module
 	 */
 	protected $module;
 
 	/**
 	 * Use the magic call method to allow some of the module's methods to be called from within the extension.
-	 * 
+	 *
 	 * @param   string    $name        The name of the method being called.
 	 * @param   array     $arguments   An enumerated array containing the parameters passed to the $name'ed method.
 	 * @return  mixed                  The return value of the executed method.

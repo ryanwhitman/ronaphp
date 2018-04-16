@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona;
@@ -29,6 +29,9 @@ class Rona {
 
 		// Register the configuration.
 		$this->register_config();
+
+		// Register the built-in Rona module.
+		$this->register_module('rona', '\Rona\Rona_Module');
 
 		// Register the modules.
 		$this->register_modules();
@@ -106,7 +109,7 @@ class Rona {
 	 * A shortcut for calling a specific module's config method.
 	 *
 	 * @see \Rona\Module::config()
-	 * 
+	 *
 	 * @param   string   $module_id   The module ID.
 	 */
 	public function module_config(string $module_id, ...$args) {
@@ -117,7 +120,7 @@ class Rona {
 	 * A shortcut for calling a specific module's get_resource method.
 	 *
 	 * @see \Rona\Module::get_resource()
-	 * 
+	 *
 	 * @param   string   $module_id   The module ID.
 	 */
 	public function get_module_resource(string $module_id, ...$args) {
@@ -128,7 +131,7 @@ class Rona {
 	 * A shortcut for calling a specific module's run_procedure method.
 	 *
 	 * @see \Rona\Module::run_procedure()
-	 * 
+	 *
 	 * @param   string   $module_id   The module ID.
 	 */
 	public function run_module_procedure(string $module_id, ...$args) {
@@ -137,7 +140,7 @@ class Rona {
 
 	/**
 	 * Run a hook on all modules.
-	 * 
+	 *
 	 * @param    string    $name    The name of the hook.
 	 * @param    mixed     $args    Optional args to pass to the hook callback.
 	 * @return   array              An associative array in which the key represents the module ID and the value represents the return value of the hook.
@@ -162,7 +165,7 @@ class Rona {
 
 		// Create a route matching object.
 		$route_matcher = new Routing\Matcher;
-	
+
 		// Loop thru each module and get the matching routes.
 		$route_queues = [];
 		$non_abstract = false;
@@ -200,10 +203,10 @@ class Rona {
 				$route_module = $no_route_module;
 			}
 		} else
-			return false;			
+			return false;
 
 		$http_request->set_path_vars($the_route['path_vars']);
-		
+
 		// Add the non-abstract route to the end of the route queues array.
 		$route_queues[] = ['module' => $route_module, 'route_queue' => $the_route['route_queue']];
 
@@ -222,7 +225,7 @@ class Rona {
 
 		// Run the controllers.
 		while (1) {
-			
+
 			// Get the current route controllers. If no more exist, break the infinite loop.
 			$controllers = $route->get_controllers();
 			if (empty($controllers))
@@ -248,7 +251,7 @@ class Rona {
 		# The route has now been built by the controllers/route callbacks. Now execute the route.
 
 		# Authentication
-		
+
 		$passed_authentication = true;
 		$authentication = $route->get_authentication();
 		if ($authentication && $authentication() === false) {
@@ -259,7 +262,7 @@ class Rona {
 		if ($passed_authentication) {
 
 			# Input
-			
+
 			// By default, the input validation has passed.
 			$passed_input_validation = true;
 
@@ -307,7 +310,7 @@ class Rona {
 			if ($passed_input_validation) {
 
 				# Authorization
-				
+
 				$passed_authorization = true;
 				$authorization = $route->get_authorization();
 				if ($authorization && $authorization() === false) {
@@ -318,7 +321,7 @@ class Rona {
 				if ($passed_authorization) {
 
 					# Procedure
-					
+
 					if ($procedure) {
 						$procedure_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $http_request->get_processed_input(), 'execute');
 						$procedure_callback = Helper::maybe_closure($route->get_procedure_callback(), $procedure_res);
@@ -340,7 +343,7 @@ class Rona {
 		}
 
 		# Finalization
-		
+
 		$finalization = $route->get_finalization();
 		if ($finalization)
 			$finalization();

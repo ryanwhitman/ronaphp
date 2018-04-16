@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona;
@@ -17,7 +17,7 @@ abstract class Resource extends Module_Extension {
 
 	/**
 	 * The constructor.
-	 * 
+	 *
 	 * @param   object     $module      An instance of a module.
 	 * @param   mixed      $args        Any number of args that will get passed to the secondary construct method.
 	 */

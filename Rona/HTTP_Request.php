@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona;
@@ -63,7 +63,7 @@ class HTTP_Request {
 
 		// Get the original HTTP method.
 		$this->original_method = $_SERVER['REQUEST_METHOD'] ?? '';
-		 
+
 		// The HTTP method can be overridden by posting _method.
 		$this->method = strtoupper(!empty($_POST['_method']) ? $_POST['_method'] : $this->original_method);
 

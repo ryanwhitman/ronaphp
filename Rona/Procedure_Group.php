@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona;
@@ -46,7 +46,7 @@ class Procedure_Group extends Module_Extension {
 
 	/**
 	 * Get a procedure.
-	 * 
+	 *
 	 * @param  string         $procedure_name   The procedure name.
 	 * @return array                            The procedure.
 	 */
@@ -62,7 +62,7 @@ class Procedure_Group extends Module_Extension {
 
 	/**
 	 * Process a procedure's input with param exam.
-	 * 
+	 *
 	 * @param  string         $procedure_name   The procedure name.
 	 * @param  array          $raw_input        The raw input that is to be processed.
 	 * @return Response
@@ -77,14 +77,14 @@ class Procedure_Group extends Module_Extension {
 
 		// Run the procedure's Param Exam callback.
 		$procedure['param_exam_callback']($param_exam, $raw_input);
-		
+
 		// Examine the params and return the response.
 		return $param_exam->examine($raw_input);
 	}
 
 	/**
 	 * Execute a procedure's callback, with the processed input passed in instead of being run thru param exam.
-	 * 
+	 *
 	 * @param  string         $procedure_name   The procedure name.
 	 * @param  array          $processed_input  Input that has already been run thru param exam.
 	 * @return Response
@@ -107,7 +107,7 @@ class Procedure_Group extends Module_Extension {
 
 	/**
 	 * Fully run a procedure: Process its input and execute it.
-	 * 
+	 *
 	 * @param  string         $procedure_name   The procedure name.
 	 * @param  array          $raw_input        The raw input that is to be processed and injected into the procedure.
 	 * @return mixed
@@ -119,7 +119,7 @@ class Procedure_Group extends Module_Extension {
 		if (!$res->success)
 			return $res;
 		$processed_input = $res->data;
-		
+
 		// Execute the procedure and return the response.
 		return $this->execute($procedure_name, $processed_input);
 	}

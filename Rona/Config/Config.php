@@ -1,11 +1,11 @@
 <?php
 /**
  * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
- * @license https://opensource.org/licenses/MIT   MIT
- * @version 1.0.0 - beta
- * @link https://github.com/RyanWhitman/ronaphp/tree/v1
- * @since 1.0.0 - beta
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.0.0
  */
 
 namespace Rona\Config;
@@ -56,7 +56,7 @@ class Config {
 
 	/**
 	 * Locate the value for the given configuration path.
-	 * 
+	 *
 	 * @param    string   $path   The configuration path.
 	 * @return   mixed            The value of the configuration or undefined if the configuration has not been set.
 	 */
@@ -87,7 +87,7 @@ class Config {
 
 	/**
 	 * Determine whether or not a particular configuration path has been set (both constants and variables).
-	 * 
+	 *
 	 * @param    string   $path   The configuration path.
 	 * @return   bool
 	 */
@@ -97,7 +97,7 @@ class Config {
 
 	/**
 	 * Get a configuration value.
-	 * 
+	 *
 	 * @param    string   $path   The configuration path.
 	 * @return   mixed            The configuration value.
 	 *

@@ -10,17 +10,15 @@
 
 namespace Rona;
 
-class Param_Filter_Response {
+/**
+ * The Rona module.
+ */
+class Rona_Module extends Module {
 
-	public $success;
-
-	public $tag;
-
-	public $data;
-
-	public function __construct(bool $success, $tag = NULL, $data = NULL) {
-		$this->success = $success;
-		$this->tag = (string) $tag;
-		$this->data = $data;
+	/**
+	 * @see parent class
+	 */
+	protected function register_param_filter_groups() {
+		$this->register_param_filter_group('general', '\Rona\Rona_Param_Filters');
 	}
 }
