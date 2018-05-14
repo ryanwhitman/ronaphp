@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.0.0
+ * @version 1.001.0
  */
 
 namespace Rona;
@@ -208,50 +208,13 @@ class Param_Exam {
 			// The param has a value of some sort and empty strings are disallowed, so run it through the filter, if one was defined.
 			else if (!Helper::is_null_or_empty_string($exam['filter'])) {
 
-				// Create an empty array to hold the filter that is found.
-				$f = [];
-
-				// When the filter is a string:
-				if (is_string($exam['filter'])) {
-					$found_filter = $this->module->get_param_filter($exam['filter']);
-					if ($found_filter)
-						$f = $found_filter;
-				}
-
-				// When the filter is an array with either 1 or 2 parts:
-				else if (
-					is_array($exam['filter']) &&
-					count($exam['filter']) == 2 &&
-					isset($exam['filter'][0]) &&
-					isset($exam['filter'][1]) &&
-					is_string($exam['filter'][1])
-				) {
-
-					// Default the found filter to false.
-					$found_filter = false;
-
-					// The filter module should be stored in index 0.
-					$filter_module = $exam['filter'][0];
-
-					// The filter name should be stored in index 1.
-					$filter_name = $exam['filter'][1];
-
-					// When the filter module is just a string, convert it to a module instance.
-					if (is_string($filter_module))
-						$filter_module = $this->module->get_module($filter_module);
-
-					// If the filter module is a module instance, grab the param filter.
-					if ($filter_module instanceof Module)
-						$found_filter = $filter_module->get_param_filter($filter_name);
-
-					// If a callback was found, store the filter.
-					if ($found_filter)
-						$f = $found_filter;
-				}
+				// Locate the filter.
+				$f = $this->module->locate_param_filter($exam['filter']);
 
 				// Ensure a valid filter was found.
-				if (empty($f))
+				if (empty($f)) {
 					throw new \Exception('The param filter ' . json_encode($exam['filter']) . ' identified in the module "' . $this->module->get_id() . '" is not valid.');
+				}
 
 				// Merge the option arrays
 				$filter_options = array_merge($f['default_options'], $exam['options']);

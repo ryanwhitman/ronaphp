@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.0.0
+ * @version 1.001.0
  */
 
 namespace Rona;
@@ -159,6 +159,23 @@ class Rona {
 
 		// Response
 		return $res;
+	}
+
+	/**
+	 * Initialize the RonaPHP app by registering various module components.
+	 *
+	 * @return void
+	 */
+	public function init() {
+
+		// Loop through each module and register its components.
+		foreach ($this->get_modules() as $module) {
+			$module->register_resources();
+			$module->register_param_filter_groups();
+			$module->register_procedure_groups();
+			$module->register_hooks();
+			$module->register_routes();
+		}
 	}
 
 	public function find_route(HTTP_Request $http_request, Routing\Route $route, HTTP_Response\Response $http_response) {
@@ -354,6 +371,9 @@ class Rona {
 	}
 
 	public function run() {
+
+		// Initialize the RonaPHP app.
+		$this->init();
 
 		// Create the HTTP Request, Route, Scope, and HTTP Response objects.
 		$http_request = new HTTP_Request($this);

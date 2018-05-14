@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.0.0
+ * @version 1.001.0
  */
 
 namespace Rona;
@@ -98,27 +98,12 @@ class Module {
 		// Register this module's config.
 		$this->register_config();
 
-		// Register this module's resources.
-		$this->register_resources();
-
-		// Register this module's param filter groups.
-		$this->register_param_filter_groups();
-
-		// Register this module's procedure groups.
-		$this->register_procedure_groups();
-
-		// Register this module's hooks.
-		$this->register_hooks();
-
 		// Create route store objects for this module.
 		$this->route_store = [
 			'abstract'			=> new Store($this->app_config('http_methods')),
 			'non_abstract'		=> new Store($this->app_config('http_methods')),
 			'no_route'			=> new Store($this->app_config('http_methods'))
 		];
-
-		// Register this modules routes.
-		$this->register_routes();
 	}
 
 	public function get_id() {
@@ -184,7 +169,7 @@ class Module {
 	 *
 	 * @return void
 	 */
-	protected function register_resources() {}
+	public function register_resources() {}
 
 	/**
 	 * Register a resource.
@@ -295,7 +280,7 @@ class Module {
 	 *
 	 * @return void
 	 */
-	protected function register_param_filter_groups() {}
+	public function register_param_filter_groups() {}
 
 	/**
 	 * Register a param filter group.
@@ -343,11 +328,64 @@ class Module {
 	}
 
 	/**
+	 * Locate a param filter by passing in either the filter name as a string or an array with the filter module and filter name.
+	 *
+	 * @param   string|array   $filter_to_locate  The filter to locate.
+	 * @return  array|false                       The located filter. False will be returned when the filter is not found.
+	 */
+	public function locate_param_filter($filter_to_locate) {
+
+		// Create an empty array to hold the filter that is located.
+		$located_filter = false;
+
+		// When the filter to locate is a string:
+		if (is_string($filter_to_locate)) {
+			$filter = $this->get_param_filter($filter_to_locate);
+			if ($filter)
+				$located_filter = $filter;
+		}
+
+		// When the filter to locate is an array:
+		else if (
+			is_array($filter_to_locate) &&
+			count($filter_to_locate) == 2 &&
+			isset($filter_to_locate[0]) &&
+			isset($filter_to_locate[1]) &&
+			is_string($filter_to_locate[1])
+		) {
+
+			// Default the found filter to false.
+			$filter = false;
+
+			// The module should be stored at index 0.
+			$filter_module = $filter_to_locate[0];
+
+			// The filter name should be stored at index 1.
+			$filter_name = $filter_to_locate[1];
+
+			// When the filter module is just a string, convert it to a module instance.
+			if (is_string($filter_module))
+				$filter_module = $this->get_module($filter_module);
+
+			// If the filter module is a module instance, grab the param filter.
+			if ($filter_module instanceof Module)
+				$filter = $filter_module->get_param_filter($filter_name);
+
+			// If a filter was found, store it.
+			if ($filter)
+				$located_filter = $filter;
+		}
+
+		// Return the located filter.
+		return $located_filter;
+	}
+
+	/**
 	 * A holding method to register procedure groups.
 	 *
 	 * @return void
 	 */
-	protected function register_procedure_groups() {}
+	public function register_procedure_groups() {}
 
 	/**
 	 * Register a procedure group.
@@ -410,7 +448,7 @@ class Module {
 	 *
 	 * @return void
 	 */
-	protected function register_hooks() {}
+	public function register_hooks() {}
 
 	/**
 	 * Register a hook.
@@ -451,7 +489,7 @@ class Module {
 	 *
 	 * @return void
 	 */
-	protected function register_routes() {}
+	public function register_routes() {}
 
 	/**
 	 * Register an abstract route.
