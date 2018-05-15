@@ -1,4 +1,4 @@
-### v. 1.001.0
+### v. 1.1.0
 
 - Previously, module components such as resources and routes were registered in the module's __construct() method. Now, all components except for the module's configuration are registered in a new init() method housed in the Rona class. The init() method is automatically executed in the run() method. This allows all modules to be registered before registering their components. To accommodate this change, several existing methods were changed from protected to public.
 - A new locate_param_filter() method was added to the Rona class. This method finds a param filter by either its name or module/name combo.
