@@ -1,3 +1,7 @@
+### v. 1.2.0
+
+- Added mysqli database resource.
+
 ### v. 1.1.0
 
 - Previously, module components such as resources and routes were registered in the module's __construct() method. Now, all components except for the module's configuration are registered in a new init() method housed in the Rona class. The init() method is automatically executed in the run() method. This allows all modules to be registered before registering their components. To accommodate this change, several existing methods were changed from protected to public.

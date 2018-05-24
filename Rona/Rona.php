@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 namespace Rona;
@@ -52,6 +52,12 @@ class Rona {
 		$this->config()->set('base_path', '');
 		$this->config()->set('request_path', strtok($_SERVER['REQUEST_URI'] ?? '', '?'));
 		$this->config()->set('http_methods', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
+		$this->config()->set('db', [
+			'host'		=> '',
+			'username'	=> '',
+			'password'	=> '',
+			'name'		=> ''
+		]);
 		$this->config()->set('template_placeholder_replace_text', '%PH%');
 		$this->config()->set('template_placeholder', '{% ' . $this->config('template_placeholder_replace_text') . ' %}');
 		$this->config()->set('view_assets')
