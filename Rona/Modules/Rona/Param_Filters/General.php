@@ -5,17 +5,17 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.2.0
+ * @version 1.3.0
  */
 
-namespace Rona;
+namespace Rona\Modules\Rona\Param_Filters;
 
 use Rona\Helper;
 
 /**
  * General Param Filter Group
  */
-class Rona_Param_Filters extends Param_Filter_Group {
+class General extends \Rona\Param_Filter_Group {
 
 	/**
 	 * @see parent class

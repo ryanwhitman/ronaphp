@@ -5,15 +5,15 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.2.0
+ * @version 1.3.0
  */
 
-namespace Rona;
+namespace Rona\Modules\Rona\Resources;
 
 /**
  * A mysqli database class.
  */
-class Rona_Db {
+class Db {
 
 	/**
 	 * The mysqli object.
