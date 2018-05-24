@@ -31,7 +31,7 @@ class Rona {
 		$this->register_config();
 
 		// Register the built-in Rona module.
-		$this->register_module('rona', '\Rona\Rona_Module');
+		$this->register_module('rona', '\Rona\Modules\Rona');
 
 		// Register the modules.
 		$this->register_modules();
