@@ -93,20 +93,30 @@ class General extends \Rona\Param_Filter_Group {
 		 */
 		$this->register('string', [
 				'trim_full'		=> false, // true or false
-				'trim'			=> ' ' // false disables, mask will be used otherwise
+				'trim'			=> ' ', // false disables, mask will be used otherwise
+				'min_length'	=> false,
+				'max_length'	=> false
 			], function($val, $options) {
 
+				// Ensure the value is a string.
 				if (is_string($val)) {
 
+					// Trim the string.
 					if ($options['trim_full'])
 						$val = Helper::trim_full($val);
-
 					if ($options['trim'] !== false)
 						$val = trim($val, $options['trim']);
 
-					return $this->valid($val);
+					// Ensure the value is of the correct length.
+					if (
+						($options['min_length'] === false || strlen($val) >= $options['min_length']) &&
+						($options['max_length'] === false || strlen($val) <= $options['max_length'])
+					) {
+						return $this->valid($val);
+					}
 				}
 
+				// The value is invalid.
 				return $this->invalid('invalid_string');
 			}
 		);
