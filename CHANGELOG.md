@@ -1,3 +1,8 @@
+### v. 1.3.0
+
+- Added Rona Logger module.
+- Added min/max options to the string filter.
+
 ### v. 1.2.0
 
 - Added mysqli database resource.
