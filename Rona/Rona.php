@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.2.0
+ * @version 1.3.0
  */
 
 namespace Rona;
@@ -30,8 +30,9 @@ class Rona {
 		// Register the configuration.
 		$this->register_config();
 
-		// Register the built-in Rona module.
-		$this->register_module('rona', '\Rona\Rona_Module');
+		// Register the built-in modules.
+		$this->register_module('rona', '\Rona\Modules\Rona');
+		$this->register_module('rona_logger', '\Rona\Modules\Rona_Logger');
 
 		// Register the modules.
 		$this->register_modules();
