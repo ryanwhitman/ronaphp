@@ -28,11 +28,11 @@ class Rona_Logger extends \Rona\Module {
 		// Entry
 		$this->config()->define('tag', [
 			'min_length'	=> 1,
-			'max_length'	=> 20
+			'max_length'	=> 25
 		]);
 		$this->config()->define('description', [
 			'min_length'	=> 1,
-			'max_length'	=> 2000
+			'max_length'	=> 5000
 		]);
 
 		// DB Updates
@@ -54,6 +54,16 @@ class Rona_Logger extends \Rona\Module {
 				ENGINE = InnoDB
 				;
 				"
+			],
+			2	=> [
+				"
+				ALTER TABLE {$this->config('db_table_prefix')}_entries ALTER tag DROP DEFAULT;
+				",
+				"
+				ALTER TABLE {$this->config('db_table_prefix')}_entries
+					CHANGE COLUMN tag tag VARCHAR({$this->config('tag.max_length')}) NOT NULL AFTER entry_id,
+					ADD COLUMN email_report_sent TINYINT(1) UNSIGNED NOT NULL DEFAULT '0' AFTER data;
+				"
 			]
 		]);
 
@@ -64,8 +74,7 @@ class Rona_Logger extends \Rona\Module {
 
 		// Email Report
 		$this->config()->set('email_report', [
-			'email_handler'		=> function($from, $subject, $body) {},
-			'minute_interval'	=> 5
+			'email_handler'		=> function($from, $subject, $body) {}
 		]);
 	}
 
