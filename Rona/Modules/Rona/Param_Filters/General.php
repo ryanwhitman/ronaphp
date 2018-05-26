@@ -5,12 +5,10 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.3.1
+ * @version 1.4.0
  */
 
 namespace Rona\Modules\Rona\Param_Filters;
-
-use Rona\Helper;
 
 /**
  * General Param Filter Group
@@ -74,7 +72,7 @@ class General extends \Rona\Param_Filter_Group {
 			$val = trim($val);
 
 			// Ensure value only contains digits.
-			if (Helper::contains_only_digits($val)) {
+			if ($this->get_resource('helper')->contains_only_digits($val)) {
 
 				// Cast the value as an integer.
 				$val = (int) $val;
@@ -103,7 +101,7 @@ class General extends \Rona\Param_Filter_Group {
 
 					// Trim the string.
 					if ($options['trim_full'])
-						$val = Helper::trim_full($val);
+						$val = $this->get_resource('helper')->trim_full($val);
 					if ($options['trim'] !== false)
 						$val = trim($val, $options['trim']);
 
@@ -141,7 +139,7 @@ class General extends \Rona\Param_Filter_Group {
 
 			$val = trim($val);
 
-			if (Helper::contains_only_digits($val))
+			if ($this->get_resource('helper')->contains_only_digits($val))
 				return $this->valid($val);
 
 			return $this->invalid('contains_non_digits');
@@ -154,7 +152,7 @@ class General extends \Rona\Param_Filter_Group {
 				'case'		=> 'ci'
 			], function($val, $options) {
 				$val = trim($val);
-				if (Helper::is_alphanumeric($val, $options['case']))
+				if ($this->get_resource('helper')->is_alphanumeric($val, $options['case']))
 					return $this->valid($val);
 				return $this->invalid('not_alphanumeric');
 			}
@@ -168,7 +166,7 @@ class General extends \Rona\Param_Filter_Group {
 			], function($val, $options) {
 
 				// Validate the value as a timestamp and return it in the correct format.
-				return Helper::is_timestamp($val) ? $this->valid(date($options['output_format'], $val)) : $this->invalid('invalid_timestamp');
+				return $this->get_resource('helper')->is_timestamp($val) ? $this->valid(date($options['output_format'], $val)) : $this->invalid('invalid_timestamp');
 			}
 		);
 
@@ -205,7 +203,7 @@ class General extends \Rona\Param_Filter_Group {
 
 			// Ensure the value only contains digits, is of the correct length, and meets the floor/ceiling requirements.
 			if (
-				Helper::contains_only_digits($val) &&
+				$this->get_resource('helper')->contains_only_digits($val) &&
 				strlen($val) == $options['length'] &&
 				(
 					$options['floor'] === false ||
@@ -253,20 +251,20 @@ class General extends \Rona\Param_Filter_Group {
 			$val = trim($val);
 
 			// Strip the value of a leading dollar sign.
-			$val = Helper::remove_text_from_beginning('$', $val);
+			$val = $this->get_resource('helper')->remove_text_from_beginning('$', $val);
 
 			// Trim the value again.
 			$val = trim($val);
 
 			// Ensure the value is a currency.
-			if (Helper::is_currency($val, $options['allow_negative'], false)) {
+			if ($this->get_resource('helper')->is_currency($val, $options['allow_negative'], false)) {
 
 				// Convert the value to a float and round it to 2 decimals.
 				$val = round((float) $val, 2);
 
 				// Ensure the value is still a currency and ensure the value is of the correct min/max limits.
 				if (
-					Helper::is_currency($val, $options['allow_negative'], false) &&
+					$this->get_resource('helper')->is_currency($val, $options['allow_negative'], false) &&
 					($options['min'] === false || $val >= $options['min']) &&
 					($options['max'] === false || $val <= $options['max'])
 				) {
@@ -283,8 +281,8 @@ class General extends \Rona\Param_Filter_Group {
 		 */
 		$this->register('email', [], function($val, $options) {
 
-			$val = Helper::get_email($val);
-			if (Helper::is_email($val))
+			$val = $this->get_resource('helper')->get_email($val);
+			if ($this->get_resource('helper')->is_email($val))
 				return $this->valid($val);
 
 			return $this->invalid('invalid_email');
@@ -304,7 +302,7 @@ class General extends \Rona\Param_Filter_Group {
 				$initial_count = count($val);
 
 				// Reduce the email address array to only contain legitimate email addresses
-				$val = Helper::get_emails($val);
+				$val = $this->get_resource('helper')->get_emails($val);
 
 				// Get the refined email address count
 				$refined_count = count($val);
@@ -351,9 +349,9 @@ class General extends \Rona\Param_Filter_Group {
 		 */
 		$this->register('persons_name', [], function($val, $options) {
 
-			$val = Helper::trim_full($val);
+			$val = $this->get_resource('helper')->trim_full($val);
 
-			if (Helper::is_persons_name($val))
+			if ($this->get_resource('helper')->is_persons_name($val))
 				return $this->valid($val);
 
 			return $this->invalid('invalid_persons_name');

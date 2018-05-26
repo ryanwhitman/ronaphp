@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.3.1
+ * @version 1.4.0
  */
 
 namespace Rona\Modules;
@@ -28,6 +28,7 @@ class Rona extends \Rona\Module {
 	 * @see parent class
 	 */
 	public function register_resources() {
+		$this->register_resource('helper', '\\' . __CLASS__ . '\Resources\Helper');
 		$this->register_resource('db', function() {
 			return new \Rona\Modules\Rona\Resources\Db($this->app_config('db.host'), $this->app_config('db.username'), $this->app_config('db.password'), $this->app_config('db.name'));
 		});

@@ -2,8 +2,6 @@
 
 namespace Rona\Modules\Rona_Logger\Procedures;
 
-use Rona\Helper;
-
 /**
  * Procedures for a single entry.
  */
@@ -26,7 +24,7 @@ class Entry extends \Rona\Procedure_Group {
 			function($input) {
 
 				// Set the data.
-				$data = isset($input['data']) && !Helper::is_empty_string($input['data']) ? json_encode($input['data']) : NULL;
+				$data = isset($input['data']) && !$this->get_module_resource('rona', 'helper')->is_empty_string($input['data']) ? json_encode($input['data']) : NULL;
 
 				// Insert the entry into the DB.
 				$mysqli = $this->get_module_resource('rona', 'db')->mysqli;
@@ -63,7 +61,7 @@ class Entry extends \Rona\Procedure_Group {
 				if ($rs->num_rows !== 1)
 					return $this->failure('not_found');
 				$entry = $rs->fetch_assoc();
-				$entry['data'] = Helper::is_null_or_empty_string($entry['data']) ? NULL : json_decode($entry['data']);
+				$entry['data'] = $this->get_module_resource('rona', 'helper')->is_null_or_empty_string($entry['data']) ? NULL : json_decode($entry['data']);
 
 				// Success
 				return $this->success('entry_retrieved', $entry);
