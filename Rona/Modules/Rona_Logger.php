@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.3.0
+ * @version 1.3.1
  */
 
 namespace Rona\Modules;
@@ -128,6 +128,7 @@ class Rona_Logger extends \Rona\Module {
 							} else {
 								?>
 								Entry ID: <?php echo $get_entry_res->data['entry_id'] ?><br>
+								Tag: <?php echo $get_entry_res->data['tag'] ?><br>
 								Description: <?php echo $get_entry_res->data['description'] ?><br>
 								When Created: <?php echo $get_entry_res->data['when_created'] ?><br>
 								Data: <pre><?php print_r($get_entry_res->data['data']) ?></pre>

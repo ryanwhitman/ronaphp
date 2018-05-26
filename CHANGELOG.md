@@ -1,3 +1,8 @@
+### v. 1.3.1
+
+- Adjusted format and content of RonaPHP Logger email report.
+- Added "tag" to the RonaPHP Logger View Entry page.
+
 ### v. 1.3.0
 
 - Added Rona Logger module.
