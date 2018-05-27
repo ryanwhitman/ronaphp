@@ -5,20 +5,24 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.3.1
+ * @version 1.4.0
  */
 
 namespace Rona\Config;
-
-use Rona\Helper;
 
 class Config {
 
 	const UNDEFINED = 'rona__undefined__rona';
 
+	protected $helper;
+
 	protected $constants = [];
 
 	protected $variables = [];
+
+	public function __construct() {
+		$this->helper = new \Rona\Modules\Rona\Resources\Helper;
+	}
 
 	public function define(string $path, $val = self::UNDEFINED) {
 
@@ -38,7 +42,7 @@ class Config {
 		foreach (explode('.', $path) as $part) {
 			$path_buildup .= '.' . $part;
 			$path_buildup = trim($path_buildup, ' .');
-			$eval_arr = Helper::array_get($this->constants, $path_buildup, self::UNDEFINED);
+			$eval_arr = $this->helper->array_get($this->constants, $path_buildup, self::UNDEFINED);
 			if ($eval_arr !== self::UNDEFINED && !is_array($eval_arr))
 				return false;
 		}
@@ -47,9 +51,9 @@ class Config {
 			return new Builder($this, $path, $is_const);
 
 		if ($is_const)
-			Helper::array_set($this->constants, $path, $val);
+			$this->helper->array_set($this->constants, $path, $val);
 		else
-			Helper::array_set($this->variables, $path, $val);
+			$this->helper->array_set($this->variables, $path, $val);
 
 		return true;
 	}
@@ -66,8 +70,8 @@ class Config {
 		$path = trim($path, ' .');
 
 		// Get the constants and variables.
-		$constants = Helper::array_get($this->constants, $path, self::UNDEFINED);
-		$variables = Helper::array_get($this->variables, $path, self::UNDEFINED);
+		$constants = $this->helper->array_get($this->constants, $path, self::UNDEFINED);
+		$variables = $this->helper->array_get($this->variables, $path, self::UNDEFINED);
 
 		// If the configuration exists in both the constants array and variables array, return the merged array with the constants taking precedence.
 		if (is_array($constants) && is_array($variables))

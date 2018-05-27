@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.3.1
+ * @version 1.4.0
  */
 
 namespace Rona;
@@ -291,7 +291,7 @@ class Rona {
 			$passed_input_validation = true;
 
 			// Grab the allowed input.
-			$route_input = Helper::maybe_closure($route->get_input());
+			$route_input = $this->get_module_resource('rona', 'helper')->maybe_closure($route->get_input());
 
 			// Modify the requested input to only contain the allowable input.
 			$request_input = $http_request->get_input();
@@ -304,7 +304,7 @@ class Rona {
 			}
 
 			// If a procedure has been defined, process the input.
-			$procedure = Helper::maybe_closure($route->get_procedure());
+			$procedure = $this->get_module_resource('rona', 'helper')->maybe_closure($route->get_procedure());
 			if ($procedure) {
 				$process_input_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $http_request->get_input(), 'process_input');
 				if (!$process_input_res->success) {
@@ -313,11 +313,11 @@ class Rona {
 					if (is_array($route_input)) {
 						foreach ($process_input_res->data as $param => $data) {
 							if (isset($route_input[$param])) {
-								$route_input[$param] = Helper::maybe_closure($route_input[$param], $data);
+								$route_input[$param] = $this->get_module_resource('rona', 'helper')->maybe_closure($route_input[$param], $data);
 								if (is_string($route_input[$param]))
 									$msgs[] = $route_input[$param];
 								else if (is_array($route_input[$param]) && isset($route_input[$param][$data['tag']])) {
-									$route_input[$param][$data['tag']] = Helper::maybe_closure($route_input[$param][$data['tag']], $data);
+									$route_input[$param][$data['tag']] = $this->get_module_resource('rona', 'helper')->maybe_closure($route_input[$param][$data['tag']], $data);
 									if (is_string($route_input[$param][$data['tag']]))
 										$msgs[] = $route_input[$param][$data['tag']];
 								}
@@ -348,12 +348,12 @@ class Rona {
 
 					if ($procedure) {
 						$procedure_res = $procedure['module']->run_procedure($procedure['full_procedure_name'], $http_request->get_processed_input(), 'execute');
-						$procedure_callback = Helper::maybe_closure($route->get_procedure_callback(), $procedure_res);
+						$procedure_callback = $this->get_module_resource('rona', 'helper')->maybe_closure($route->get_procedure_callback(), $procedure_res);
 						$msg = '';
 						if (is_string($procedure_callback))
 							$msg = $procedure_callback;
 						else if (is_array($procedure_callback) && isset($procedure_callback[$procedure_res->tag])) {
-							$procedure_callback[$procedure_res->tag] = Helper::maybe_closure($procedure_callback[$procedure_res->tag], $procedure_res);
+							$procedure_callback[$procedure_res->tag] = $this->get_module_resource('rona', 'helper')->maybe_closure($procedure_callback[$procedure_res->tag], $procedure_res);
 							if (is_string($procedure_callback[$procedure_res->tag]))
 								$msg = $procedure_callback[$procedure_res->tag];
 						}

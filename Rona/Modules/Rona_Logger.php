@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.3.1
+ * @version 1.4.0
  */
 
 namespace Rona\Modules;
@@ -28,11 +28,11 @@ class Rona_Logger extends \Rona\Module {
 		// Entry
 		$this->config()->define('tag', [
 			'min_length'	=> 1,
-			'max_length'	=> 20
+			'max_length'	=> 30
 		]);
 		$this->config()->define('description', [
 			'min_length'	=> 1,
-			'max_length'	=> 2000
+			'max_length'	=> 5000
 		]);
 
 		// DB Updates
@@ -54,6 +54,27 @@ class Rona_Logger extends \Rona\Module {
 				ENGINE = InnoDB
 				;
 				"
+			],
+			2	=> [
+				"
+				ALTER TABLE {$this->config('db_table_prefix')}_entries ALTER tag DROP DEFAULT;
+				",
+				"
+				ALTER TABLE {$this->config('db_table_prefix')}_entries
+					CHANGE COLUMN tag tag VARCHAR({$this->config('tag.max_length')}) NOT NULL AFTER entry_id,
+					ADD COLUMN email_report_sent TINYINT(1) UNSIGNED NOT NULL DEFAULT '0' AFTER data;
+				"
+			],
+			3	=> [
+				"
+				ALTER TABLE {$this->config('db_table_prefix')}_entries ALTER tag DROP DEFAULT;
+				",
+				"
+				ALTER TABLE {$this->config('db_table_prefix')}_entries
+					CHANGE COLUMN tag tag VARCHAR({$this->config('tag.max_length')}) NOT NULL AFTER entry_id,
+					CHANGE COLUMN data data MEDIUMTEXT NULL AFTER description,
+					ADD COLUMN environment MEDIUMTEXT NULL AFTER data;
+				"
 			]
 		]);
 
@@ -64,8 +85,7 @@ class Rona_Logger extends \Rona\Module {
 
 		// Email Report
 		$this->config()->set('email_report', [
-			'email_handler'		=> function($from, $subject, $body) {},
-			'minute_interval'	=> 5
+			'email_handler'		=> function($from, $subject, $body) {}
 		]);
 	}
 
@@ -127,11 +147,12 @@ class Rona_Logger extends \Rona\Module {
 								<?php
 							} else {
 								?>
-								Entry ID: <?php echo $get_entry_res->data['entry_id'] ?><br>
-								Tag: <?php echo $get_entry_res->data['tag'] ?><br>
-								Description: <?php echo $get_entry_res->data['description'] ?><br>
-								When Created: <?php echo $get_entry_res->data['when_created'] ?><br>
-								Data: <pre><?php print_r($get_entry_res->data['data']) ?></pre>
+								<strong>Entry ID:</strong> <?php echo $get_entry_res->data['entry_id'] ?><br>
+								<strong>Tag:</strong> <?php echo $get_entry_res->data['tag'] ?><br>
+								<strong>Description:</strong> <?php echo $get_entry_res->data['description'] ?><br>
+								<strong>When Created:</strong> <?php echo $get_entry_res->data['when_created'] ?><br>
+								<strong>Data:</strong> <pre><?php print_r($get_entry_res->data['data']) ?></pre>
+								<strong>Environment:</strong> <pre><?php print_r($get_entry_res->data['environment']) ?></pre>
 								<?php
 							}
 							?>

@@ -5,12 +5,10 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.3.1
+ * @version 1.4.0
  */
 
 namespace Rona\HTTP_Response;
-
-use Rona\Helper;
 
 class Response {
 
@@ -103,7 +101,7 @@ class Response {
 
 				ob_start();
 					(function() {
-						$this->route_module->include_template_file($this->scope, $this->view->template['module']->config('view_assets.template', true)($this->view->template['module'], Helper::maybe_closure($this->view->template['template']), Helper::maybe_closure($this->view->template['data'])));
+						$this->route_module->include_template_file($this->scope, $this->view->template['module']->config('view_assets.template', true)($this->view->template['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($this->view->template['template']), $this->app->get_module_resource('rona', 'helper')->maybe_closure($this->view->template['data'])));
 					})();
 				$body = ob_get_clean();
 
@@ -123,27 +121,27 @@ class Response {
 									// Stylesheet
 									case 'stylesheet':
 										?>
-										<link href="<?php echo $components['module']->config('view_assets.stylesheet', true)($components['module'], Helper::maybe_closure($item), Helper::maybe_closure($components['data'])) ?>" rel="stylesheet">
+										<link href="<?php echo $components['module']->config('view_assets.stylesheet', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($item), $this->app->get_module_resource('rona', 'helper')->maybe_closure($components['data'])) ?>" rel="stylesheet">
 										<?php
 										break;
 
 									// Javascript
 									case 'javascript':
 										?>
-										<script src="<?php echo $components['module']->config('view_assets.javascript', true)($components['module'], Helper::maybe_closure($item), Helper::maybe_closure($components['data'])) ?>"></script>
+										<script src="<?php echo $components['module']->config('view_assets.javascript', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($item), $this->app->get_module_resource('rona', 'helper')->maybe_closure($components['data'])) ?>"></script>
 										<?php
 										break;
 
 									// File
 									case 'file':
 										(function() use ($components, $item) {
-											$this->route_module->include_template_file($this->scope, $components['module']->config('view_assets.file', true)($components['module'], Helper::maybe_closure($item), Helper::maybe_closure($components['data'])));
+											$this->route_module->include_template_file($this->scope, $components['module']->config('view_assets.file', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($item), $this->app->get_module_resource('rona', 'helper')->maybe_closure($components['data'])));
 										})();
 										break;
 
 									// Content
 									case 'content':
-										echo Helper::maybe_closure($item);
+										echo $this->app->get_module_resource('rona', 'helper')->maybe_closure($item);
 										break;
 								}
 							}

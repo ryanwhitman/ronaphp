@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.3.1
+ * @version 1.4.0
  */
 
 namespace Rona;
@@ -145,7 +145,7 @@ class Param_Exam {
 
 			// The exam arguments can be passed in as a closure.
 			foreach ($exam as $arg => $val)
-				$exam[$arg] = Helper::maybe_closure($val, empty($failed_data), $raw_data, $successful_data, $failed_data);
+				$exam[$arg] = $this->module->get_module_resource('rona', 'helper')->maybe_closure($val, empty($failed_data), $raw_data, $successful_data, $failed_data);
 
 			// Ensure the exam arguments are of the correct type. Some args can be defaulted.
 			if (!is_string($exam['param']))
@@ -158,35 +158,35 @@ class Param_Exam {
 				throw new \Exception('The options argument defined in Param_Exam must be an array.');
 
 			// Establish the initial value.
-			$val = Helper::array_get($raw_data, $exam['param']);
+			$val = $this->module->get_module_resource('rona', 'helper')->array_get($raw_data, $exam['param']);
 
 			// Find the default value, if applicable
-			if (Helper::is_null_or_empty_string($val) && !Helper::is_null_or_empty_string(Helper::array_get($exam, 'options.default')))
+			if ($this->module->get_module_resource('rona', 'helper')->is_null_or_empty_string($val) && !$this->module->get_module_resource('rona', 'helper')->is_null_or_empty_string($this->module->get_module_resource('rona', 'helper')->array_get($exam, 'options.default')))
 				$val = $exam['options']['default'];
 
 			// If dependencies were defined, then run filter only if those conditions are met
 			foreach ($exam['options']['dependencies'] ?? [] as $dependent_param => $dependent_val) {
-				if (!Helper::array_get($successful_data, $dependent_param) === $dependent_val)
+				if (!$this->module->get_module_resource('rona', 'helper')->array_get($successful_data, $dependent_param) === $dependent_val)
 					continue 2;
 			}
 
 			// If dependent_param was declared, then proceed only if that param exists and is not null
-			$dependent_param = Helper::array_get($exam, 'options.dependent_param');
+			$dependent_param = $this->module->get_module_resource('rona', 'helper')->array_get($exam, 'options.dependent_param');
 			if (isset($dependent_param) && !isset($successful_data[$dependent_param]))
 				continue;
 
 			// If dependent_true was declared, then proceed only if that param exists, is not null, and evaluates to true
-			$dependent_true = Helper::array_get($exam, 'options.dependent_true');
+			$dependent_true = $this->module->get_module_resource('rona', 'helper')->array_get($exam, 'options.dependent_true');
 			if (isset($dependent_true) && (!isset($successful_data[$dependent_true]) || !$successful_data[$dependent_true]))
 				continue;
 
 			// If dependent_false was declared, then proceed only if that param exists, is not null, and evaluates to false
-			$dependent_false = Helper::array_get($exam, 'options.dependent_false');
+			$dependent_false = $this->module->get_module_resource('rona', 'helper')->array_get($exam, 'options.dependent_false');
 			if (isset($dependent_false) && (!isset($successful_data[$dependent_false]) || $successful_data[$dependent_false]))
 				continue;
 
 			// If the param is required and the value is either null or an empty string, record the fail data and move to the next param.
-			if ($exam['is_reqd'] && Helper::is_null_or_empty_string($val)) {
+			if ($exam['is_reqd'] && $this->module->get_module_resource('rona', 'helper')->is_null_or_empty_string($val)) {
 				$failed_data[$exam['param']] = [
 					'val'			=> $val,
 					'tag'			=> 'non_existent',
@@ -202,11 +202,11 @@ class Param_Exam {
 				continue;
 
 			// If the param is just an empty string and the "allow empty string" option was set, just trim it and leave it be
-			if (Helper::is_empty_string($val) && Helper::array_get($exam, 'options.allow_empty_string'))
+			if ($this->module->get_module_resource('rona', 'helper')->is_empty_string($val) && $this->module->get_module_resource('rona', 'helper')->array_get($exam, 'options.allow_empty_string'))
 				$val = trim($val);
 
 			// The param has a value of some sort and empty strings are disallowed, so run it through the filter, if one was defined.
-			else if (!Helper::is_null_or_empty_string($exam['filter'])) {
+			else if (!$this->module->get_module_resource('rona', 'helper')->is_null_or_empty_string($exam['filter'])) {
 
 				// Locate the filter.
 				$f = $this->module->locate_param_filter($exam['filter']);
@@ -246,10 +246,10 @@ class Param_Exam {
 			}
 
 			// Save the value into the successful_data array
-			Helper::array_set(
+			$this->module->get_module_resource('rona', 'helper')->array_set(
 				$successful_data,
 				trim(
-					($exam['options']['to_array'] ?? '') . '.' . (!Helper::is_null_or_empty_string($exam['options']['to_param'] ?? '') ? $exam['options']['to_param'] : $exam['param']),
+					($exam['options']['to_array'] ?? '') . '.' . (!$this->module->get_module_resource('rona', 'helper')->is_null_or_empty_string($exam['options']['to_param'] ?? '') ? $exam['options']['to_param'] : $exam['param']),
 					'. '
 				),
 				$val
