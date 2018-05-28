@@ -28,7 +28,7 @@ class Entry extends \Rona\Procedure_Group {
 
 				// Set the environment data.
 				$environment = [];
-				$environment['URL'] = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+				$environment['URL'] = isset($_SERVER['HTTP_HOST']) && isset($_SERVER['REQUEST_URI']) ? 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] : 'N/A';
 				if (!empty($_GET))
 					$environment['$_GET'] = $_GET;
 				if (!empty($_POST))

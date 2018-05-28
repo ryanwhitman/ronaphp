@@ -114,7 +114,7 @@ class General extends \Rona\Procedure_Group {
 									?>
 									<li style="padding-bottom: 5px;">
 										<?php echo $description ?>
-										<ul style="padding-left: 0;">
+										<ul style="padding-left: 5px;">
 											<li style="padding-top: 2px;">
 												<?php echo $count . ' entr' . ($count == 1 ? 'y' : 'ies') ?>:
 												<?php
