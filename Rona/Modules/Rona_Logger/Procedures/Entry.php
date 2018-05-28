@@ -51,6 +51,9 @@ class Entry extends \Rona\Procedure_Group {
 				if (!$is_success)
 					return $this->failure('unknown_error');
 
+				// Run the email report procedure. It will only send when the threshold has been reached.
+				$this->module->run_procedure('general.email_report');
+
 				// Success
 				return $this->success('entry_created');
 			}

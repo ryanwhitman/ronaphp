@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona\Modules;
@@ -85,6 +85,7 @@ class Rona_Logger extends \Rona\Module {
 
 		// Email Report
 		$this->config()->set('email_report', [
+			'always_send_at'	=> 300,
 			'email_handler'		=> function($from, $subject, $body) {}
 		]);
 	}

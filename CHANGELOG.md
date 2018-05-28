@@ -1,3 +1,7 @@
+### v. 1.5.0
+
+- Improvements to RonaPHP Logger.
+
 ### v. 1.4.0
 
 - Deleted the existing `\Rona\Helper` class file and converted it to a resource housed in the `rona` module. The new helper resource consists of the exact same functionality but no longer uses static methods. The new helper resource is accessible via `->get_module_resource('rona', 'helper')`. All internal functionality, including the internal modules, has been updated to utilize the new resource.
