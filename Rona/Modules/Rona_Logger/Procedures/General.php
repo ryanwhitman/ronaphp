@@ -73,7 +73,7 @@ class General extends \Rona\Procedure_Group {
 				$mysqli = $this->get_module_resource('rona', 'db')->mysqli;
 
 				// Get the entries.
-				$stmt = $mysqli->prepare("SELECT * FROM {$this->config('db_table_prefix')}_entries WHERE email_report_sent = 0 ORDER BY when_created ASC;");
+				$stmt = $mysqli->prepare("SELECT * FROM {$this->config('db_table_prefix')}_entries WHERE email_report_sent = 0 ORDER BY when_created ASC FOR UPDATE;");
 				$is_success = $stmt->execute();
 				$rs = $stmt->get_result();
 				$stmt->close();
