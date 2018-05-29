@@ -72,6 +72,9 @@ class General extends \Rona\Procedure_Group {
 				// Open DB connection.
 				$mysqli = $this->get_module_resource('rona', 'db')->mysqli;
 
+				// Start transaction.
+				$mysqli->query("START TRANSACTION;");
+
 				// Get the entries.
 				$stmt = $mysqli->prepare("SELECT * FROM {$this->config('db_table_prefix')}_entries WHERE email_report_sent = 0 ORDER BY when_created ASC FOR UPDATE;");
 				$is_success = $stmt->execute();
@@ -143,6 +146,9 @@ class General extends \Rona\Procedure_Group {
 					$subject = '[' . $this->app_config('environment_name') . '] ' . $total_entries . ' Entr' . ($total_entries == 1 ? 'y' : 'ies') . ' for ' . date('m/d/y H:i:s');
 					$this->config('email_report.email_handler')($from, $subject, $body);
 				}
+
+				// End transaction.
+				$mysqli->query("COMMIT;");
 
 				// Close DB connection.
 				$mysqli->close();

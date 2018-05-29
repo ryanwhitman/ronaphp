@@ -85,7 +85,7 @@ class Rona_Logger extends \Rona\Module {
 
 		// Email Report
 		$this->config()->set('email_report', [
-			'always_send_at'	=> 300,
+			'always_send_at'	=> 500,
 			'email_handler'		=> function($from, $subject, $body) {}
 		]);
 	}
