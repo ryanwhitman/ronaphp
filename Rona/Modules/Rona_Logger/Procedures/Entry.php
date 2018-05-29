@@ -39,7 +39,6 @@ class Entry extends \Rona\Procedure_Group {
 					$environment['$_SERVER'] = $_SERVER;
 				if (!empty($_SESSION))
 					$environment['$_SESSION'] = $_SESSION;
-				$environment['backtrace'] = debug_backtrace();
 				$environment = json_encode($environment);
 
 				// Insert the entry into the DB.

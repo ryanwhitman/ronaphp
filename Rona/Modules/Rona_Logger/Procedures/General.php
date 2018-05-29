@@ -65,7 +65,7 @@ class General extends \Rona\Procedure_Group {
 		 */
 		$this->register('email_report',
 			function($param_exam, $raw_input) {
-				$param_exam->opt_param('send_at_1', ['rona', 'general.boolean'], ['default' => false]);
+				$param_exam->opt_param('force_send', ['rona', 'general.boolean'], ['default' => false]);
 			},
 			function($input) {
 
@@ -86,7 +86,16 @@ class General extends \Rona\Procedure_Group {
 				$total_entries = count($entries);
 
 				// If entries were found and the right conditions are met, proceed.
-				if ($total_entries && ($input['send_at_1'] || $total_entries >= $this->config('email_report.always_send_at'))) {
+				if (
+					$total_entries &&
+					(
+						$input['force_send'] ||
+						(
+							$this->config('email_report.force_send_at') !== false &&
+							$total_entries >= $this->config('email_report.force_send_at')
+						)
+					)
+				) {
 
 					// Compile the entries and collect the entry IDs.
 					$compilation = [];
