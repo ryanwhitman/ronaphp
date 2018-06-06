@@ -49,11 +49,23 @@ class Rona {
 		});
 	}
 
+	/**
+	 * Register the stock configuration.
+	 */
 	protected function register_stock_config() {
-		$this->config()->set('environment_name', '');
+		$this->config()->set('name', 'My RonaPHP App');
+		$this->config()->set('environment', 'dev');
+		$this->config()->set('environment_name', $this->config('environment') == 'dev' ? 'Development' : ($this->config('environment') == 'staging' ? 'Staging' : 'Production'));
+		$this->config()->set('debug_mode', $this->config('environment') != 'prod');
+		$this->config()->set('document_root', !empty($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(__DIR__));
 		$this->config()->set('base_path', '');
-		$this->config()->set('request_path', strtok($_SERVER['REQUEST_URI'] ?? '', '?'));
+		$this->config()->set('api_pattern', '\/api(?>$|\/.*)');
+		$this->config()->set('webapp_pattern', '^(?!' . $this->config('api_pattern') . '$).*');
 		$this->config()->set('http_methods', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
+		$this->config()->set('request_path', strtok($_SERVER['REQUEST_URI'] ?? '', '?'));
+		$this->config()->set('domain', $_SERVER['HTTP_HOST'] ?? '');
+		$this->config()->set('url', 'https://' . $this->config('domain'));
+		$this->config()->set('revision', '');
 		$this->config()->set('db', [
 			'host'		=> '',
 			'username'	=> '',
@@ -62,19 +74,20 @@ class Rona {
 		]);
 		$this->config()->set('template_placeholder_replace_text', '%PH%');
 		$this->config()->set('template_placeholder', '{% ' . $this->config('template_placeholder_replace_text') . ' %}');
-		$this->config()->set('view_assets')
-			->_('template', function(\Rona\Module $module, string $template, array $data) {
-				return $template;
-			})
-			->_('stylesheet', function(\Rona\Module $module, string $item, array $data) {
-				return $item;
-			})
-			->_('javascript', function(\Rona\Module $module, string $item, array $data) {
-				return $item;
-			})
-			->_('file', function(\Rona\Module $module, string $item, array $data) {
-				return $item;
-			});
+		$this->config()->set('file_locations', [
+			'templates'		=> function(\Rona\Module $module, string $file) {
+				return $module->config('file_abs_path') . '/web/templates/' . $file;
+			},
+			'stylesheets'	=> function(\Rona\Module $module, string $file) {
+				return $module->config('file_rel_path') . '/web/stylesheets/' . $file . '?' . $this->config('revision');
+			},
+			'javascript'	=> function(\Rona\Module $module, string $file) {
+				return $module->config('file_rel_path') . '/web/javascript/' . $file . '?' . $this->config('revision');
+			},
+			'files'			=> function(\Rona\Module $module, string $file) {
+				return $module->config('file_abs_path') . '/web/files/' . $file;
+			}
+		]);
 	}
 
 	protected function register_config() {}
