@@ -76,16 +76,16 @@ class Rona {
 		$this->config()->set('template_placeholder', '{% ' . $this->config('template_placeholder_replace_text') . ' %}');
 		$this->config()->set('file_locations', [
 			'templates'		=> function(\Rona\Module $module, string $file) {
-				return $module->config('file_abs_path') . '/web/templates/' . $file;
+				return $module->config('abs_file_path') . '/web/templates/' . $file;
 			},
 			'stylesheets'	=> function(\Rona\Module $module, string $file) {
-				return $module->config('file_rel_path') . '/web/stylesheets/' . $file . '?' . $this->config('revision');
+				return $module->config('rel_file_path') . '/web/stylesheets/' . $file . '?' . $this->config('revision');
 			},
 			'javascript'	=> function(\Rona\Module $module, string $file) {
-				return $module->config('file_rel_path') . '/web/javascript/' . $file . '?' . $this->config('revision');
+				return $module->config('rel_file_path') . '/web/javascript/' . $file . '?' . $this->config('revision');
 			},
 			'files'			=> function(\Rona\Module $module, string $file) {
-				return $module->config('file_abs_path') . '/web/files/' . $file;
+				return $module->config('abs_file_path') . '/web/files/' . $file;
 			}
 		]);
 	}

@@ -1,6 +1,7 @@
 ### v. 1.5.0
 
 - Adjustments to the stock app configuration, including the deletion of view_assets and the addition of file_locations. Review thoroughly before implementing.
+- Added stock configuration for the module class.
 - Improvements to RonaPHP Logger.
 
 ### v. 1.4.0
