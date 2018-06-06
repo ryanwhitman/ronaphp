@@ -22,7 +22,7 @@ class View {
 		$this->current_controller_module = $current_controller_module;
 	}
 
-	public function template($template, array $data = []): self {
+	public function template($template, array $options = []): self {
 
 		// If false is passed in, set the template property back to false.
 		if ($template === false)
@@ -33,7 +33,7 @@ class View {
 			$this->template = [
 				'module'	=> $this->current_controller_module,
 				'template'	=> $template,
-				'data'		=> $data
+				'options'	=> $options
 			];
 		}
 
@@ -41,13 +41,13 @@ class View {
 		return $this;
 	}
 
-	protected function component(string $type, string $placement, string $placeholder, $items, array $data = []): self {
+	protected function component(string $type, string $placement, string $placeholder, $files_or_content, array $options = []): self {
 
 		$arr = [
-			'module'		=> $this->current_controller_module,
-			'type'			=> $type,
-			'items'			=> (array) $items,
-			'data'			=> $data
+			'module'				=> $this->current_controller_module,
+			'type'					=> $type,
+			'files_or_content'		=> (array) $files_or_content,
+			'options'				=> $options
 		];
 
 		if (!isset($this->components[$placeholder]['first']))
@@ -87,83 +87,83 @@ class View {
 		return $this;
 	}
 
-	public function first_stylesheet(string $placeholder, $items, array $data = []): self {
-		return $this->component('stylesheet', 'first', $placeholder, $items, $data);
+	public function first_stylesheet(string $placeholder, $files, array $options = []): self {
+		return $this->component('stylesheet', 'first', $placeholder, $files, $options);
 	}
 
-	public function prepend_stylesheet(string $placeholder, $items, array $data = []): self {
-		return $this->component('stylesheet', 'prepend', $placeholder, $items, $data);
+	public function prepend_stylesheet(string $placeholder, $files, array $options = []): self {
+		return $this->component('stylesheet', 'prepend', $placeholder, $files, $options);
 	}
 
-	public function set_stylesheet(string $placeholder, $items, array $data = []): self {
-		return $this->component('stylesheet', 'set', $placeholder, $items, $data);
+	public function set_stylesheet(string $placeholder, $files, array $options = []): self {
+		return $this->component('stylesheet', 'set', $placeholder, $files, $options);
 	}
 
-	public function append_stylesheet(string $placeholder, $items, array $data = []): self {
-		return $this->component('stylesheet', 'append', $placeholder, $items, $data);
+	public function append_stylesheet(string $placeholder, $files, array $options = []): self {
+		return $this->component('stylesheet', 'append', $placeholder, $files, $options);
 	}
 
-	public function last_stylesheet(string $placeholder, $items, array $data = []): self {
-		return $this->component('stylesheet', 'last', $placeholder, $items, $data);
+	public function last_stylesheet(string $placeholder, $files, array $options = []): self {
+		return $this->component('stylesheet', 'last', $placeholder, $files, $options);
 	}
 
-	public function first_javascript(string $placeholder, $items, array $data = []): self {
-		return $this->component('javascript', 'first', $placeholder, $items, $data);
+	public function first_javascript(string $placeholder, $files, array $options = []): self {
+		return $this->component('javascript', 'first', $placeholder, $files, $options);
 	}
 
-	public function prepend_javascript(string $placeholder, $items, array $data = []): self {
-		return $this->component('javascript', 'prepend', $placeholder, $items, $data);
+	public function prepend_javascript(string $placeholder, $files, array $options = []): self {
+		return $this->component('javascript', 'prepend', $placeholder, $files, $options);
 	}
 
-	public function set_javascript(string $placeholder, $items, array $data = []): self {
-		return $this->component('javascript', 'set', $placeholder, $items, $data);
+	public function set_javascript(string $placeholder, $files, array $options = []): self {
+		return $this->component('javascript', 'set', $placeholder, $files, $options);
 	}
 
-	public function append_javascript(string $placeholder, $items, array $data = []): self {
-		return $this->component('javascript', 'append', $placeholder, $items, $data);
+	public function append_javascript(string $placeholder, $files, array $options = []): self {
+		return $this->component('javascript', 'append', $placeholder, $files, $options);
 	}
 
-	public function last_javascript(string $placeholder, $items, array $data = []): self {
-		return $this->component('javascript', 'last', $placeholder, $items, $data);
+	public function last_javascript(string $placeholder, $files, array $options = []): self {
+		return $this->component('javascript', 'last', $placeholder, $files, $options);
 	}
 
-	public function first_file(string $placeholder, $items, array $data = []): self {
-		return $this->component('file', 'first', $placeholder, $items, $data);
+	public function first_file(string $placeholder, $files, array $options = []): self {
+		return $this->component('file', 'first', $placeholder, $files, $options);
 	}
 
-	public function prepend_file(string $placeholder, $items, array $data = []): self {
-		return $this->component('file', 'prepend', $placeholder, $items, $data);
+	public function prepend_file(string $placeholder, $files, array $options = []): self {
+		return $this->component('file', 'prepend', $placeholder, $files, $options);
 	}
 
-	public function set_file(string $placeholder, $items, array $data = []): self {
-		return $this->component('file', 'set', $placeholder, $items, $data);
+	public function set_file(string $placeholder, $files, array $options = []): self {
+		return $this->component('file', 'set', $placeholder, $files, $options);
 	}
 
-	public function append_file(string $placeholder, $items, array $data = []): self {
-		return $this->component('file', 'append', $placeholder, $items, $data);
+	public function append_file(string $placeholder, $files, array $options = []): self {
+		return $this->component('file', 'append', $placeholder, $files, $options);
 	}
 
-	public function last_file(string $placeholder, $items, array $data = []): self {
-		return $this->component('file', 'last', $placeholder, $items, $data);
+	public function last_file(string $placeholder, $files, array $options = []): self {
+		return $this->component('file', 'last', $placeholder, $files, $options);
 	}
 
-	public function first_content(string $placeholder, $items): self {
-		return $this->component('content', 'first', $placeholder, $items);
+	public function first_content(string $placeholder, $content): self {
+		return $this->component('content', 'first', $placeholder, $content);
 	}
 
-	public function prepend_content(string $placeholder, $items): self {
-		return $this->component('content', 'prepend', $placeholder, $items);
+	public function prepend_content(string $placeholder, $content): self {
+		return $this->component('content', 'prepend', $placeholder, $content);
 	}
 
-	public function set_content(string $placeholder, $items): self {
-		return $this->component('content', 'set', $placeholder, $items);
+	public function set_content(string $placeholder, $content): self {
+		return $this->component('content', 'set', $placeholder, $content);
 	}
 
-	public function append_content(string $placeholder, $items): self {
-		return $this->component('content', 'append', $placeholder, $items);
+	public function append_content(string $placeholder, $content): self {
+		return $this->component('content', 'append', $placeholder, $content);
 	}
 
-	public function last_content(string $placeholder, $items): self {
-		return $this->component('content', 'last', $placeholder, $items);
+	public function last_content(string $placeholder, $content): self {
+		return $this->component('content', 'last', $placeholder, $content);
 	}
 }
