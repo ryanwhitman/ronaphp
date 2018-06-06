@@ -2,6 +2,7 @@
 
 - Adjustments to the stock app configuration, including the deletion of view_assets and the addition of file_locations. Review thoroughly before implementing.
 - Added stock configuration for the module class.
+- Added 404 no-route handlers to the stock Rona module.
 - Improvements to RonaPHP Logger.
 
 ### v. 1.4.0
