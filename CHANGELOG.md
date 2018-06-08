@@ -5,6 +5,7 @@
 - Added 404 no-route handlers to the stock Rona module.
 - The HTTP Response handler now processes several options: full, module, and attrs. Previously, this parameter was passed in as $data and was just passed to the view_assets config., which has now been fully replaced.
 - Improvements to RonaPHP Logger.
+- The include_template_file method in the \Rona\Module class has been renamed to include_file.
 
 ### v. 1.4.0
 

@@ -536,7 +536,7 @@ class Module {
 	 * @param    string       $file    The file path to include.
 	 * @return   void
 	 */
-	public function include_template_file(Scope $scope, string $file) {
+	public function include_file(Scope $scope, string $file) {
 		include $file;
 	}
 }
