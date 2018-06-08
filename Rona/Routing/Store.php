@@ -61,7 +61,7 @@ class Store {
 		if (!is_null($controller))
 			$route_queue->append_controller($controller);
 
-		// Loop thru each path.
+		// Loop through each path.
 		foreach ((array) $paths as $path) {
 
 			// If the path is just a forward slash, remove it.

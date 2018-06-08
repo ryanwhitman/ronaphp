@@ -22,17 +22,17 @@ class View {
 		$this->current_controller_module = $current_controller_module;
 	}
 
-	public function template($template, array $options = []): self {
+	public function template($file, array $options = []): self {
 
 		// If false is passed in, set the template property back to false.
-		if ($template === false)
+		if ($file === false)
 			$this->template = false;
 
 		// Otherwise, set the template.
 		else {
 			$this->template = [
 				'module'	=> $this->current_controller_module,
-				'template'	=> $template,
+				'file'		=> $file,
 				'options'	=> $options
 			];
 		}

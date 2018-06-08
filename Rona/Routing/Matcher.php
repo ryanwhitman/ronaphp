@@ -26,7 +26,7 @@ class Matcher {
 		if ($path == '/')
 			$path = '';
 
-		// Loop thru the routes.
+		// Loop through the routes.
 		foreach (($routes[strtoupper($method)] ?? []) as $route_path => $route_queue) {
 
 			// Reset the path_vars_matched property.

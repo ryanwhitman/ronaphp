@@ -174,7 +174,7 @@ class Rona {
 		// Add the hook name to the args array.
 		array_unshift($args, $name);
 
-		// Loop thru each module and run the hook. Store the hook response in an array.
+		// Loop through each module and run the hook. Store the hook response in an array.
 		foreach ($this->get_modules() as $module)
 			$res[$module->get_id()] = call_user_func_array([$module, 'run_hook'], $args);
 
@@ -204,7 +204,7 @@ class Rona {
 		// Create a route matching object.
 		$route_matcher = new Routing\Matcher;
 
-		// Loop thru each module and get the matching routes.
+		// Loop through each module and get the matching routes.
 		$route_queues = [];
 		$non_abstract = false;
 		$non_abstract_module = NULL;
@@ -252,7 +252,7 @@ class Rona {
 		$route->set_module($route_module);
 		$http_response->set_route_module($route_module);
 
-		// Loop thru each route queue and execute.
+		// Loop through each route queue and execute.
 		foreach ($route_queues as $route_queue) {
 			$route->set_current_controller_module($route_queue['module']);
 			$route_queue['route_queue']->process($route);

@@ -121,7 +121,7 @@ class Param_Exam {
 		// Create an array to hold the failed data.
 		$failed_data = [];
 
-		// Run thru the exams. Using an infinite loop allows exams to be dynamically added with the callback methods.
+		// Run through the exams. Using an infinite loop allows exams to be dynamically added with the callback methods.
 		while (1) {
 
 			// If no more exams exist, break the infinite loop.

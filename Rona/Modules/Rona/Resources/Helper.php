@@ -34,7 +34,7 @@ class Helper {
 		if (!is_array($path))
 			$path = explode('.', $path);
 
-		// Loop thru each of the path parts. Keep going until either the array key is not found (return default) or the array loop has completed.
+		// Loop through each of the path parts. Keep going until either the array key is not found (return default) or the array loop has completed.
 		foreach ($path as $part) {
 			if (!array_key_exists($part, $array))
 				return $default;

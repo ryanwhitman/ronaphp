@@ -76,6 +76,9 @@ class Response {
 		return $this->view;
 	}
 
+	/**
+	 * Output the HTTP Response.
+	 */
 	public function output() {
 
 		// Set the HTTP Response code.
@@ -85,84 +88,169 @@ class Response {
 
 		// When the content type is to be JSON:
 		if ($this->is_json || is_object($this->api)) {
+
+			// Set the content type header.
 			header('Content-Type: application/json;charset=utf-8');
 
+			// If the API object is being utilized, set it as the response body.
 			if (is_object($this->api))
 				$this->set_body($this->api);
 
+			// JSON encode the response body.
 			$this->set_body(json_encode($this->get_body()));
 		}
 
 		// When the content type is to be text/HTML:
 		else {
+
+			// Set the content type header.
 			header('Content-Type: text/html;charset=utf-8');
 
+			// When the view object is being utilized and a template has been defined:
 			if (is_object($this->view) && $this->view->template) {
 
+				// Set the response body to contain the template file.
 				ob_start();
 					(function() {
-						$this->route_module->include_template_file($this->scope, $this->view->template['module']->config('view_assets.template', true)($this->view->template['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($this->view->template['template']), $this->app->get_module_resource('rona', 'helper')->maybe_closure($this->view->template['data'])));
+
+						// If the full option is set, simply use the defined file.
+						if (!empty($this->view->template['options']['full']))
+							$file = $this->view->template['file'];
+
+						// Otherwise, run the file through the config.
+						else {
+
+							// If the module option is set, use that module.
+							if (isset($this->view->template['options']['module']))
+								$this->view->template['module'] = $this->app->get_module($this->view->template['options']['module']);
+
+							// Set the file.
+							$file = $this->view->template['module']->config('file_locations.templates', true)($this->view->template['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($this->view->template['file']));
+						}
+
+						// Include the file under the route module. ** Should this be changed to the established module above? **
+						$this->route_module->include_file($this->scope, $file);
 					})();
 				$body = ob_get_clean();
 
+				// Add the view components to the response body.
 				foreach ($this->view->components as $placeholder => $sections) {
 
 					// Merge the first, middle, and last sections into a single array.
-					$p = array_merge($sections['first'], $sections['middle'], $sections['last']);
+					$merged_sections = array_merge($sections['first'], $sections['middle'], $sections['last']);
 
+					// Run through the sections and process the various component types.
 					ob_start();
-
-						foreach ($p as $components) {
-
-							foreach ($components['items'] as $item) {
-
+						foreach ($merged_sections as $components) {
+							foreach ($components['files_or_content'] as $file_or_content) {
 								switch ($components['type']) {
 
-									// Stylesheet
+									// Stylesheets
 									case 'stylesheet':
+
+										// If the full option is set, simply use the defined file.
+										if (!empty($components['options']['full']))
+											$file = $file_or_content;
+
+										// Otherwise, run the file through the config.
+										else {
+
+											// If the module option is set, use that module.
+											if (isset($components['options']['module']))
+												$components['module'] = $this->app->get_module($components['options']['module']);
+
+											// Set the file.
+											$file = $components['module']->config('file_locations.stylesheets', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($file_or_content));
+										}
+
+										// Establish the element attributes by merging the component options and build the HTML element.
+										$attrs = array_merge([
+											'href'	=> $file,
+											'rel'	=> 'stylesheet'
+										], $components['options']['attrs'] ?? []);
 										?>
-										<link href="<?php echo $components['module']->config('view_assets.stylesheet', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($item), $this->app->get_module_resource('rona', 'helper')->maybe_closure($components['data'])) ?>" rel="stylesheet">
+										<link<?php foreach ($attrs as $attr_name => $attr_val) {echo ' ' . $attr_name . (is_null($attr_val) ? '' : '="' . $attr_val . '"');} ?>>
 										<?php
 										break;
 
 									// Javascript
 									case 'javascript':
+
+										// If the full option is set, simply use the defined file.
+										if (!empty($components['options']['full']))
+											$file = $file_or_content;
+
+										// Otherwise, run the file through the config.
+										else {
+
+											// If the module option is set, use that module.
+											if (isset($components['options']['module']))
+												$components['module'] = $this->app->get_module($components['options']['module']);
+
+											// Set the file.
+											$file = $components['module']->config('file_locations.javascript', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($file_or_content));
+										}
+
+										// Establish the element attributes by merging the component options and build the HTML element.
+										$attrs = array_merge([
+											'src'	=> $file
+										], $components['options']['attrs'] ?? []);
 										?>
-										<script src="<?php echo $components['module']->config('view_assets.javascript', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($item), $this->app->get_module_resource('rona', 'helper')->maybe_closure($components['data'])) ?>"></script>
+										<script<?php foreach ($attrs as $attr_name => $attr_val) {echo ' ' . $attr_name . (is_null($attr_val) ? '' : '="' . $attr_val . '"');} ?>></script>
 										<?php
 										break;
 
-									// File
+									// Files
 									case 'file':
-										(function() use ($components, $item) {
-											$this->route_module->include_template_file($this->scope, $components['module']->config('view_assets.file', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($item), $this->app->get_module_resource('rona', 'helper')->maybe_closure($components['data'])));
+										(function() use ($components, $file_or_content) {
+
+											// If the full option is set, simply use the defined file.
+											if (!empty($components['options']['full']))
+												$file = $file_or_content;
+
+											// Otherwise, run the file through the config.
+											else {
+
+												// If the module option is set, use that module.
+												if (isset($components['options']['module']))
+													$components['module'] = $this->app->get_module($components['options']['module']);
+
+												// Set the file.
+												$file = $components['module']->config('file_locations.files', true)($components['module'], $this->app->get_module_resource('rona', 'helper')->maybe_closure($file_or_content));
+											}
+
+											// Include the file under the route module. ** Should this be changed to the established module above? **
+											$this->route_module->include_file($this->scope, $file);
 										})();
 										break;
 
 									// Content
 									case 'content':
-										echo $this->app->get_module_resource('rona', 'helper')->maybe_closure($item);
+										echo $this->app->get_module_resource('rona', 'helper')->maybe_closure($file_or_content);
 										break;
 								}
 							}
 						}
-					$contents = ob_get_clean();
+					$output = ob_get_clean();
 
-					// Escape $n backreferences
-					$contents = preg_replace('/\$(\d)/', '\\\$$1', $contents);
+					/**
+					 * Found at https://stackoverflow.com/a/18993978/6589108. "Pre-parse the replacement text to escape the $ when followed by a number ($n has special meaning when using in the replacement text). See the comment on the php.net docs page." http://us1.php.net/manual/en/function.preg-replace.php#103985. "If there's a chance your replacement text contains any strings such as "$0.95", you'll need to escape those $n backreferences."
+					 */
+					$output = preg_replace('/\$(\d)/', '\\\$$1', $output);
 
-					$body = str_replace(str_replace($this->app->config('template_placeholder_replace_text'), $placeholder, $this->app->config('template_placeholder')), $contents, $body);
+					// Add the output to the response body at the designated placeholder.
+					$body = str_replace(str_replace($this->app->config('template_placeholder_replace_text'), $placeholder, $this->app->config('template_placeholder')), $output, $body);
 				}
 
 				// Remove any remaining placeholders.
 				$body = preg_replace('/' . str_replace($this->app->config('template_placeholder_replace_text'), '.*', $this->app->config('template_placeholder')) . '/i', '', $body);
 
-				// Set the body.
+				// Set the response body.
 				$this->set_body($body);
 			}
 		}
 
-		// Output the body.
+		// Output the response body.
 		echo $this->get_body();
 	}
 }
