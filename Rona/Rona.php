@@ -56,7 +56,6 @@ class Rona {
 		$this->config()->set('name', 'My RonaPHP App');
 		$this->config()->set('environment', 'dev');
 		$this->config()->set('environment_name', $this->config('environment') == 'dev' ? 'Development' : ($this->config('environment') == 'staging' ? 'Staging' : 'Production'));
-		$this->config()->set('debug_mode', $this->config('environment') != 'prod');
 		$this->config()->set('document_root', !empty($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(__DIR__));
 		$this->config()->set('base_path', '');
 		$this->config()->set('api_pattern', '\/api(?>$|\/.*)');
