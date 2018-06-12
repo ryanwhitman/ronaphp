@@ -27,12 +27,12 @@ class Rona {
 		// Register the stock configuration.
 		$this->register_stock_config();
 
-		// Register the configuration.
-		$this->register_config();
-
 		// Register the built-in modules.
 		$this->register_module('rona', '\Rona\Modules\Rona');
 		$this->register_module('rona_logger', '\Rona\Modules\Rona_Logger');
+
+		// Register the configuration.
+		$this->register_config();
 
 		// Register the modules.
 		$this->register_modules();
