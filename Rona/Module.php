@@ -5,13 +5,12 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona;
 
 use Rona\Routing\Store;
-use Rona\Config\Config;
 
 class Module {
 
@@ -79,7 +78,7 @@ class Module {
 	protected $hooks = [];
 
 	/**
-	 * The class constructor.
+	 * The constructor.
 	 *
 	 * @param    string    $id     The module ID.
 	 * @param    \Rona     $app    A Rona instance.
@@ -92,10 +91,13 @@ class Module {
 		// Set the Rona instance.
 		$this->app = $app;
 
-		// Create a config object for the module.
-		$this->config = new Config;
+		// Create a config object.
+		$this->config = new \Rona\Config\Config;
 
-		// Register this module's config.
+		// Register the stock configuration.
+		$this->register_stock_config();
+
+		// Register the configuration.
 		$this->register_config();
 
 		// Create route store objects for this module.
@@ -140,6 +142,15 @@ class Module {
 	 */
 	public function module_config(string $module_id, ...$args) {
 		return call_user_func_array([$this->get_module($module_id), 'config'], $args);
+	}
+
+	/**
+	 * The stock configuration.
+	 */
+	protected function register_stock_config() {
+		$this->config()->set('filename', (new \ReflectionObject($this))->getFileName());
+		$this->config()->set('abs_file_path', str_replace('.' . (new \SplFileInfo($this->config('filename')))->getExtension(), '', $this->config('filename')));
+		$this->config()->set('rel_file_path', str_replace($this->app_config('document_root'), '', $this->config('abs_file_path')));
 	}
 
 	protected function register_config() {}
@@ -525,7 +536,7 @@ class Module {
 	 * @param    string       $file    The file path to include.
 	 * @return   void
 	 */
-	public function include_template_file(Scope $scope, string $file) {
+	public function include_file(Scope $scope, string $file) {
 		include $file;
 	}
 }

@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona\Modules;
@@ -28,7 +28,7 @@ class Rona_Logger extends \Rona\Module {
 		// Entry
 		$this->config()->define('tag', [
 			'min_length'	=> 1,
-			'max_length'	=> 30
+			'max_length'	=> 50
 		]);
 		$this->config()->define('description', [
 			'min_length'	=> 1,
@@ -75,6 +75,15 @@ class Rona_Logger extends \Rona\Module {
 					CHANGE COLUMN data data MEDIUMTEXT NULL AFTER description,
 					ADD COLUMN environment MEDIUMTEXT NULL AFTER data;
 				"
+			],
+			4	=> [
+				"
+				ALTER TABLE {$this->config('db_table_prefix')}_entries ALTER tag DROP DEFAULT;
+				",
+				"
+				ALTER TABLE {$this->config('db_table_prefix')}_entries
+					CHANGE COLUMN tag tag VARCHAR({$this->config('tag.max_length')}) NOT NULL AFTER entry_id;
+				"
 			]
 		]);
 
@@ -85,6 +94,7 @@ class Rona_Logger extends \Rona\Module {
 
 		// Email Report
 		$this->config()->set('email_report', [
+			'force_send_at'		=> false,
 			'email_handler'		=> function($from, $subject, $body) {}
 		]);
 	}

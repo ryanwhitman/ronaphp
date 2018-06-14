@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona\Routing;
@@ -26,7 +26,7 @@ class Matcher {
 		if ($path == '/')
 			$path = '';
 
-		// Loop thru the routes.
+		// Loop through the routes.
 		foreach (($routes[strtoupper($method)] ?? []) as $route_path => $route_queue) {
 
 			// Reset the path_vars_matched property.

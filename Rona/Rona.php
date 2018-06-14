@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona;
@@ -27,12 +27,12 @@ class Rona {
 		// Register the stock configuration.
 		$this->register_stock_config();
 
-		// Register the configuration.
-		$this->register_config();
-
 		// Register the built-in modules.
 		$this->register_module('rona', '\Rona\Modules\Rona');
 		$this->register_module('rona_logger', '\Rona\Modules\Rona_Logger');
+
+		// Register the configuration.
+		$this->register_config();
 
 		// Register the modules.
 		$this->register_modules();
@@ -49,10 +49,22 @@ class Rona {
 		});
 	}
 
+	/**
+	 * Register the stock configuration.
+	 */
 	protected function register_stock_config() {
+		$this->config()->set('name', 'My RonaPHP App');
+		$this->config()->set('environment', 'dev');
+		$this->config()->set('environment_name', $this->config('environment') == 'dev' ? 'Development' : ($this->config('environment') == 'staging' ? 'Staging' : 'Production'));
+		$this->config()->set('document_root', !empty($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(__DIR__));
 		$this->config()->set('base_path', '');
-		$this->config()->set('request_path', strtok($_SERVER['REQUEST_URI'] ?? '', '?'));
+		$this->config()->set('api_pattern', '\/api(?>$|\/.*)');
+		$this->config()->set('webapp_pattern', '^(?!' . $this->config('api_pattern') . '$).*');
 		$this->config()->set('http_methods', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
+		$this->config()->set('request_path', strtok($_SERVER['REQUEST_URI'] ?? '', '?'));
+		$this->config()->set('domain', $_SERVER['HTTP_HOST'] ?? '');
+		$this->config()->set('url', 'https://' . $this->config('domain'));
+		$this->config()->set('revision', '');
 		$this->config()->set('db', [
 			'host'		=> '',
 			'username'	=> '',
@@ -61,19 +73,20 @@ class Rona {
 		]);
 		$this->config()->set('template_placeholder_replace_text', '%PH%');
 		$this->config()->set('template_placeholder', '{% ' . $this->config('template_placeholder_replace_text') . ' %}');
-		$this->config()->set('view_assets')
-			->_('template', function(\Rona\Module $module, string $template, array $data) {
-				return $template;
-			})
-			->_('stylesheet', function(\Rona\Module $module, string $item, array $data) {
-				return $item;
-			})
-			->_('javascript', function(\Rona\Module $module, string $item, array $data) {
-				return $item;
-			})
-			->_('file', function(\Rona\Module $module, string $item, array $data) {
-				return $item;
-			});
+		$this->config()->set('file_locations', [
+			'templates'		=> function(\Rona\Module $module, string $file) {
+				return $module->config('abs_file_path') . '/web/templates/' . $file;
+			},
+			'stylesheets'	=> function(\Rona\Module $module, string $file) {
+				return $module->config('rel_file_path') . '/web/stylesheets/' . $file . '?' . $this->config('revision');
+			},
+			'javascript'	=> function(\Rona\Module $module, string $file) {
+				return $module->config('rel_file_path') . '/web/javascript/' . $file . '?' . $this->config('revision');
+			},
+			'files'			=> function(\Rona\Module $module, string $file) {
+				return $module->config('abs_file_path') . '/web/files/' . $file;
+			}
+		]);
 	}
 
 	protected function register_config() {}
@@ -160,7 +173,7 @@ class Rona {
 		// Add the hook name to the args array.
 		array_unshift($args, $name);
 
-		// Loop thru each module and run the hook. Store the hook response in an array.
+		// Loop through each module and run the hook. Store the hook response in an array.
 		foreach ($this->get_modules() as $module)
 			$res[$module->get_id()] = call_user_func_array([$module, 'run_hook'], $args);
 
@@ -190,7 +203,7 @@ class Rona {
 		// Create a route matching object.
 		$route_matcher = new Routing\Matcher;
 
-		// Loop thru each module and get the matching routes.
+		// Loop through each module and get the matching routes.
 		$route_queues = [];
 		$non_abstract = false;
 		$non_abstract_module = NULL;
@@ -238,7 +251,7 @@ class Rona {
 		$route->set_module($route_module);
 		$http_response->set_route_module($route_module);
 
-		// Loop thru each route queue and execute.
+		// Loop through each route queue and execute.
 		foreach ($route_queues as $route_queue) {
 			$route->set_current_controller_module($route_queue['module']);
 			$route_queue['route_queue']->process($route);

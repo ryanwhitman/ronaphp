@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona\Routing;
@@ -61,7 +61,7 @@ class Store {
 		if (!is_null($controller))
 			$route_queue->append_controller($controller);
 
-		// Loop thru each path.
+		// Loop through each path.
 		foreach ((array) $paths as $path) {
 
 			// If the path is just a forward slash, remove it.

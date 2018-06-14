@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona\Modules\Rona\Resources;
@@ -34,7 +34,7 @@ class Helper {
 		if (!is_array($path))
 			$path = explode('.', $path);
 
-		// Loop thru each of the path parts. Keep going until either the array key is not found (return default) or the array loop has completed.
+		// Loop through each of the path parts. Keep going until either the array key is not found (return default) or the array loop has completed.
 		foreach ($path as $part) {
 			if (!array_key_exists($part, $array))
 				return $default;

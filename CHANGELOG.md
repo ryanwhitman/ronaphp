@@ -1,3 +1,12 @@
+### v. 1.5.0
+
+- Adjustments to the stock app configuration, including the deletion of view_assets and the addition of file_locations. Review thoroughly before implementing.
+- Added stock configuration for the module class.
+- Added 404 no-route handlers to the stock Rona module.
+- The HTTP Response handler now processes several options: full, module, and attrs. Previously, this parameter was passed in as $data and was just passed to the view_assets config., which has now been fully replaced.
+- Improvements to RonaPHP Logger.
+- The include_template_file method in the \Rona\Module class has been renamed to include_file.
+
 ### v. 1.4.0
 
 - Deleted the existing `\Rona\Helper` class file and converted it to a resource housed in the `rona` module. The new helper resource consists of the exact same functionality but no longer uses static methods. The new helper resource is accessible via `->get_module_resource('rona', 'helper')`. All internal functionality, including the internal modules, has been updated to utilize the new resource.

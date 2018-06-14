@@ -28,7 +28,7 @@ class Entry extends \Rona\Procedure_Group {
 
 				// Set the environment data.
 				$environment = [];
-				$environment['URL'] = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+				$environment['URL'] = isset($_SERVER['HTTP_HOST']) && isset($_SERVER['REQUEST_URI']) ? 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] : 'N/A';
 				if (!empty($_GET))
 					$environment['$_GET'] = $_GET;
 				if (!empty($_POST))
@@ -39,7 +39,6 @@ class Entry extends \Rona\Procedure_Group {
 					$environment['$_SERVER'] = $_SERVER;
 				if (!empty($_SESSION))
 					$environment['$_SESSION'] = $_SESSION;
-				$environment['backtrace'] = debug_backtrace();
 				$environment = json_encode($environment);
 
 				// Insert the entry into the DB.
@@ -50,6 +49,9 @@ class Entry extends \Rona\Procedure_Group {
 				$stmt->close();
 				if (!$is_success)
 					return $this->failure('unknown_error');
+
+				// Run the email report procedure. It will only send when the threshold has been reached.
+				$this->module->run_procedure('general.email_report');
 
 				// Success
 				return $this->success('entry_created');

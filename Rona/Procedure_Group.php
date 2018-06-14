@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona;
@@ -83,10 +83,10 @@ class Procedure_Group extends Module_Extension {
 	}
 
 	/**
-	 * Execute a procedure's callback, with the processed input passed in instead of being run thru param exam.
+	 * Execute a procedure's callback, with the processed input passed in instead of being run through param exam.
 	 *
 	 * @param  string         $procedure_name   The procedure name.
-	 * @param  array          $processed_input  Input that has already been run thru param exam.
+	 * @param  array          $processed_input  Input that has already been run through param exam.
 	 * @return Response
 	 */
 	public function execute(string $procedure_name, array $processed_input = []): Procedure_Response {

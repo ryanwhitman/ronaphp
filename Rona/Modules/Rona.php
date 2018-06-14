@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
  * @license https://opensource.org/licenses/MIT
  * @link https://github.com/RyanWhitman/ronaphp
- * @version 1.4.0
+ * @version 1.5.0
  */
 
 namespace Rona\Modules;
@@ -51,6 +51,20 @@ class Rona extends \Rona\Module {
 		 */
 		$this->register_route()->get('/' . $this->config('route_base') . '/deploy', function($http_request, $route, $scope, $http_response) {
 			$this->get_app()->run_hook('rona_deploy');
+		});
+
+		/**
+		 * 404 no-route handler - webapp
+		 */
+		$this->register_no_route()->all($this->app_config('webapp_pattern'), function($http_request, $route, $scope, $http_response) {
+			$http_response->set_body('That page was not found.');
+		});
+
+		/**
+		 * 404 no-route handler - API
+		 */
+		$this->register_no_route()->all($this->app_config('api_pattern'), function($http_request, $route, $scope, $http_response) {
+			$http_response->api()->set('That API call was not found.');
 		});
 	}
 }
