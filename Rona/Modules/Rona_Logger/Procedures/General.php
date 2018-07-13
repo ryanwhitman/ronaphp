@@ -27,7 +27,7 @@ class General extends \Rona\Procedure_Group {
 			function($param_exam, $raw_input) {},
 			function($input) {
 
-				// Open DB connection.
+				// Get mysqli DB connection.
 				$mysqli = $this->get_module_resource('rona', 'db')->mysqli;
 
 				// Determine the current DB version. If this is a new install, the DB version will remain at 0.
@@ -60,9 +60,6 @@ class General extends \Rona\Procedure_Group {
 					}
 				}
 
-				// Close DB connection.
-				$mysqli->close();
-
 				// Success
 				return $this->success('deployment_successful');
 			}
@@ -77,10 +74,10 @@ class General extends \Rona\Procedure_Group {
 			},
 			function($input) {
 
-				// Open DB connection.
+				// Get mysqli DB connection.
 				$mysqli = $this->get_module_resource('rona', 'db')->mysqli;
 
-				// Start transaction.
+				// Start a transaction.
 				$mysqli->query("START TRANSACTION;");
 
 				// Get the entries.
@@ -164,11 +161,8 @@ class General extends \Rona\Procedure_Group {
 					$this->config('email_report.email_handler')($from, $subject, $body);
 				}
 
-				// End transaction.
+				// Commit the transaction.
 				$mysqli->query("COMMIT;");
-
-				// Close DB connection.
-				$mysqli->close();
 
 				// Success
 				return $this->success('success');
