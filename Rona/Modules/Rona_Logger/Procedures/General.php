@@ -1,4 +1,12 @@
 <?php
+/**
+ * @package RonaPHP
+ * @author Ryan Whitman ryanawhitman@gmail.com
+ * @copyright Copyright (c) 2018 Ryan Whitman (https://ryanwhitman.com)
+ * @license https://opensource.org/licenses/MIT
+ * @link https://github.com/RyanWhitman/ronaphp
+ * @version 1.6.0
+ */
 
 namespace Rona\Modules\Rona_Logger\Procedures;
 
