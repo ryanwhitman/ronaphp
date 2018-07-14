@@ -204,17 +204,36 @@ class General extends \Rona\Param_Filter_Group {
 		 * Date
 		 */
 		$this->register('date', [
-				'output_format'	=> 'Y-m-d'
+				'min'				=> false,
+				'max'				=> false,
+				'output_format'		=> 'Y-m-d'
 			], function($val, $options) {
 
-				#** This filter needs to be modified as it basically validates anything
+				# This filter needs to be modified as it basically validates anything
 
+				// Run the value through the date function.
 				$val = date($options['output_format'], strtotime($val));
 
+				// Create a Date/Time object.
 				$dt = \DateTime::createFromFormat($options['output_format'], $val);
-				if ($dt !== false && !array_sum($dt->getLastErrors()))
-					return $this->valid($val);
 
+				// Ensure the Date/Time object is valid and that the date meets the min/max limits.
+				if (
+					$dt !== false &&
+					!array_sum($dt->getLastErrors()) &&
+					(
+						$options['min'] === false ||
+						strtotime($val) >= strtotime($options['min'])
+					) &&
+					(
+						$options['max'] === false ||
+						strtotime($val) <= strtotime($options['max'])
+					)
+				) {
+					return $this->valid($val);
+				}
+
+				// The value is invalid.
 				return $this->invalid('invalid_date');
 			}
 		);
