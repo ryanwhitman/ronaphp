@@ -16,6 +16,15 @@ namespace Rona\Modules;
 class Rona extends \Rona\Module {
 
 	/**
+	 * The Rona DB object.
+	 *
+	 * @var \Rona\Modules\Rona\Resources\Db
+	 *
+	 * @todo This variable is being created so that a new DB object does not get created every time the DB resource is requested. Establish a system that allows other resources to utilize a previously-created object instead of creating a new object each time.
+	 */
+	protected $db;
+
+	/**
 	 * @see parent class
 	 */
 	protected function register_config() {
@@ -29,8 +38,21 @@ class Rona extends \Rona\Module {
 	 */
 	public function register_resources() {
 		$this->register_resource('helper', '\\' . __CLASS__ . '\Resources\Helper');
-		$this->register_resource('db', function() {
-			return new \Rona\Modules\Rona\Resources\Db($this->app_config('db.host'), $this->app_config('db.username'), $this->app_config('db.password'), $this->app_config('db.name'));
+		$this->register_resource('db', function(\Rona\Module $module, bool $new_connection = false) {
+
+			// Instantiate a new Rona DB object when any of the below conditions are met. Otherwise, the existing DB object will be utilized, which should amount to fewer DB connections (so long as the developer does not run $mysqli->close()).
+			if (
+				$new_connection ||
+				!is_object($this->db) ||
+				!is_object($this->db->mysqli) ||
+				$this->db->mysqli->connect_errno ||
+				@!$this->db->mysqli->ping()
+			) {
+				$this->db = new \Rona\Modules\Rona\Resources\Db($this->app_config('db.host'), $this->app_config('db.username'), $this->app_config('db.password'), $this->app_config('db.name'));
+			}
+
+			// Return the Rona DB object.
+			return $this->db;
 		});
 	}
 
