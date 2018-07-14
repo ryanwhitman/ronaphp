@@ -87,6 +87,36 @@ class General extends \Rona\Param_Filter_Group {
 		});
 
 		/**
+		 * Numeric
+		 */
+		$this->register('numeric', [
+			'min'	=> false,
+			'max'	=> false
+		], function($val, $options) {
+
+			// Trim the value.
+			$val = trim($val);
+
+			// Ensure the value is numeric and is of the correct min/max limits.
+			if (
+				is_numeric($val) &&
+				(
+					$options['min'] === false ||
+					$val >= $options['min']
+				) &&
+				(
+					$options['max'] === false ||
+					$val <= $options['max']
+				)
+			) {
+				return $this->valid($val);
+			}
+
+			// The value is invalid.
+			return $this->invalid('invalid_numeric');
+		});
+
+		/**
 		 * String
 		 */
 		$this->register('string', [
